@@ -10,36 +10,40 @@
     "lint": "oxlint"
   },
   "dependencies": {
+    "@ai-sdk/react": "^4.0.54",
+    "@openrouter/ai-sdk-provider": "^3.0.0",
+    "@paper-design/shaders-react": "0.0.78",
+    "ai": "^7.0.51",
+    "class-variance-authority": "^0.7.1",
     "cnfast": "^0.1.0",
+    "flexsearch": "^0.8.212",
     "fumadocs-core": "16.14.1",
     "fumadocs-mdx": "15.2.2",
     "fumadocs-ui": "npm:@fumadocs/base-ui@16.14.1",
+    "hast-util-to-jsx-runtime": "^2.3.6",
     "lucide-react": "^1.28.0",
+    "mermaid": "^11.16.1",
     "next": "16.3.0",
+    "next-themes": "^0.4.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "flexsearch": "^0.8.212",
-    "@openrouter/ai-sdk-provider": "^3.0.0",
-    "ai": "^7.0.51",
-    "zod": "^4.4.3",
-    "@ai-sdk/react": "^4.0.54",
-    "class-variance-authority": "^0.7.1",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "remark-rehype": "^11.1.2",
-    "hast-util-to-jsx-runtime": "^2.3.6",
-    "unist-util-visit": "^5.1.0"
+    "unist-util-visit": "^5.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/hast": "^3.0.5",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.1.2",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "oxlint": "^1.77.0",
     "postcss": "^8.5.25",
     "tailwindcss": "^4.3.3",
-    "typescript": "^6.0.3",
-    "oxlint": "^1.77.0",
-    "@types/hast": "^3.0.5"
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^6.0.3"
   }
 }

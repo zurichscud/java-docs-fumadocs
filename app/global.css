@@ -1,6 +1,56 @@
 @import 'tailwindcss';
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
+@plugin 'tailwindcss-animate';
+
+@theme {
+  --spacing-page: 1436px;
+  --color-brand: hsl(26, 73%, 51%);
+  --color-brand-foreground: white;
+  --color-brand-secondary: #c6bb58;
+  --color-brand-secondary-foreground: #97890c;
+  --color-brand-200: hsl(33, 100%, 50%);
+  --color-landing-foreground: #59592a;
+  --color-landing-foreground-200: #a8a866;
+  --color-landing-foreground-dark: #e4e2d0;
+}
+
+@theme inline {
+  --default-font-family: var(--font-sans);
+  --default-mono-font-family: var(--font-mono);
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+
+  @keyframes marquee-vertical {
+    from {
+      transform: translateY(0);
+    }
+
+    to {
+      transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+}
+
+.dark {
+  --color-landing-foreground: #e4e2d0;
+  --color-landing-foreground-200: #b7af7e;
+  --color-brand: #fff383;
+  --color-brand-secondary: #fc7744;
+  --color-brand-secondary-foreground: #521700;
+  --color-brand-foreground: black;
+  --color-brand-200: #fff7c8;
+}
 
 html {
   scrollbar-gutter: stable;
@@ -9,4 +59,8 @@ html {
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
+}
+
+body {
+  background-color: var(--color-fd-background);
 }

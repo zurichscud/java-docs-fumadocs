@@ -1,0 +1,17 @@
+{
+  "title": "Spring Security",
+  "icon": "PanelsTopLeft",
+  "root": true,
+  "pages": [
+    "filter-chain",
+    "configuration",
+    "security-context",
+    "custom-exception-handling",
+    "---authentication---",
+    "authentication",
+    "---authorization---",
+    "authorization",
+    "reference",
+    "API"
+  ]
+}

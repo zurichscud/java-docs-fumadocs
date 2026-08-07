@@ -1,0 +1,7 @@
+{
+  "pages": [
+    "authentication-flow",
+    "session-authentication",
+    "jwt-authentication"
+  ]
+}

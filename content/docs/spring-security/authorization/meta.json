@@ -1,0 +1,9 @@
+{
+  "pages": [
+    "authorization-flow",
+    "url-level-authorization",
+    "method-level-authorization",
+    "custom-authorization",
+    "RBAC"
+  ]
+}

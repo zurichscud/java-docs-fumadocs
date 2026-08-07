@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "Authentication",
+    "AuthenticationManager",
+    "AuthenticationProvider",
+    "FilterSecurityInterceptor",
+    "GrantedAuthority",
+    "HttpSecurity",
+    "PasswordEncoder",
+    "SecurityContext",
+    "SecurityContextHolder",
+    "UserDetails",
+    "UserDetailsService"
+  ]
+}

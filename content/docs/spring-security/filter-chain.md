@@ -1,0 +1,99 @@
+---
+title: 过滤器链
+---
+
+
+
+
+
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 用户/客户端
+    participant FilterChainProxy as SecurityFilterChainProxy
+    participant SessionFilter as SecurityContextHolderFilter
+    participant LoginFilter as UsernamePassword<br>AuthenticationFilter
+    participant AnonFilter as AnonymousAuthenticationFilter
+    participant ExceptionFilter as ExceptionTranslationFilter
+    participant AuthFilter as AuthorizationFilter<br>(FilterSecurityInterceptor)
+    participant Controller as Controller (业务代码)
+
+    User ->> FilterChainProxy: 1. 发送非登录接口请求 (如 /api/goods)
+    
+    rect rgb(240, 248, 255)
+        note right of FilterChainProxy: 过滤器链内部流转
+        FilterChainProxy ->> SessionFilter: 2. 尝试恢复上下文
+        SessionFilter -->> LoginFilter: 3. 未找到或已恢复，放行
+        
+        note right of LoginFilter: 不是 /login 请求
+        LoginFilter ->> LoginFilter: 4. URL不匹配，不作处理直接放行
+        LoginFilter -->> AnonFilter: 5. 流转到下一个
+    end
+
+    rect rgb(245, 245, 220)
+        note right of AnonFilter: 匿名身份兜底
+        alt SecurityContext 此时为空 (未登录)
+            AnonFilter ->> AnonFilter: 6. 创建 AnonymousAuthenticationToken 并存入上下文
+        else SecurityContext 已有身份 (已登录)
+            AnonFilter ->> AnonFilter: 略过，不覆盖已有身份
+        end
+        AnonFilter -->> ExceptionFilter: 7. 放行
+    end
+
+    rect rgb(255, 240, 245)
+        note right of ExceptionFilter: 异常捕获层
+        ExceptionFilter ->> AuthFilter: 8. 进入鉴权过滤器
+    end
+
+    rect rgb(240, 255, 240)
+        note right of AuthFilter: 最终权限判定
+        alt 接口允许匿名 (permitAll) 或 权限匹配成功
+            AuthFilter ->> Controller: 9. 放行
+            Controller -->> User: 10. 返回 200 业务数据
+        else 接口要求登录 (authenticated) 但当前是匿名 Token
+            AuthFilter -->> ExceptionFilter: 11. 抛出拦截异常
+            ExceptionFilter -->> User: 12. 触发 EntryPoint 返回 401/403
+        end
+    end
+```
+
+
+
+对于**非登录接口**（即普通受保护的业务接口，如 `/api/user/profile`），Spring Security 的核心任务不再是“辨别你是谁”（认证），而是“检查你是否已经登录”**以及**“你是否有权限访问”（鉴权）
+
+
+
+### 1.SecurityContextHolderFilter
+
+> 负责 **管理 SecurityContext 的生命周期**
+
+- 哪怕不是登录接口，Spring Security 也会在前端请求进来时，尝试去“相认”。
+- 如果是 **Session 模式**，它会从 `HttpSession` 中读取之前登录存入的认证信息。
+- 如果是 **JWT 模式**，放行至 `JwtAuthenticationFilter`解析出的用户信息封装至 `SecurityContextHolder`。
+
+### 2.UsernamePasswordAuthenticationFilter
+
+发现不是登录请求，**直接放行**。
+
+### 3.AnonymousAuthenticationFilter
+
+只有前面所有认证过滤器都没认证成功时才会执行。
+
+发现没有认证信息，将当前用户标记为 **Anonymous（匿名）**，继续放行。
+
+### 4.ExceptionTranslationFilter
+
+> 异常处理：代码结构上是一个 `try-catch` 块，它**先放行**让请求走下一个过滤器，并等待捕获异常。
+
+- 如果在第 5 步发现用户**没登录**（Context 为空），会抛出 `AuthenticationException`，系统默认或自定义的 `AuthenticationEntryPoint` 会返回 **401 状态码**。
+- 如果用户**登录了但权限不够**，会抛出 `AccessDeniedException`，由 `AccessDeniedHandler` 返回 **403 状态码**。
+
+### 5.FilterSecurityInterceptor / AuthorizationFilter
+
+> 核心鉴权拦截器,它是过滤器链的**最后一关**。
+
+它会干两件事：
+
+- **检查是否允许匿名访问**：如果该接口配置了 `.permitAll()`，则直接放行。
+- **检查权限是否匹配**：如果配置了 `.authenticated()` 或 `@PreAuthorize("hasAuthority('USER')")`，它会去 `SecurityContextHolder` 里拿出第 3 步存入的权限列表，比对当前用户是否拥有该权限。
