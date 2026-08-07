@@ -7,10 +7,10 @@
     "configuration",
     "security-context",
     "custom-exception-handling",
-    "---authentication---",
-    "authentication",
-    "---authorization---",
-    "authorization",
+    "---认证---",
+    "...authentication",
+    "---鉴权---",
+    "...authorization",
     "reference",
     "API"
   ]

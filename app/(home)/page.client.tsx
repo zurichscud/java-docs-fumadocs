@@ -86,7 +86,7 @@ export function Hero() {
           minPixelRatio={1}
         />
       )}
-      <Image
+      {/* <Image
         ref={ref}
         src={HeroImage}
         alt="hero-image"
@@ -96,7 +96,7 @@ export function Hero() {
         )}
         onLoad={() => setImageReady(true)}
         priority
-      />
+      /> */}
     </>
   );
 }

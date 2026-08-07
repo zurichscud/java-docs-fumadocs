@@ -6,7 +6,6 @@ import {
   BatteryChargingIcon,
   FileIcon,
   FileTextIcon,
-  Heart,
   SearchIcon,
   SettingsIcon,
   TerminalIcon,
@@ -22,8 +21,6 @@ import {
   Writing,
 } from '@/app/(home)/page.client';
 import ShadcnImage from './shadcn.png';
-import ContributorCounter from '@/components/contributor-count';
-import { owner, repo } from '@/lib/github';
 import StoryImage from './story.png';
 import CLIImage from './cli.png';
 import Bg2Image from './bg-2.png';
@@ -99,9 +96,7 @@ export default function Page() {
         <p className="text-2xl tracking-tight leading-snug font-light col-span-full md:text-3xl xl:text-4xl">
           Fumadocs is a <span className="text-brand font-medium">React.js</span> documentation
           framework for <span className="text-brand font-medium">Developers</span>, beautifully
-          designed by <span className="text-brand font-medium">Fuma Nama</span>. Bringing powerful
-          features for your docs workflows, with high customizability to fit your preferences, works
-          seamlessly with any React.js framework, CMS — anything.
+          designed by <span className="text-brand font-medium">Fuma Nama</span>.
         </p>
         <div className="relative p-4 rounded-2xl col-span-full z-2 overflow-hidden md:p-8">
           <Image
@@ -134,7 +129,6 @@ export default function Page() {
             </div>
           </div>
         </div>
-        <Feedback />
         <Aesthetics />
 
         <AnybodyCanWrite />
@@ -448,60 +442,6 @@ Like headless docs to build exactly what you need.`,
   },
 ];
 
-function Feedback() {
-  return (
-    <>
-      <div className={cn(cardVariants())}>
-        <h3 className={cn(headingVariants({ variant: 'h3', className: 'mb-6' }))}>
-          A framework people love.
-        </h3>
-        <p className="mb-6">
-          Loved by teams and developers from startups like Unkey, Vercel, Orama — evolving everyday
-          to be your favourite docs framework.
-        </p>
-        <Link href="/showcase" className={cn(buttonVariants())}>
-          Showcase
-        </Link>
-      </div>
-      <div
-        className={cn(
-          cardVariants({
-            variant: 'secondary',
-            className: 'relative p-0',
-          }),
-        )}
-      >
-        <div className="absolute inset-0 z-2 inset-shadow-[0_10px_60px] inset-shadow-brand-secondary rounded-2xl" />
-        <Marquee className="p-8">
-          {feedback.map((item) => (
-            <div
-              key={item.user}
-              className="flex flex-col rounded-xl border bg-fd-card text-landing-foreground p-4 shadow-lg w-[320px]"
-            >
-              <p className="text-sm whitespace-pre-wrap">{item.message}</p>
-
-              <div className="mt-auto flex flex-row items-center gap-2 pt-4">
-                <Image
-                  src={item.avatar}
-                  alt="avatar"
-                  width="32"
-                  height="32"
-                  unoptimized
-                  className="size-8 rounded-full"
-                />
-                <div>
-                  <p className="text-sm font-medium">{item.user}</p>
-                  <p className="text-xs text-fd-muted-foreground">{item.role}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </Marquee>
-      </div>
-    </>
-  );
-}
-
 function ForEngineers() {
   return (
     <>
@@ -796,37 +736,6 @@ function OpenSource() {
         Open Source Forever.
       </h2>
 
-      <div className={cn(cardVariants({ className: 'flex flex-col' }))}>
-        <Heart fill="currentColor" className="text-pink-500 mb-4" />
-        <h3
-          className={cn(
-            headingVariants({
-              variant: 'h3',
-              className: 'mb-6',
-            }),
-          )}
-        >
-          Made Possible by You.
-        </h3>
-        <p className="mb-8">Fumadocs is 100% powered by passion and open source community.</p>
-        <div className="mb-8 flex flex-row items-center gap-2">
-          <a
-            href="https://fuma-nama.dev/sponsors"
-            rel="noreferrer noopener"
-            className={cn(buttonVariants({ variant: 'primary' }))}
-          >
-            Sponsors
-          </a>
-          <a
-            href="https://github.com/fuma-nama/fumadocs/graphs/contributors"
-            rel="noreferrer noopener"
-            className={cn(buttonVariants({ variant: 'secondary' }))}
-          >
-            Contributors
-          </a>
-        </div>
-        <ContributorCounter repoOwner={owner} repoName={repo} />
-      </div>
       <div
         className={cn(
           cardVariants({
