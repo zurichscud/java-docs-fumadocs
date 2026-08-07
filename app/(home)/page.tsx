@@ -11,7 +11,6 @@ import {
   TerminalIcon,
   TimerIcon,
 } from 'lucide-react';
-import { Marquee } from '@/app/(home)/marquee';
 import { ServerCodeBlock } from 'fumadocs-ui/components/codeblock.rsc';
 import {
   Hero,
@@ -67,10 +66,7 @@ export default function Page() {
     <main className="text-landing-foreground pt-4 pb-6 dark:text-landing-foreground-dark md:pb-12">
       <div className="relative flex min-h-[600px] h-[70vh] max-h-[900px] border rounded-2xl overflow-hidden mx-auto w-full max-w-[1400px] bg-origin-border">
         <Hero />
-        <div className="flex flex-col z-2 px-4 size-full md:p-12 max-md:items-center max-md:text-center">
-          <p className="mt-12 text-xs text-brand font-medium rounded-full p-2 border border-brand/50 w-fit">
-            the React.js docs framework you love.
-          </p>
+        <div className="flex flex-col z-2 px-4 mt-12 size-full md:p-12 max-md:items-center max-md:text-center">
           <h1 className="text-4xl my-8 leading-tighter font-medium xl:text-5xl xl:mb-12">
             Build excellent
             <br className="md:hidden" /> documentation,
@@ -410,37 +406,6 @@ export async function DataView() {
     />
   );
 }
-
-const feedback = [
-  {
-    avatar: 'https://avatars.githubusercontent.com/u/124599',
-    user: 'shadcn',
-    role: 'Creator of Shadcn UI',
-    message: `You know how you end up rebuilding a full docs site every time you start a new project?
-
-Fumadocs fixes this by giving you all the right blocks that you compose together.
-
-Like headless docs to build exactly what you need.`,
-  },
-  {
-    avatar: 'https://avatars.githubusercontent.com/u/35677084',
-    user: 'Anthony Shew',
-    role: 'Turbo DX at Vercel',
-    message: `Major shoutout to @fuma_nama for making fumadocs, a gorgeous documentation framework that composes beautifully into the App Router.`,
-  },
-  {
-    user: 'Aiden Bai',
-    avatar: 'https://avatars.githubusercontent.com/u/38025074',
-    role: 'Creator of Million.js',
-    message: 'fumadocs is the best Next.js docs framework',
-  },
-  {
-    avatar: 'https://avatars.githubusercontent.com/u/10645823',
-    user: 'David Blass',
-    role: 'Creator of Arktype',
-    message: `I'd have no shot building @arktypeio docs that looked half this good without it 😍`,
-  },
-];
 
 function ForEngineers() {
   return (

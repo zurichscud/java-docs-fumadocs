@@ -18,7 +18,6 @@ import MainImg from './main.png';
 import OpenAPIImg from './openapi.png';
 import NotebookImg from './notebook.png';
 import { cva } from 'class-variance-authority';
-import HeroImage from './hero-preview.jpeg';
 import { useTheme } from 'next-themes';
 import dynamic from 'next/dynamic';
 
@@ -41,7 +40,6 @@ export function Hero() {
   const ref = useRef<HTMLImageElement | null>(null);
   const visible = useIsVisible(ref);
   const [showShaders, setShowShaders] = useState(false);
-  const [imageReady, setImageReady] = useState(false);
 
   useEffect(() => {
     // apply some delay, otherwise on slower devices, it errors with uniform images not being fully loaded.
