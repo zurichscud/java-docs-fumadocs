@@ -5,7 +5,6 @@ title: 请求上下文
 
 **在 Spring Security 的默认设计中，每个请求都会有一个对应的 `SecurityContext`**。
 
-但要注意：**每个请求有一个 Context，不代表每个请求都有登录用户。**
 
 SecurityContext的创建是由SecurityContextHolderFilter管理的
 
