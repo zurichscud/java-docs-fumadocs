@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.54",
+    "@base-ui/react": "^1.7.0",
+    "@fuma-translate/react": "^1.0.2",
+    "@fumadocs/base-ui": "^16.14.3",
     "@openrouter/ai-sdk-provider": "^3.0.0",
     "@paper-design/shaders-react": "0.0.78",
     "ai": "^7.0.51",
