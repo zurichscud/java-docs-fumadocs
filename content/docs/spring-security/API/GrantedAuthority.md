@@ -1,11 +1,12 @@
 ---
 title: GrantedAuthority
+description: 已授予的权限
+
 ---
 
-
-`GrantedAuthority`（已授予的权限）是 Spring Security 中**用来表示用户拥有什么“权限”或“角色”的核心接口**。
-
 ## 定义
+
+Spring Security 中**用来表示用户拥有什么“权限”或“角色”的核心接口**。
 
 ```java
 public interface GrantedAuthority extends Serializable {

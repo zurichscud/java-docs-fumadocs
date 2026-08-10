@@ -52,7 +52,7 @@ if (loginUser.getUser().isAdmin()) {
 
 
 
-### 自定义鉴权方法
+## 自定义鉴权方法
 
 在 Spring Security 的 `@PreAuthorize` 注解中，`@` 符号用来引用 Spring 容器中的 Bean
 

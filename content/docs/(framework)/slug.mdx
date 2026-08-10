@@ -1,0 +1,75 @@
+---
+title: Page Slug
+description: Page Slugs（页面 Slug） 是指网页 URL 中用于标识某个页面的可读字符串部分，通常是 URL 的最后一段。
+---
+
+## usage
+
+像 Fumadocs、VitePress、Docusaurus 这类文档框架大量使用 slug。
+
+例如目录：
+
+```
+content/
+├── docs/
+│   ├── introduction.mdx
+│   ├── installation.mdx
+│   └── configuration.mdx
+```
+
+可能生成：
+
+```
+/docs/introduction
+/docs/installation
+/docs/configuration
+```
+
+slog：
+
+```
+introduction
+installation
+configuration
+```
+
+
+## slog 命名规范
+
+- 小写
+
+```
+GettingStarted
+```
+
+↓
+
+```
+getting-started
+```
+
+
+
+- 空格变短横线
+
+```
+Vue 3 Tutorial
+```
+
+↓
+
+```
+vue-3-tutorial
+```
+
+- 去除特殊字符
+
+
+``` java
+
+Hello, World!
+```
+
+```java
+hello-world
+```

@@ -1,5 +1,6 @@
 ---
 title: 认证（JWT）
+
 ---
 
 
@@ -11,13 +12,11 @@ title: 认证（JWT）
 
 我们可以参考SpringSecurity的UsernamePasswordAuthenticationFilter设计我们的登录接口。
 
-我们可以设计一个登录接口代替UsernamePasswordAuthenticationFilter，但两者的思路是相同的
-
 
 
 ## 登录接口
 
-不要使用 Spring Security 默认的登录表单过滤器，直接在 Controller 中写一个 API 接收 JSON 参数：
+不要使用 Spring Security 默认的登录表单过滤器，直接在 Controller 中写一个 登录接口 ：
 
 ```java
 @RestController
@@ -211,4 +210,4 @@ public class AuthController {
 
 每个请求都有其自己独立的`SecurityContextHolder`，当这个请求处理完毕，`SecurityContextHolderFilter` 会**自动**将这个请求的`SecurityContextHolder`清空
 
-因此，我们“不需要”也“无法”通过在注销接口中删除 `SecurityContextHolder` 来影响后续请求。
+因此，我们不需要也无法通过在注销接口中删除 `SecurityContextHolder` 来影响后续请求。

@@ -11,6 +11,8 @@
     "...authentication",
     "---鉴权---",
     "...authorization",
+    "---OAuth2---",
+    "...oauth2",
     "reference",
     "API"
   ]

@@ -1,9 +1,7 @@
 ---
 title: UserDetailsService
+description: 查询用户
 ---
-
-
-> 查询用户
 
 ```java
 package com.example.security;

@@ -1,0 +1,130 @@
+---
+title: OAuth2 角色
+description: OAuth2（OAuth 2.0）中有 4 个核心角色
+---
+
+## 4个核心角色
+
+### Resource Owner（资源所有者）
+
+资源的拥有者，通常就是用户。
+
+资源所有者决定：是否允许客户端访问自己的资源。
+
+### Client（客户端）
+
+想访问资源的应用程序。
+
+<Callout title="注意">
+
+这里的 Client 不是浏览器客户端，而是：请求资源的第三方应用。例如商城是由前端和后端组成，这两个部分共同构成了 Client。
+
+</Callout>
+
+
+### Authorization Server（授权服务器）
+
+负责颁发 Access Token 的服务器。
+
+授权服务器负责：
+1. 验证身份：判断这个人是不是资源拥有者 
+2. 颁发 Access Token
+
+
+### Resource Server（资源服务器）
+
+真正存放资源的服务器。
+
+资源服务器负责：
+
+1. 接收 Access Token
+2. 验证 Token
+3. 返回资源
+
+## 认证流程
+
+
+| OAuth角色              | 微信登录中的角色 |
+| -------------------- | -------- |
+| Resource Owner       | 微信用户     |
+| Client               | 你的商城     |
+| Authorization Server | 微信开放平台   |
+| Resource Server      | 微信用户信息接口 |
+
+<Steps>
+
+<Step>
+
+### 选择第三方认证
+
+用户点击客户端提供的微信登录认证
+
+</Step>
+
+<Step>
+
+### 引导授权
+
+客户端（前端）将用户重定向到授权服务器的授权页面。
+
+例如跳转微信
+
+</Step>
+
+<Step>
+
+### 用户授权
+
+如果用户已经登录微信，授权服务器会询问用户是否同意：允许商城获取头像昵称
+
+如果用户未登录微信，需要先登录微信
+
+</Step>
+
+<Step>
+
+### 发放授权码
+
+授权服务器重定向回客户端预设的 redirect_uri，并在 URL 中附带临时授权码 code。
+
+例如同意后微信将返回`authorization_code`
+
+</Step>
+
+<Step>
+
+### 颁发令牌
+
+客户端后端（出于安全考虑，必须由后端发起）将 code、客户端 ID 和密钥发送给授权服务器。
+
+授权服务器验证无误后，返回 `access_token`
+
+</Step>
+
+<Step>
+
+### 访问资源
+
+客户端后端使用 `access_token` 向资源服务器请求受保护数据。
+
+商城访问微信API：
+
+```http
+GET /userinfo
+
+Authorization:
+Bearer access_token
+```
+
+微信资源服务器返回：
+
+```json
+{
+ "openid":"xxx",
+ "nickname":"张三"
+}
+```
+
+</Step>
+
+</Steps>

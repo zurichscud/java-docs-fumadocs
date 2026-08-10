@@ -19,21 +19,39 @@ title: 鉴权流程
 
 ## 鉴权的核心执行流程
 
+<Steps>
 
+<Step>
 
-**1. 拦截请求 (AuthorizationFilter):** Filter 链最后一环.
+**拦截请求（AuthorizationFilter）**
 
-请求到达 `AuthorizationFilter`（ `FilterSecurityInterceptor`）。
+Filter 链最后一环。请求到达 `AuthorizationFilter`（`FilterSecurityInterceptor`）。
 
-**2. 获取用户上下文 (SecurityContext):**提取权限信息.
+</Step>
+
+<Step>
+
+**获取用户上下文（SecurityContext）**
 
 从 `SecurityContextHolder` 中取出当前的 `Authentication` 对象，拿到用户的权限列表 `getAuthorities()`。
 
-**3. 访问决策 (AuthorizationManager):**核心判定逻辑.
+</Step>
+
+<Step>
+
+**访问决策（AuthorizationManager）**
 
 将用户权限与当前接口配置的权限要求（如 `hasRole('ADMIN')` 或 `hasAuthority('sys:user:delete')`）进行比对。
 
-**4. 结果处理:**放行或抛出异常.
+</Step>
+
+<Step>
+
+**结果处理**
 
 - **通过：** 触发 `FilterChain.doFilter()`，请求放行到 Controller。
 - **拒绝：** 抛出异常并返回 HTTP 403。
+
+</Step>
+
+</Steps>
