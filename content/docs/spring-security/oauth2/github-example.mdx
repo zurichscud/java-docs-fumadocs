@@ -3,5 +3,226 @@ title: GitHub Example
 description: An example of using GitHub as an OAuth2 provider.
 
 ---
+所谓第三方登录，实质就是 OAuth 授权。用户想要登录 A 网站，A 网站让用户提供第三方网站的数据，证明自己的身份。获取第三方网站的身份数据，就需要 OAuth 授权。
 
 
+```
+A 网站让用户跳转到 GitHub。
+GitHub 要求用户登录，然后询问"A 网站要求获得 xx 权限，你是否同意？"
+用户同意，GitHub 就会重定向回 A 网站，同时发回一个授权码。
+A 网站使用授权码，向 GitHub 请求令牌。
+GitHub 返回令牌.
+A 网站使用令牌，向 GitHub 请求用户数据。
+
+```
+
+## 应用登记
+
+一个应用要求 OAuth 授权，必须先到对方网站登记，让对方知道是谁在请求。所以，你要先去 GitHub 登记一下。
+
+
+### Authorization callback URL
+
+Authorization callback URL 是 OAuth2 中非常重要的一个概念，它本质上就是 redirect_uri（重定向 URI）。
+
+在 GitHub OAuth 中，Authorization callback URL 指的是：用户在 GitHub 授权成功后，GitHub 将浏览器重定向回你的应用的地址。
+
+<Callout title="注意">
+不是 GitHub 服务器调用你的接口，是用户浏览器访问你的 callback：
+
+```
+GitHub
+ |
+ | 返回302响应
+ |
+ v
+
+浏览器
+
+ |
+ | 浏览器发起GET请求
+ |
+ v
+
+你的 Authorization callback URL
+```
+
+</Callout>
+
+## 浏览器跳转GitHub
+
+
+客户端前端只调用自己后端的 OAuth 入口，第三方授权 URL 完全交给后端管理。后端根据参数生成跳转至GitHub的重定向地址跳转。
+
+```java
+
+    @GetMapping("/oauth/github/authorize")
+    public RedirectView authorize() {
+        String state = oauthStateService.createState();
+        return new RedirectView(gitHubOAuthService.createAuthorizationUrl(state));
+    }
+
+```
+
+<Accordions type="single">
+  <Accordion title="OAuth认证的地址是在前端拼接的，还是后端拼接的?">
+  前端只负责跳转到“自己系统的 OAuth 入口”，真正的第三方 OAuth URL 由后端生成。
+  ``` js
+window.location.assign(
+  "https://api.example.com/oauth/github/authorize"
+)
+```
+
+前端只知道你的业务接口：/oauth/github/authorize。
+
+```java
+@GetMapping("/oauth/github/authorize")
+public RedirectView authorize() {
+
+    String url =
+        "https://github.com/login/oauth/authorize"
+        + "?client_id=" + clientId
+        + "&redirect_uri=" + redirectUri
+        + "&scope=user";
+
+    return new RedirectView(url);
+}
+```
+原因如下：
+
+1. 虽然 OAuth 的 `client_id` 本身不是密码，但企业通常不希望认证逻辑散落在前端。
+
+2. 企业通常支持多个 OAuth 提供商（GitHub、Gitee、微信、钉钉等），后端可以统一管理
+
+3. OAuth 还有很多参数一般由后端生成：
+```java
+state
+scope
+nonce
+code_challenge(PKCE)
+```
+
+   这些信息都应该由后端统一管理，而不是前端硬编码。
+  </Accordion>
+
+  <Accordion title="OAuth认证的地址有没有前端拼接?">
+有。例如纯前端 SPA：
+```
+浏览器
+ |
+ | 拼接 GitHub OAuth URL
+ |
+GitHub
+ |
+callback
+ |
+前端
+```
+  </Accordion>
+
+<Accordion title="redirect_uri可以不传吗？">
+可以不传，GitHub将使用注册APP时Authorization callback URL生成重定向地址
+</Accordion>
+
+<Accordion title="redirect_uri可以传其他值吗？">
+不可以，如果和Authorization callback URL不同，GitHub将会出现安全风险页面，而不会引导至授权页面
+</Accordion>
+
+</Accordions>
+
+
+```http
+https://github.com/login/oauth/authorize?
+  client_id=7e015d8ce32370079895&
+  redirect_uri=http://localhost:8080/oauth/redirect
+```
+
+这个 URL 指向 GitHub 的 OAuth 授权网址，带有两个参数：client_id告诉 GitHub 谁在请求，redirect_uri是稍后跳转回来的网址。
+
+
+## 授权码换取Token
+
+用户同意后，GitHub将会引导浏览器重定向至`redirect_uri`，并带有授权码code
+
+```java
+    @GetMapping("/oauth/redirect")
+    public RedirectView redirect(String code, String state, String error) {
+
+        System.out.println("访问了redirect：" + code);
+        if (error != null || code == null || !oauthStateService.consumeState(state)) {
+            return frontendRedirect("error");
+        }
+
+        try {
+            GitHubUserVO user = gitHubOAuthService.getGitHubUser(code);
+            staticTokenAuthenticationService.authenticate(user);
+            return frontendRedirect("success");
+        } catch (RuntimeException exception) {
+            System.out.println(exception.getMessage());
+            return frontendRedirect("error");
+        }
+    }
+```
+
+浏览器请求`redirect_uri`后，后端接口将获得code，并根据code向GitHub换取Token
+
+```java
+
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("client_id", properties.clientId());
+        form.add("client_secret", properties.clientSecret());
+        form.add("code", authorizationCode);
+
+        System.out.println("请求了GitHub地址"+form.get("redirect_uri"));
+
+        GitHubTokenResponse token = restClient.post()
+                .uri(TOKEN_ENDPOINT)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .body(form)
+                .retrieve()
+                .body(GitHubTokenResponse.class);
+
+        if (token == null || token.accessToken() == null || token.accessToken().isBlank()) {
+            String reason = token == null ? "empty token response" : token.errorDescription();
+            throw new OAuthException("GitHub authorization code exchange failed: " + reason);
+        }
+
+```
+
+<Accordions type="single">
+  <Accordion title="redirect_uri可以不传吗">
+
+    可以不传，GitHub将使用注册APP时登记的URL进行OAuth校验：
+    
+    根据OAuth标准，如果第一次的redirect_uri和第二次的redirect_uri相同，则OAuth2授权通过
+
+  </Accordion>
+
+  <Accordion title="redirect_uri可以和第一次不同吗">
+  如果和第一次的`redirect_uri`不同，换取Token将失败：
+  ```java
+  The redirect_uri MUST match the registered callback URL for this application.
+  ```
+  </Accordion>
+
+</Accordions>
+
+
+## 获取用户信息
+
+得到了Token，我们就可以访问GitHub为我们提供的接口，获取用户信息：
+
+```java
+        GitHubUserResponse user = restClient.get()
+                .uri(USER_ENDPOINT)
+                .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token.accessToken())
+                .retrieve()
+                .body(GitHubUserResponse.class);
+
+        if (user == null || user.id() == null || user.login() == null) {
+            throw new OAuthException("GitHub user profile response is incomplete");
+        }
+
+```

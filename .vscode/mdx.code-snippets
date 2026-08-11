@@ -1,0 +1,52 @@
+{
+  "Callout": {
+    "scope": "mdx",
+    "prefix": "callout",
+    "description": "插入 Fumadocs Callout",
+    "body": [
+      "<Callout title=\"${1}\">",
+      "",
+      "${2}",
+      "",
+      "</Callout>$0"
+    ]
+  },
+  "Tabs": {
+    "scope": "mdx",
+    "prefix": "tabs",
+    "description": "插入 Fumadocs Tabs",
+    "body": [
+      "<Tabs items={['${1}']}>",
+      "  <Tab>",
+      "",
+      "    ${2}",
+      "",
+      "  </Tab>",
+      "</Tabs>$0"
+    ]
+  },
+  "CodeBlock": {
+    "scope": "mdx",
+    "prefix": "codeblock",
+    "description": "插入 Fumadocs CodeBlock",
+    "body": [
+      "```$1",
+      "${2}",
+      "```$0"
+    ]
+  },
+  "Accordions": {
+    "scope": "mdx",
+    "prefix": "accordions",
+    "description": "插入 Fumadocs Accordions",
+    "body": [
+      "<Accordions type=\"single\">",
+      "  <Accordion title=\"${1}\">",
+      "",
+      "    ${2}",
+      "",
+      "  </Accordion>",
+      "</Accordions>$0"
+    ]
+  }
+}

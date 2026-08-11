@@ -10,6 +10,7 @@
     "SecurityContext",
     "SecurityContextHolder",
     "UserDetails",
-    "UserDetailsService"
+    "UserDetailsService",
+    "RedirectView"
   ]
 }

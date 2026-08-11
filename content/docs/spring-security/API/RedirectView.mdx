@@ -1,0 +1,54 @@
+---
+title: RedirectView
+description: Spring MVC 中用于返回重定向响应的一个视图类
+---
+
+Controller 不直接返回页面，而是告诉浏览器：「请你重新访问另一个 URL」。它最终会产生 HTTP 3xx 重定向响应。
+
+## Usage
+
+```java
+@Controller
+public class LoginController {
+
+    @GetMapping("/login")
+    public RedirectView login() {
+
+        return new RedirectView("https://github.com/login/oauth/authorize");
+    }
+}
+```
+
+浏览器请求：
+```http
+GET https://a.com/login
+```
+
+服务器响应：
+```http
+HTTP/1.1 302 Found
+Location: https://github.com/login/oauth/authorize
+```
+
+然后浏览器自动访问：
+```http
+https://github.com/login/oauth/authorize
+```
+
+## RedirectView 和 redirect: 字符串
+
+Spring 还有一种写法：
+
+```java
+@GetMapping("/test")
+public String test() {
+    return "redirect:/user/list";
+}
+```
+
+`redirect:/user/list`实际上会被Spring转换成RedirectView，等价于
+
+```java
+return new RedirectView("/user/list");
+```
+
