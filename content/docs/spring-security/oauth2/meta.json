@@ -1,6 +1,6 @@
 {
   "pages": [
-    "oath2-role",
+    "oauth2-basic-concepts",
     "authorization-grant",
     "github-example"
   ]
