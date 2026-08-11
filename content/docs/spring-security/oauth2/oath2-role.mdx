@@ -65,7 +65,7 @@ description: OAuth2（OAuth 2.0）中有 4 个核心角色
 
 ### 引导授权
 
-客户端（前端）将用户重定向到授权服务器的授权页面。
+客户端将用户重定向到授权服务器的授权页面。
 
 例如跳转微信
 
@@ -85,7 +85,7 @@ description: OAuth2（OAuth 2.0）中有 4 个核心角色
 
 ### 发放授权码
 
-授权服务器重定向回客户端预设的 redirect_uri，并在 URL 中附带临时授权码 code。
+授权服务器重定向回客户端预设的 `redirect_uri`，并在 URL 中附带临时授权码 `code`。
 
 例如同意后微信将返回`authorization_code`
 
@@ -95,7 +95,7 @@ description: OAuth2（OAuth 2.0）中有 4 个核心角色
 
 ### 颁发令牌
 
-客户端后端（出于安全考虑，必须由后端发起）将 code、客户端 ID 和密钥发送给授权服务器。
+客户端后端（出于安全考虑，必须由后端发起）将 授权码、客户端 ID 和密钥发送给授权服务器。
 
 授权服务器验证无误后，返回 `access_token`
 
@@ -107,7 +107,7 @@ description: OAuth2（OAuth 2.0）中有 4 个核心角色
 
 客户端后端使用 `access_token` 向资源服务器请求受保护数据。
 
-商城访问微信API：
+商城访问微信API获取用户信息：
 
 ```http
 GET /userinfo

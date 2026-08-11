@@ -1,20 +1,21 @@
 ---
-title: GitHub Example
+title: OAuth2实例：GitHub
 description: An example of using GitHub as an OAuth2 provider.
 
 ---
-所谓第三方登录，实质就是 OAuth 授权。用户想要登录 A 网站，A 网站让用户提供第三方网站的数据，证明自己的身份。获取第三方网站的身份数据，就需要 OAuth 授权。
 
+基本流程：
 
-```
-A 网站让用户跳转到 GitHub。
-GitHub 要求用户登录，然后询问"A 网站要求获得 xx 权限，你是否同意？"
-用户同意，GitHub 就会重定向回 A 网站，同时发回一个授权码。
-A 网站使用授权码，向 GitHub 请求令牌。
-GitHub 返回令牌.
-A 网站使用令牌，向 GitHub 请求用户数据。
+1. A 网站让用户跳转到 GitHub。
+2. GitHub 要求用户登录，然后询问"A 网站要求获得 xx 权限，你是否同意？"
+3. 用户同意，GitHub 就会重定向回 A 网站，同时发回一个授权码。
+4. A 网站使用授权码，向 GitHub 请求令牌。
+5. GitHub 返回令牌.
+6. A 网站使用令牌，向 GitHub 请求用户数据。
 
-```
+<Steps>
+
+<Step>
 
 ## 应用登记
 
@@ -48,6 +49,10 @@ GitHub
 ```
 
 </Callout>
+
+</Step>
+
+<Step>
 
 ## 浏览器跳转GitHub
 
@@ -139,6 +144,9 @@ https://github.com/login/oauth/authorize?
 
 这个 URL 指向 GitHub 的 OAuth 授权网址，带有两个参数：client_id告诉 GitHub 谁在请求，redirect_uri是稍后跳转回来的网址。
 
+</Step>
+
+<Step>
 
 ## 授权码换取Token
 
@@ -209,6 +217,10 @@ https://github.com/login/oauth/authorize?
 </Accordions>
 
 
+</Step>
+
+<Step>
+
 ## 获取用户信息
 
 得到了Token，我们就可以访问GitHub为我们提供的接口，获取用户信息：
@@ -226,3 +238,7 @@ https://github.com/login/oauth/authorize?
         }
 
 ```
+
+</Step>
+
+</Steps>
