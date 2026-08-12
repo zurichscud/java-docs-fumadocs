@@ -1,0 +1,294 @@
+---
+title: OAuth2实例：基于SpringSecurity实现
+description: Spring Security 已经内置了 GitHub 的 Provider 配置。只需要注册 GitHub OAuth App，然后配置客户端即可。
+---
+
+
+
+Spring Security 针对 OAuth2 提供了四个模块：
+
+<Cards>
+  <Card title="Spring Security OAuth2 Login"  description="拥有资源的人" />
+  <Card title="Spring Security OAuth2 Client"  description="请求资源的第三方应用" />
+  <Card title="Spring Security OAuth2 Resource Server" description="校验 Access Token，保护自己的 API 资源" />
+  <Card title="Spring Authorization Server" description="负责身份验证，向客户端颁发 Access Token" />
+</Cards>
+
+## 添加依赖
+
+Spring Security 的 OAuth2 Login 功能依赖于 OAuth2 Client。
+
+```xml
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-oauth2-client</artifactId>
+</dependency>
+```
+
+## 注册应用
+
+在 GitHub 创建 OAuth App：
+
+```http
+Application name: demo
+Homepage URL: http://localhost:8080
+
+Authorization callback URL:
+http://localhost:8080/login/oauth2/code/github
+```
+
+<Callout title="注意">
+  你在 GitHub
+  配置的：`http://localhost:8080/login/oauth2/code/github`，并不是你自己写的
+  Controller，而是 Spring Security 的 `OAuth2LoginAuthenticationFilter`
+  提前设置好的。因此不能随意填写
+</Callout>
+
+## 配置 application.yml
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: xxxxxxxxx
+            client-secret: xxxxxxxxx
+```
+
+因为 github 是 Spring Security 预置的 Provider，所以不需要配置：
+
+```
+authorization-uri
+token-uri
+user-info-uri
+```
+
+默认情况下 Spring Security 会提供两个重要端点：
+
+| URL                                      | 处理组件                                   | 作用            |
+| ---------------------------------------- | ------------------------------------------ | --------------- |
+| `/oauth2/authorization/{registrationId}` | `OAuth2AuthorizationRequestRedirectFilter` | 发起 OAuth 登录 |
+| `/login/oauth2/code/{registrationId}`    | `OAuth2LoginAuthenticationFilter`          | 接收 OAuth 回调 |
+
+## 配置成功回调
+
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
+
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/login").permitAll()
+                .anyRequest().authenticated()
+            )
+            .oauth2Login(Customizer.withDefaults());
+
+        return http.build();
+    }
+}
+```
+
+<Callout title="Customizer.withDefaults">
+Customizer.withDefaults 是 Spring Security 中用于表示“使用默认配置” 的一个工具方法。它本质上返回一个空的 Customizer 实现，告诉 Spring Security：
+
+我不需要额外配置这个功能，请使用默认行为。
+
+</Callout>
+
+我们也可以使用自己实现成功处理器：
+
+```java tab="SecurityConfig.java"
+.oauth2Login(oauth2 -> oauth2
+    .successHandler(customSuccessHandler)
+)
+```
+
+```java tab="CustomSuccessHandler.java"
+@Component
+public class CustomSuccessHandler
+        implements AuthenticationSuccessHandler {
+
+    @Override
+    public void onAuthenticationSuccess(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication)
+            throws IOException {
+
+        OAuth2User user =
+            (OAuth2User) authentication.getPrincipal();
+
+        String githubId =
+            user.getAttribute("id").toString();
+
+        // 处理用户信息：例如，查询数据库或注册生成JWT
+        //...
+
+        response.sendRedirect(
+            "http://localhost:3000?token=" + jwt);
+    }
+}
+```
+
+<Callout title="注意">
+
+成功回调与后端使用code换取Token在同一个请求中，因此可以获取OAuth中的所有信息。可以结合实际业务对授权信息进行处理
+
+</Callout>
+
+## 测试
+
+我们访问下面的地址登录即可
+
+```http
+http://localhost:8080/oauth2/authorization/github
+```
+
+## 参考
+
+### 修改OAuth2的授权地址
+
+Spring Security对于Provider授权地址的统一设置是：
+
+```java
+{baseUri}/{registrationId}
+```
+
+baseUri默认配置是
+
+```
+baseUri = /oauth2/authorization
+```
+
+因此最终我们需要访问：
+
+```
+/oauth2/authorization/github
+/oauth2/authorization/google
+/oauth2/authorization/gitee
+```
+
+### 添加其他的Provider
+
+Spring Security 支持多个 OAuth Provider：
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            ...
+          google:
+            ...
+          gitee:
+            ...
+```
+
+如果某个 OAuth2 提供商（Provider）不在 Spring Security 内置支持列表里，照样可以接入：
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          gitee:
+            client-id: xxx
+            client-secret: xxx
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - user_info
+
+        provider:
+          gitee:
+            authorization-uri: https://gitee.com/oauth/authorize
+            token-uri: https://gitee.com/oauth/token
+            user-info-uri: https://gitee.com/api/v5/user
+            user-name-attribute: id
+```
+
+<Callout title="user-name-attribute">
+
+user-name-attribute 用来告诉 Spring Security：
+
+从 UserInfo 接口返回的数据中，哪个字段作为当前用户的唯一标识（Principal Name）。
+
+</Callout>
+
+内置的Provider配置参考CommOauth2Provider
+
+
+### 浏览器行为概述
+
+对于一个完整的OAuth2流程，用户浏览器应该具有如下行为：
+
+<Steps>
+
+<Step>
+
+#### 跳转到 GitHub 授权页
+
+请求：用户访问 OAuth2 登录入口
+
+```http
+GET http://localhost:8081/oauth2/authorization/github
+```
+
+响应：Client 生成 GitHub 授权地址，并让浏览器跳转
+
+```http
+HTTP/1.1 302 Found
+Location: https://github.com/login/oauth/authorize?response_type=code&client_id=xxx&scope=read:user%20user:email&redirect_uri=http://localhost:8081/login/oauth2/code/github
+```
+
+</Step>
+
+<Step>
+
+#### 用户在 GitHub 上授权
+
+请求：浏览器打开 GitHub 授权页面，GitHub 验证用户身份并确认授权
+
+```http
+GET https://github.com/login/oauth/authorize?response_type=code&client_id=xxx&scope=read:user%20user:email&redirect_uri=http://localhost:8081/login/oauth2/code/github
+```
+
+响应：GitHub 重定向到回调地址
+
+```http
+HTTP/1.1 302 Found
+Location: http://localhost:8081/login/oauth2/code/github?code=yyy
+```
+
+</Step>
+
+<Step>
+
+#### Client 用 code 换取个人信息
+
+请求：发送 code 至 Client后端，换取个人信息
+
+```http
+GET http://localhost:8081/login/oauth2/code/github?code=yyy
+```
+
+响应：登录成功
+
+```http
+HTTP/1.1 302 Found
+Location: http://localhost:5173/oauth/result?status=success&token=yyy
+```
+
+</Step>
+
+</Steps>

@@ -1,7 +1,19 @@
 {
-    "title": "Web",
-    "root": true,
-    "page":[
-        "cache"
-    ]
+  "title": "Web",
+  "root": true,
+  "pages": [
+    "cache",
+    "---通用---",
+    "SSE",
+    "SSO",
+    "favicon",
+    "redirect",
+    "short-link",
+    "port",
+    "---加密---",
+    "...encryption",
+    "---安全---",
+    "...security",
+    "reference"
+  ]
 }

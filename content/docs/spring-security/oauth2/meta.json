@@ -2,6 +2,7 @@
   "pages": [
     "oauth2-basic-concepts",
     "authorization-grant",
-    "github-example"
+    "github-example",
+    "spring-security-example"
   ]
 }

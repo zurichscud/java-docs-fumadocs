@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "Authorization",
+    "Cache-Control",
+    "Cookie",
+    "CORS",
+    "CSRF",
+    "JWT",
+    "Session",
+    "gateway",
+    "hotlink-protection",
+    "request",
+    "response"
+  ]
+}
