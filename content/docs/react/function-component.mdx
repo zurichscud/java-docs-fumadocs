@@ -1,0 +1,246 @@
+---
+title: 函数组件 
+
+---
+
+React 函数组件（Function Component）本质上就是一个返回 React Element 的 JavaScript 函数
+
+
+## 必须是一个函数
+
+```jsx
+function App() {
+  return <div>Hello React</div>
+}
+```
+
+```jsx
+const App = () => {
+  return <div>Hello React</div>
+}
+```
+
+## 必须返回 React 可渲染内容
+
+函数返回值必须是 React Node：
+
+- JSX
+
+```jsx
+function App() {
+  return <div>Hello</div>
+}
+```
+
+- 字符串
+
+```jsx
+function App() {
+  return "hello"
+}
+```
+
+- 数字
+
+```jsx
+function App() {
+  return 123
+}
+```
+
+- null
+
+表示不渲染。
+
+```jsx
+function App() {
+  return null
+}
+```
+常用于条件显示：
+```jsx
+function AuthButton({login}) {
+
+  if (!login) {
+    return null
+  }
+
+  return <button>退出</button>
+}
+```
+
+## 不能直接返回普通对象
+
+错误：
+
+```jsx
+function App(){
+
+ return {
+   name:"React"
+ }
+
+}
+```
+
+因为 React 不知道如何渲染对象。
+
+
+## 组件名必须大写
+
+小写代表原生 DOM 标签，大写代表React 组件
+```jsx
+function User(){
+
+ return <div>User</div>
+
+}
+```
+
+```jsx
+<User />
+```
+
+## 参数必须接收 props（可选）
+
+函数第一个参数是 props：
+
+```jsx
+function User(props){
+
+ return (
+   <div>
+     {props.name}
+   </div>
+ )
+
+}
+```
+调用：
+```jsx
+<User name="Tom"/>
+```
+
+等价：
+
+```jsx
+User({
+ name:"Tom"
+})
+```
+
+通常使用解构：
+
+```jsx
+function User({name}){
+
+ return <div>{name}</div>
+
+}
+
+```
+
+## Hooks 只能在函数组件顶层调用
+
+正确：
+
+```jsx
+function Counter(){
+
+ const [count,setCount] = useState(0)
+
+ return (
+   <button>
+     {count}
+   </button>
+ )
+
+}
+```
+
+错误：
+
+```jsx
+function Counter(){
+
+ if(true){
+
+   const [count,setCount]=useState(0)
+
+ }
+
+}
+```
+
+## 不能是异步函数组件（普通 React）
+
+错误：
+
+```jsx
+async function App(){
+
+ const data = await fetch()
+
+ return <div/>
+
+}
+```
+
+## 不要修改外部状态
+
+推荐：
+
+```jsx
+function App(){
+
+ const count = 1
+
+ return <div>{count}</div>
+
+}
+```
+
+不推荐：
+
+```jsx
+let count=0
+
+function App(){
+
+ count++
+
+ return <div>{count}</div>
+
+}
+```
+
+
+## React 认为函数组件是纯函数
+
+理想形式：
+
+```jsx
+props
+ |
+ v
+Function Component
+ |
+ v
+React Element
+```
+
+即相同的输入，应该具有相同的输出：
+
+```jsx
+function Hello({name}){
+
+ return <h1>Hello {name}</h1>
+
+}
+```
+
+输入 `{name:"Tom"}`，应该具体相同的输出：
+
+```jsx
+<h1>Hello Tom</h1>
+```

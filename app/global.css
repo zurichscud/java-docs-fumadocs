@@ -64,3 +64,8 @@ html > body[data-scroll-locked] {
 body {
   background-color: var(--color-fd-background);
 }
+/* 删除引用前后添加的引号 */
+.prose blockquote p:first-of-type::before,
+.prose blockquote p:last-of-type::after {
+  content: none;
+}

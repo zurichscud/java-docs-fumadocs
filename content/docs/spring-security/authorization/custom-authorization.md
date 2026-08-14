@@ -73,3 +73,5 @@ public AjaxResult add(@Validated @RequestBody SysUser user) {
     return toAjax(userService.insertUser(user));
 }
 ```
+
+
