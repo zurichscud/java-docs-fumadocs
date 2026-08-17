@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "components",
+    "jsx",
+    "passing-props-to-a-component",
+    "conditional-rendering",
+    "rendering-lists",
+    "keeping-components-pure",
+    "understanding-your-ui-as-a-tree"
+  ]
+}

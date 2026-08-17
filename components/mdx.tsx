@@ -3,12 +3,16 @@ import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import type { MDXComponents } from 'mdx/types';
+import { File, Files, Folder } from './files';
 import { Mermaid } from './mermaid';
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
     ...defaultMdxComponents,
     Mermaid,
+    File,
+    Files,
+    Folder,
     Accordion,
     Accordions,
     Step,

@@ -1,6 +1,6 @@
 {
   "Callout": {
-    "scope": "mdx",
+    "scope": "mdx, markdown",
     "prefix": "callout",
     "description": "插入 Fumadocs Callout",
     "body": [
@@ -12,7 +12,7 @@
     ]
   },
   "Tabs": {
-    "scope": "mdx",
+    "scope": "mdx, markdown",
     "prefix": "tabs",
     "description": "插入 Fumadocs Tabs",
     "body": [
@@ -26,7 +26,7 @@
     ]
   },
   "CodeBlock": {
-    "scope": "mdx",
+    "scope": "mdx, markdown",
     "prefix": "codeblock",
     "description": "插入 Fumadocs CodeBlock",
     "body": [
@@ -36,7 +36,7 @@
     ]
   },
   "Accordions": {
-    "scope": "mdx",
+    "scope": "mdx, markdown",
     "prefix": "accordions",
     "description": "插入 Fumadocs Accordions",
     "body": [
@@ -47,6 +47,18 @@
       "",
       "  </Accordion>",
       "</Accordions>$0"
+    ]
+  },
+  "Files": {
+    "scope": "mdx, markdown",
+    "prefix": "files",
+    "description": "插入 Fumadocs 文件树 Files",
+    "body": [
+      "<Files>",
+      "  <Folder name=\"${1}\" defaultOpen>",
+      "    <File name=\"${2}\" />",
+      "  </Folder>",
+      "</Files>$0"
     ]
   }
 }

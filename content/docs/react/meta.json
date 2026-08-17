@@ -1,5 +1,14 @@
 {
   "title": "React",
   "icon": "PanelsTopLeft",
-  "root": true
+  "root": true,
+  "pages": [
+    "quick-start",
+    "---描述 UI---",
+    "...desc-ui",
+    "---交互---",
+    "function-component",
+    "event-listen",
+    "thinking-in-react"
+  ]
 }
