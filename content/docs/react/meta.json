@@ -7,8 +7,7 @@
     "---描述 UI---",
     "...desc-ui",
     "---交互---",
-    "function-component",
-    "event-listen",
+    "...event",
     "thinking-in-react"
   ]
 }
