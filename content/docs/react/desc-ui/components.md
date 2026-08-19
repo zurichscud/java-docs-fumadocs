@@ -2,29 +2,7 @@
 title: 组件
 ---
 
-返回语句可以全写在一行上，如下面组件中所示：
 
-```jsx
-return <img src="https://react.dev/images/docs/scientists/MK3eW3As.jpg" alt="Katherine Johnson" />;
-```
-
-
-
-但是，如果你的标签和 `return` 关键字不在同一行，则必须把它包裹在一对括号中，如下所示：
-
-```jsx
-return (
-  <div>
-    <img src="https://react.dev/images/docs/scientists/MK3eW3As.jpg" alt="Katherine Johnson" />
-  </div>
-);
-```
-
-
-
-<Callback title="警告" type="warn">
-没有括号包裹的话，任何在 return 下一行的代码都 将被忽略！
-</Callback>
 
 ## 嵌套和组织组件
 

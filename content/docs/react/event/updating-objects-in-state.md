@@ -34,23 +34,22 @@ const [position, setPosition] = useState({ x: 0, y: 0 });
 position.x = 5;
 ```
 
-然而，虽然严格来说 React state 中存放的对象是可变的，但你应该像处理数字、布尔值、字符串一样将它们视为不可变的。因此你应该替换它们的值，而不是对它们进行修改。
+
 
 ## 将 state 视为只读的
 
-换句话说，你应该 **把所有存放在 state 中的 JavaScript 对象都视为只读的**。
+虽然严格来说 React state 中存放的对象是可变的，但你应该像处理数字、布尔值、字符串一样将它们视为不可变的。因此你应该替换它们的值，而不是对它们进行修改。
 
 ```jsx
 onPointerMove={e => {
   position.x = e.clientX;
   position.y = e.clientY;
 }}
-
 ```
 
 这段代码直接修改了 [上一次渲染中](https://zh-hans.react.dev/learn/state-as-a-snapshot#rendering-takes-a-snapshot-in-time) 分配给 `position` 的对象。但是因为并没有使用 state 的设置函数，React 并不知道对象已更改。所以 React 没有做出任何响应。
 
-在这种情况下，为了真正地 [触发一次重新渲染](https://zh-hans.react.dev/learn/state-as-a-snapshot#setting-state-triggers-renders)，**你需要创建一个新对象并把它传递给 state 的设置函数**：
+在这种情况下，为了真正地触发一次重新渲染，**你需要创建一个新对象并把它传递给 state 的设置函数**：
 
 ```jsx
 onPointerMove={e => {
@@ -222,7 +221,7 @@ const [person, setPerson] = useState({
 });
 ```
 
-在 React 中，你需要将 state 视为不可变的！为了修改 `city` 的值，你首先需要创建一个新的 `artwork` 对象（其中预先填充了上一个 `artwork` 对象中的数据），然后创建一个新的 `person` 对象，并使得其中的 `artwork` 属性指向新创建的 `artwork` 对象：
+为了修改 `city` 的值，你首先需要创建一个新的 `artwork` 对象（其中预先填充了上一个 `artwork` 对象中的数据），然后创建一个新的 `person` 对象，并使得其中的 `artwork` 属性指向新创建的 `artwork` 对象：
 
 ```jsx
 const nextArtwork = { ...person.artwork, city: 'New Delhi' };

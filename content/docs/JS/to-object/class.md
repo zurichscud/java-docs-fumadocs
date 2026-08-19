@@ -33,28 +33,6 @@ alice.sayHi(); // Output: Hello, I'm Alice
 
 - Class 内部的代码默认在严格模式（`"use strict"`）下运行。
 
-## 类的继承
-
-子类通过 `extends` 继承父类。如果子类定义了 `constructor`，**必须**在访问 `this` 之前调用 `super()`。
-
-```js
-class Admin extends User {
-  constructor(name, permissions) {
-    super(name, 'Admin'); // 调用父类的 constructor(name, role)
-    this.permissions = permissions;
-  }
-
-  // 重写父类方法
-  sayHi() {
-    super.sayHi(); // 可用 super 调用父类方法
-    console.log(`Permissions: ${this.permissions.join(', ')}`);
-  }
-}
-
-const admin = new Admin('Bob', ['read', 'write']);
-admin.sayHi();
-```
-
 ## 实例成员
 
 ### 定义
@@ -191,13 +169,3 @@ console.log(c.area); // 78.5398... （像访问属性一样使用，无需加符
 
 
 
-## 与原型链的底层对应关系
-
-虽然写的是 `class`，但底层依然是 JavaScript 的原型继承：
-
-| **Class 语法**         | **底层原型对应机制**                                         |
-| ---------------------- | ------------------------------------------------------------ |
-| `class User`           | 定义构造函数 `function User() {...}`                         |
-| 类构造体内的普通方法   | 挂载在 `User.prototype` 上（所有实例共享）                   |
-| `static` 静态方法/属性 | 直接挂载在函数对象本身上，例如 `User.sayHi`                  |
-| `extends` 继承         | 建立原型链关联：`Child.prototype.__proto__ = Parent.prototype` |

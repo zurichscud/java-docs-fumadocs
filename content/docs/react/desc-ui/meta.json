@@ -1,6 +1,7 @@
 {
   "pages": [
     "components",
+    "class-components",
     "jsx",
     "passing-props-to-a-component",
     "conditional-rendering",

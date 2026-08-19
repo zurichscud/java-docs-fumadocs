@@ -1,0 +1,11 @@
+{
+  "title": "JS",
+  "icon": "PanelsTopLeft",
+  "root": true,
+  "pages": [
+    "---function---",
+    "...function",
+    "---面向对象---",
+    "...to-object"
+  ]
+}

@@ -11,10 +11,9 @@ JSX（JavaScript XML） 是 React 核心的语法扩展，它允许你在 JavaSc
 
 ## 底层机制
 
-在 React 17 之前，JSX 会被编译为 `React.createElement`；而在 React 17 及之后，它被编译为全新的 JSX 转换函数（jsx-runtime）：
+在 React 17 之前，JSX 会被编译为 `React.createElement`；而在 React 17 及之后，它被编译为全新的 JSX 转换函数（`jsx-runtime`）：
 
-
-```js tab="React16"
+```js
 // 你写的 JSX
 const element = <h1 className="title">Hello World</h1>;
 
@@ -26,7 +25,7 @@ const element = React.createElement(
 );
 ```
 
-```js tab="React17"
+```js
 // 你写的 JSX
 const element = <h1 className="title">Hello World</h1>;
 
@@ -35,7 +34,7 @@ import { jsx as _jsx } from 'react/jsx-runtime';
 const element = _jsx('h1', { className: 'title', children: 'Hello World' });
 ```
 
-## 使用JSX书写标签语言
+## 书写标签语言
 
 ### 只能返回一个根元素
 
@@ -74,26 +73,27 @@ return (
 <input type="text" />
 ```
 
-### 列表渲染
+### return 标签
 
-使用数组的 `.map()` 方法，且遍历产生的每一个节点必须包含独一无二的 `key` 属性：
+返回语句可以全写在一行上，如下面组件中所示：
 
 ```jsx
-const users = [
-  { id: 1, name: 'Alice' },
-  { id: 2, name: 'Bob' },
-];
-
-function UserList() {
-  return (
-    <ul>
-      {users.map((user) => (
-        <li key={user.id}>{user.name}</li>
-      ))}
-    </ul>
-  );
-}
+return <img src="https://react.dev/images/docs/scientists/MK3eW3As.jpg" alt="Katherine Johnson" />;
 ```
+
+但是，如果你的标签和 `return` 关键字不在同一行，则必须把它包裹在一对括号中，如下所示：
+
+```jsx
+return (
+  <div>
+    <img src="https://react.dev/images/docs/scientists/MK3eW3As.jpg" alt="Katherine Johnson" />
+  </div>
+);
+```
+
+<Callback title="警告" type="warn">
+没有括号包裹的话，任何在 return 下一行的代码都 将被忽略！
+</Callback>
 
 ### innerHTML渲染
 
@@ -113,11 +113,11 @@ function MyComponent() {
 
 React 默认会对渲染的文本进行转义（防止 XSS 攻击）。当你使用 dangerouslySetInnerHTML 时，等于告诉 React：“我知道这段 HTML 是安全的，跳过转义直接注入。”
 
-## 使用JSX通过大括号使用JS
+## 通过大括号使用JS
 
 ### 使用引号传递字符串
 
-当你想把一个字符串属性传递给 JSX 时，把它放到单引号或双引号中：
+当你想把一个字符串属性传递给组件时，把它放到单引号或双引号中：
 
 ```jsx
 export default function Avatar() {
@@ -129,10 +129,7 @@ export default function Avatar() {
     />
   );
 }
-
 ```
-
-
 
 ### 使用大括号
 
@@ -143,17 +140,17 @@ const name = 'Alice';
 const element = <h1>Hello, {name.toUpperCase()}!</h1>;
 ```
 
-| `{}` 中的值 | 是否渲染   | 渲染结果             |
-| ----------- | ---------- | -------------------- |
-| 字符串/数字 | ✅ 渲染     | 直接渲染             |
-| 布尔值      | ❌ 不渲染   | 空                   |
-| `null`      | ❌ 不渲染   | 空                   |
-| `undefined` | ❌ 不渲染   | 空                   |
-| 数组        | ✅ 部分情况 | 展开渲染元素         |
-| JSX Element | ✅ 渲染     | 对应 DOM             |
-| 对象        | ❌ 报错     | React 不知道如何渲染 |
-| 函数        | ❌ 报错     | 不能直接渲染函数     |
-| Symbol      | ❌ 报错     | 不支持               |
+| `{}` 中的值    | 是否渲染   | 渲染结果          |
+| ----------- | ------ | ------------- |
+| 字符串/数字      | ✅ 渲染   | 直接渲染          |
+| 布尔值         | ❌ 不渲染  | 空             |
+| `null`      | ❌ 不渲染  | 空             |
+| `undefined` | ❌ 不渲染  | 空             |
+| 数组          | ✅ 部分情况 | 展开渲染元素        |
+| JSX Element | ✅ 渲染   | 对应 DOM        |
+| 对象          | ❌ 报错   | React 不知道如何渲染 |
+| 函数          | ❌ 报错   | 不能直接渲染函数      |
+| Symbol      | ❌ 报错   | 不支持           |
 
 当数组被放进 `{}` 中时，React 会遍历数组，并根据元素的数据类型分别处理。
 
@@ -207,12 +204,9 @@ export default function TodoList() {
     </ul>
   );
 }
-
 ```
 
-
-
-## Example
+## 将HTML转换为JSX
 
 ```html
 <!-- Hello world -->
