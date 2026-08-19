@@ -13,7 +13,7 @@ JSX（JavaScript XML） 是 React 核心的语法扩展，它允许你在 JavaSc
 
 在 React 17 之前，JSX 会被编译为 `React.createElement`；而在 React 17 及之后，它被编译为全新的 JSX 转换函数（`jsx-runtime`）：
 
-```js
+```jsx
 // 你写的 JSX
 const element = <h1 className="title">Hello World</h1>;
 
@@ -25,7 +25,7 @@ const element = React.createElement(
 );
 ```
 
-```js
+```jsx
 // 你写的 JSX
 const element = <h1 className="title">Hello World</h1>;
 

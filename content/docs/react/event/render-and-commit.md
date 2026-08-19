@@ -2,7 +2,7 @@
 title: 渲染管线
 ---
 
-## 步骤 1: 触发一次渲染 
+## 步骤 1: 触发一次渲染
 
 有两种原因会导致组件的渲染:
 
@@ -21,13 +21,9 @@ const root = createRoot(document.getElementById('root'))
 root.render(<Image />);
 ```
 
-
-
 ### 状态更新时重新渲染
 
-一旦组件被初次渲染，你就可以通过使用 [`set` 函数](https://zh-hans.react.dev/reference/react/useState#setstate) 更新其状态来触发之后的渲染。更新组件的状态会自动将一次渲染送入队列。
-
-
+一旦组件被初次渲染，你就可以通过使用 `setState` 更新其状态来触发之后的渲染。更新组件的状态会自动将一次渲染送入队列。
 
 ## 步骤 2: React 渲染你的组件
 
@@ -35,16 +31,14 @@ root.render(<Image />);
 
 这个过程是递归的：如果更新后的组件会返回某个另外的组件，那么 React 接下来就会渲染 *那个* 组件，而如果那个组件又返回了某个组件，那么 React 接下来就会渲染 *那个* 组件，以此类推。这个过程会持续下去，直到没有更多的嵌套组件并且 React 确切知道哪些东西应该显示到屏幕上为止。
 
-
-
-## 步骤 3: React 把更改提交到 DOM 上 
+## 步骤 3: React 把更改提交到 DOM 上
 
 在渲染（调用）你的组件之后，React 将会修改 DOM。
 
 - **对于初次渲染**，React 会使用 [`appendChild()`](https://developer.mozilla.org/docs/Web/API/Node/appendChild) DOM API 将其创建的所有 DOM 节点放在屏幕上。
-- **对于重渲染**，React 将应用最少的必要操作（在渲染时计算！），以使得 DOM 与最新的渲染输出相互匹配。
+- **对于重渲染**，React 将应用最少的必要操作（虚拟DOM）
 
-**React 仅在渲染之间存在差异时才会更改 DOM 节点。** 例如，有一个组件，它每秒使用从父组件传递下来的不同属性重新渲染一次。注意，你可以添加一些文本到 `<input>` 标签，更新它的 `value`，但是文本不会在组件重渲染时消失：
+**React 仅在渲染之间存在差异时才会更改 DOM 节点。** 例如，有一个组件，它每秒使用从父组件传递下来的不同属性重新渲染一次。你可以添加一些文本到 `<input>` 标签，更新它的 `value`，但是文本不会在组件重渲染时消失：
 
 ```jsx
 export default function Clock({ time }) {
@@ -56,8 +50,6 @@ export default function Clock({ time }) {
   );
 }
 ```
-
-
 
 ## State 具有快照特性
 
@@ -134,10 +126,8 @@ export default function Form() {
     </form>
   );
 }
-
 ```
 
 **闭包捕获**：每次组件渲染时，`handleSubmit` 函数都会“捕获”当前渲染时的 `to` 和 `message` 变量（即 Alice 和你好）。
 
 **独立定时器**：`setTimeout` 回调函数闭包绑定的是点击“发送”那一刻的 state 值，后续用户修改下拉框触发重新渲染，不会影响已经运行中的 `setTimeout` 所引用的旧值。
-

@@ -2,8 +2,6 @@
 title: 类组件
 ---
 
-
-
 ## 基础语法
 
 在 React 中，创建 **Class 组件（类组件）** 需要继承 `React.Component`，并且必须实现 `render` 方法。
@@ -25,8 +23,6 @@ class MyComponent extends Component {
 export default MyComponent;
 ```
 
-
-
 ## 渲染
 
 ```jsx
@@ -39,8 +35,6 @@ ReactDOM.render(
 1. React发现是类组件，随后使用new创建该类的实例，并通过该实例调用render方法
 
 2. 将render返回的虚拟DOM转为真实DOM。随后呈现在页面中
-
-
 
 ### 根节点
 
@@ -59,8 +53,6 @@ document.getElementById('root')
 ```
 
 这个节点叫 **root container（根容器）**。
-
-
 
 ## 组件实例
 
@@ -109,13 +101,13 @@ constructor(...args) {
 
 因此即使不写 `constructor`，`super(props)` 依然会被隐式执行，`this.props` 依然能在组件中正常使用
 
+## state
 
-
-## 设置 state
+### 初始化state
 
 React **class 组件设置 state** 有两种常见方式：
 
-### constructor 初始化 state
+- constructor 初始化 state
 
 ```jsx
 import React, { Component } from 'react';
@@ -142,7 +134,7 @@ class Counter extends Component {
 export default Counter;
 ```
 
-### 直接声明 state
+- 直接声明 state
 
 ```jsx
 class Counter extends React.Component {
@@ -173,7 +165,90 @@ constructor(props) {
 }
 ```
 
+### 设置state
 
+修改 `state` 不能直接赋值，应该使用 `this.setState()`
+
+```jsx
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      count: 0
+    };
+  }
+
+  add = () => {
+    this.setState({
+      count: this.state.count + 1
+    });
+  };
+
+  render() {
+    return (
+      <div>
+        <p>{this.state.count}</p>
+        <button onClick={this.add}>+1</button>
+      </div>
+    );
+  }
+}
+```
+
+`setState` 是**异步批处理**的。因此推荐传入函数
+
+```jsx
+addThree = () => {
+  this.setState(prevState => ({
+    count: prevState.count + 1
+  }));
+
+  this.setState(prevState => ({
+    count: prevState.count + 1
+  }));
+
+  this.setState(prevState => ({
+    count: prevState.count + 1
+  }));
+};
+```
+
+### 浅合并
+
+> 浅合并：只合并第一层
+
+类组件中的 `setState` **默认不是直接替换整个 state**，而是进行**浅合并（shallow merge）**。
+
+```jsx
+class App extends React.Component {
+  state = {
+    name: "Tom",
+    age: 18
+  };
+
+  changeName = () => {
+    this.setState({
+      name: "Jack"
+    });
+  };
+}
+```
+
+```jsx
+this.setState({
+  name: "Jack"
+});
+```
+
+最后的结果：
+
+```jsx
+state = {
+  name: "Jack",
+  age: 18
+}
+```
 
 ## 事件处理函数
 
@@ -294,4 +369,3 @@ class Counter extends React.Component {
   }
 }
 ```
-
