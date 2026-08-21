@@ -2,11 +2,7 @@
 title: class
 ---
 
-
-
 JavaScript 中的 `class`（类）在 ES6（2015年）引入，本质上是基于原型的继承机制（Prototypal Inheritance）的**语法糖**。它提供了更清晰、更符合面向对象编程（OOP）习惯的语法。
-
-
 
 ## 类声明与实例化
 
@@ -37,7 +33,9 @@ alice.sayHi(); // Output: Hello, I'm Alice
 
 ### 定义
 
--  方法一：类体声明字段
+- 方法一：类体声明字段
+
+直接在类体中写赋值语句：
 
 ```js
 class User {
@@ -78,15 +76,13 @@ console.log(user2.name); // "Alice"
 
 ### usage
 
-
-
 ## 静态成员
 
 静态属性属于**类（Class）本身**，**不属于**任何实例对象，也不会被实例继承。通常用来存储配置、常量或全局共享状态。
 
 ### 定义
 
--  方法一：使用 `static` 关键字声明
+- 方法一：使用 `static` 关键字声明
 
 在类内部属性名前加上 `static` 关键字。
 
@@ -146,8 +142,6 @@ class User {
 User.checkAge();
 ```
 
-
-
 ## Getter / Setter
 
 拦截对属性的访问和赋值操作
@@ -166,6 +160,3 @@ class Circle {
 const c = new Circle(5);
 console.log(c.area); // 78.5398... （像访问属性一样使用，无需加符号括号 ()）
 ```
-
-
-

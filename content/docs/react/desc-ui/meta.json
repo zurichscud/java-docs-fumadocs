@@ -2,7 +2,9 @@
   "pages": [
     "components",
     "class-components",
+    "refs",
     "jsx",
+    "lifecycle",
     "passing-props-to-a-component",
     "conditional-rendering",
     "rendering-lists",

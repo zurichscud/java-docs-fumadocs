@@ -2,7 +2,7 @@
 title: 将 Props 传递给组件
 ---
 
-React 组件使用 *props* 来互相通信。每个父组件都可以提供 props 给它的子组件，从而将一些信息传递给它。Props 可能会让你想起 HTML 属性，但你可以通过它们传递任何 JavaScript 值，包括对象、数组和函数。
+React 组件使用 *props* 来互相通信。每个父组件都可以提供 props 给它的子组件，从而将一些信息传递给它。Props 可能会让你想起 HTML 属性，但你可以通过它们传递任何 JavaScript 值。
 
 ## 熟悉的 props
 
@@ -26,12 +26,11 @@ export default function Profile() {
     <Avatar />
   );
 }
-
 ```
 
 你可以传递给 `<img>` 标签的 props 是预定义的（ReactDOM），但是你可以将任何 props 传递给 **你自己的** 组件。
 
-## 向组件传递 props 
+## 向组件传递 props
 
 ### 将 props 传递给子组件
 
@@ -46,8 +45,6 @@ export default function Profile() {
 }
 ```
 
-
-
 ### 在子组件中读取 props
 
 ```jsx
@@ -55,8 +52,6 @@ function Avatar({ person, size }) {
   // 在这里 person 和 size 是可访问的
 }
 ```
-
-
 
 ### 给 prop 指定一个默认值
 
@@ -67,8 +62,6 @@ function Avatar({ person, size = 100 }) {
   // ...
 }
 ```
-
-
 
 ## 使用 JSX 展开语法传递 props
 
@@ -103,9 +96,7 @@ function Profile(props) {
 
 这会将 `Profile` 的所有 props 转发到 `Avatar`，而不列出每个名字。
 
-
-
-## 将 JSX 作为子组件传递 
+## 将 JSX 作为子组件传递
 
 嵌套浏览器内置标签是很常见的：
 
@@ -151,7 +142,6 @@ export default function Profile() {
     </Card>
   );
 }
-
 ```
 
 可以将带有 `children` prop 的组件看作有一个“洞”，可以由其父组件使用任意 JSX 来“填充”。你会经常使用 `children` prop 来进行视觉包装：面板、网格等等。
@@ -172,7 +162,6 @@ export default function Clock({ color, time }) {
     </h1>
   );
 }
-
 ```
 
 这个例子说明，**一个组件可能会随着时间的推移收到不同的 props。** Props 并不总是静态的！在这里，`time` prop 每秒都在变化。当你选择另一种颜色时，`color` prop 也改变了。Props 反映了组件在任何时间点的数据，并不仅仅是在开始时。

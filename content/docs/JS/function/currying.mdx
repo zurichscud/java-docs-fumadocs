@@ -1,0 +1,29 @@
+---
+
+title: 函数柯里化
+
+---
+
+函数柯里化是通过函数调用继续返回函数的方式，实现多次接收参数**最后统一处理**的函数编码方式
+
+
+
+```js
+// 普通多参数函数
+function add(a, b, c) {
+  return a + b + c;
+}
+add(1, 2, 3); // 6
+
+// 柯里化后的函数
+function curriedAdd(a) {
+  return function(b) {
+    return function(c) {
+      return a + b + c;
+    };
+  };
+}
+curriedAdd(1)(2)(3); // 6
+```
+
+

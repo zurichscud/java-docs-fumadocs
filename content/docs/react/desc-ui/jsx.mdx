@@ -13,7 +13,7 @@ JSX（JavaScript XML） 是 React 核心的语法扩展，它允许你在 JavaSc
 
 在 React 17 之前，JSX 会被编译为 `React.createElement`；而在 React 17 及之后，它被编译为全新的 JSX 转换函数（`jsx-runtime`）：
 
-```jsx
+```jsx tab="React16"
 // 你写的 JSX
 const element = <h1 className="title">Hello World</h1>;
 
@@ -25,7 +25,7 @@ const element = React.createElement(
 );
 ```
 
-```jsx
+```jsx tab="React17"
 // 你写的 JSX
 const element = <h1 className="title">Hello World</h1>;
 
@@ -140,17 +140,17 @@ const name = 'Alice';
 const element = <h1>Hello, {name.toUpperCase()}!</h1>;
 ```
 
-| `{}` 中的值    | 是否渲染   | 渲染结果          |
-| ----------- | ------ | ------------- |
-| 字符串/数字      | ✅ 渲染   | 直接渲染          |
-| 布尔值         | ❌ 不渲染  | 空             |
-| `null`      | ❌ 不渲染  | 空             |
-| `undefined` | ❌ 不渲染  | 空             |
-| 数组          | ✅ 部分情况 | 展开渲染元素        |
-| JSX Element | ✅ 渲染   | 对应 DOM        |
-| 对象          | ❌ 报错   | React 不知道如何渲染 |
-| 函数          | ❌ 报错   | 不能直接渲染函数      |
-| Symbol      | ❌ 报错   | 不支持           |
+| `{}` 中的值 | 是否渲染   | 渲染结果             |
+| ----------- | ---------- | -------------------- |
+| 字符串/数字 | ✅ 渲染     | 直接渲染             |
+| 布尔值      | ❌ 不渲染   | 空                   |
+| `null`      | ❌ 不渲染   | 空                   |
+| `undefined` | ❌ 不渲染   | 空                   |
+| 数组        | ✅ 部分情况 | 展开渲染元素         |
+| JSX Element | ✅ 渲染     | 对应 DOM             |
+| 对象        | ❌ 报错     | React 不知道如何渲染 |
+| 函数        | ❌ 报错     | 不能直接渲染函数     |
+| Symbol      | ❌ 报错     | 不支持               |
 
 当数组被放进 `{}` 中时，React 会遍历数组，并根据元素的数据类型分别处理。
 
@@ -227,3 +227,53 @@ export default function TodoList() {
   <p>Enter your HTML here</p>
 </>
 ```
+
+
+
+## 添加注释
+
+1. 单行注释
+
+```jsx
+function App() {
+  return (
+    <div>
+      {/* 这是一个注释 */}
+      <h1>Hello React</h1>
+    </div>
+  );
+}
+```
+
+2. 多行注释
+
+```jsx
+function App() {
+  return (
+    <div>
+      {/*
+        这是多行注释
+        可以写很多内容
+      */}
+      <h1>Hello React</h1>
+    </div>
+  );
+}
+```
+
+3. JSX 外部使用普通 JS 注释
+
+```jsx
+// 这是普通 JavaScript 注释
+function App() {
+
+  return (
+    <div>
+      <h1>Hello</h1>
+    </div>
+  );
+}
+```
+
+
+

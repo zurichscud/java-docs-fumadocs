@@ -1,0 +1,237 @@
+---
+title: 生命周期
+
+---
+
+类组件生命周期主要分为三个阶段：
+
+## 挂载
+
+### constructor
+
+```jsx
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      count: 0
+    };
+  }
+}
+```
+
+### componentWillMount 【UN_SAFE】
+
+`componentWillMount` 是 React **旧版本类组件生命周期方法**，用于组件挂载前执行。
+
+### render
+
+初次渲染
+
+### componentDidMount 【常用】
+
+DOM 挂载完成后执行，用于初始化，例如开启定时器，发送网咯请求
+
+```jsx
+componentDidMount() {
+  console.log("组件已经挂载");
+
+  fetch('/api/user')
+}
+```
+
+## 更新
+
+### componentWillReceiveProps 【UN_SAFE】
+
+`componentWillReceiveProps` 是 React **旧版类组件生命周期方法**。
+
+**父组件 state 改变 → 父组件重新 render → 传递新的 props → 子组件更新**：
+
+```jsx tab="Parent.jsx"
+import React from "react";
+
+class Parent extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      count: 0
+    };
+  }
+
+  handleClick = () => {
+    this.setState({
+      count: this.state.count + 1
+    });
+  };
+
+  render() {
+    console.log("Parent render");
+
+    return (
+      <div>
+        <h2>父组件：{this.state.count}</h2>
+
+        <button onClick={this.handleClick}>
+          +1
+        </button>
+
+        <Child count={this.state.count} />
+      </div>
+    );
+  }
+}
+
+export default Parent;
+```
+
+```jsx tab="Child.jsx"
+class Child extends React.Component {
+
+  componentWillReceiveProps(nextProps) {
+    console.log(
+      "Child componentWillReceiveProps",
+      nextProps
+    );
+  }
+  
+  render() {
+    console.log("Child render");
+
+    return (
+      <div>
+        子组件：{this.props.count}
+      </div>
+    );
+  }
+}
+```
+
+### shouldComponentUpdate
+
+控制组件是否重新渲染：
+
+```jsx
+shouldComponentUpdate(nextProps,nextState){
+  return true;
+}
+```
+
+返回：
+
+- true：继续更新
+
+- false：阻止 render
+
+用于性能优化。
+
+### componentWillUpdate【UN_SAFE】
+
+DOM即将更新
+
+### render
+
+更新时重新执行一次render
+
+### componentDidUpdate
+
+DOM 更新完成：
+
+## 卸载
+
+### componentWillUnmount 【常用】
+
+用于卸载组件前收尾工作，例如关闭定时器
+
+### 手动卸载
+
+```jsx
+const container = document.getElementById("root");
+
+//挂载
+ReactDOM.render(
+  <App />,
+  container
+);
+
+
+// 卸载
+ReactDOM.unmountComponentAtNode(container);
+```
+
+## UN_SAFE的生命周期
+
+`UNSAFE_` 生命周期是 React 对**旧版生命周期方法**加的前缀，表示：
+
+> 这些生命周期方法存在潜在问题，不推荐在新代码中使用，但为了兼容旧项目仍然保留。
+
+| 旧生命周期                  | 新名称                             | 阶段          |
+| --------------------------- | ---------------------------------- | ------------- |
+| `componentWillMount`        | `UNSAFE_componentWillMount`        | 挂载前        |
+| `componentWillReceiveProps` | `UNSAFE_componentWillReceiveProps` | 接收 props 前 |
+| `componentWillUpdate`       | `UNSAFE_componentWillUpdate`       | 更新前        |
+
+## getDerivedStateFromProps
+
+`getDerivedStateFromProps` 是 React 16.3 引入的**静态生命周期方法**，用于：
+
+> 根据新的 props 推导（derive）出新的 state。
+
+```jsx
+class User extends React.Component {
+
+  constructor(props) {
+    super(props);
+
+    //挂载时只执行一次
+    this.state = {
+      name: props.name
+    };
+  }
+
+
+  static getDerivedStateFromProps(props, state) {
+
+    if(props.name !== state.name){
+
+      return {
+        name: props.name
+      };
+
+    }
+
+    return null;
+  }
+
+
+  render(){
+
+    return (
+      <div>
+        {this.state.name}
+      </div>
+    );
+
+  }
+}
+```
+
+`getDerivedStateFromProps` 的返回值是：
+
+- 一个对象，用于更新 state
+
+- 或者 `null` 表示不更新 state。
+
+> `getDerivedStateFromProps` 用于在每次渲染前根据 props 计算新的 state，是 React 为替代 `componentWillReceiveProps` 提供的安全方案。
+
+<Callout title="提示" >
+
+大部分情况，你不需要使用这个生命周期钩子
+
+</Callout>
+
+## getSnapshotBeforeUpdate
+
+> 在 DOM 更新之前获取一些信息，并把这些信息传递给 `componentDidUpdate`。

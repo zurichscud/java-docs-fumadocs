@@ -68,7 +68,23 @@ MyComponent {
 }
 ```
 
-## 接收props
+## props
+
+### 传入props
+
+父组件可以向子组件传入 props
+
+```jsx
+function App() {
+
+  return (
+    <User name="Tom" age={18} />
+  );
+
+}
+```
+
+### 接收props
 
 父类构造函数将传入的 `props` 赋值给当前实例的 `this.props`
 
@@ -100,6 +116,159 @@ constructor(...args) {
 ```
 
 因此即使不写 `constructor`，`super(props)` 依然会被隐式执行，`this.props` 依然能在组件中正常使用
+
+### 批量传入
+
+父组件可以批量传入props
+
+```jsx
+const userInfo = {
+  name: "Tom",
+  age: 18,
+  gender: "male"
+};
+```
+
+```jsx
+<User {...userInfo} />
+```
+
+React 会展开成：
+
+```jsx
+<User
+  name="Tom"
+  age={18}
+  gender="male"
+/>
+```
+
+React 支持多个展开 props，它会按照**从左到右合并**：
+
+```jsx
+<User {...obj1} {...obj2} />
+```
+
+多个展开对象可以混合普通 props，规则是一样的，后面的覆盖前面的：
+
+```jsx
+<User
+  {...userInfo}
+  id={100}
+  {...obj}
+/>
+```
+
+### 对props进行限制
+
+React 中对 `props` 进行限制，主要有两种方式：
+
+1. **PropTypes（运行时检查）**
+
+2. **TypeScript（编译时检查，现代项目更推荐）**
+
+`prop-types` 是 React 官方提供的运行时校验库。
+
+安装：
+
+```sh
+npm install prop-types
+```
+
+```jsx
+import PropTypes from 'prop-types';
+
+class User extends React.Component {
+
+  render() {
+
+    return (
+      <div>
+        {this.props.name}
+        {this.props.age}
+      </div>
+    );
+
+  }
+
+}
+
+
+User.propTypes = {
+
+  // 必须是字符串
+  name: PropTypes.string,
+
+  // 必须是数字
+  age: PropTypes.number
+
+};
+```
+
+如果：
+
+```jsx
+<User name={123} age="18" />
+```
+
+开发环境会提示：
+
+```jsx
+Warning: Invalid prop `name` of type `number`
+```
+
+- 限制 props 必传
+
+```jsx
+User.propTypes = {
+
+  name: PropTypes.string.isRequired
+
+};
+```
+
+- 限制 props 默认值
+
+```jsx
+User.defaultProps = {
+
+  name:"匿名用户",
+
+  age:0
+
+};
+```
+
+我们可以将限制写在class中：
+
+```jsx
+import React from "react";
+import PropTypes from "prop-types";
+
+class User extends React.Component {
+
+  static propTypes = {
+    name: PropTypes.string.isRequired,
+    age: PropTypes.number
+  };
+
+
+  static defaultProps = {
+    age: 18
+  };
+
+
+  render() {
+    return (
+      <div>
+        姓名：{this.props.name}
+        年龄：{this.props.age}
+      </div>
+    );
+  }
+
+}
+```
 
 ## state
 
@@ -365,6 +534,35 @@ class Counter extends React.Component {
       >
         click
       </button>
+    );
+  }
+}
+```
+
+## 最佳实践
+
+```jsx
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      count: 0
+    };
+  }
+
+  add = () => {
+    this.setState({
+      count: this.state.count + 1
+    });
+  };
+
+  render() {
+    return (
+      <div>
+        <p>{this.state.count}</p>
+        <button onClick={this.add}>+1</button>
+      </div>
     );
   }
 }

@@ -19,9 +19,7 @@ title: 响应事件
 }}>
 ```
 
-
-
-## 在事件处理函数中读取 props 
+## 在事件处理函数中读取 props
 
 由于事件处理函数声明于组件内部，因此它们可以直接访问组件的 props。
 
@@ -46,10 +44,7 @@ export default function Toolbar() {
     </div>
   );
 }
-
 ```
-
-
 
 ## 将事件处理函数作为 props 传递
 
@@ -103,7 +98,7 @@ export default function Toolbar() {
 
 内置组件（`<button>` 和 `<div>`）仅支持 [浏览器事件名称](https://zh-hans.react.dev/reference/react-dom/components/common#common-props)，例如 `onClick`。但是，当你构建自己的组件时，你可以按你个人喜好命名事件处理函数的 prop。
 
-<Callback title="注意"> 
+<Callback title="注意">
 
 按照惯例，事件处理函数 props 应该以 `on` 开头，后跟一个大写字母。
 
@@ -130,7 +125,6 @@ export default function App() {
     </div>
   );
 }
-
 ```
 
 当你的组件支持多种交互时，你可以根据不同的应用程序命名事件处理函数 prop。例如，一个 `Toolbar` 组件接收 `onPlayMovie` 和 `onUploadImage` 两个事件处理函数：
@@ -165,7 +159,6 @@ function Button({ onClick, children }) {
     </button>
   );
 }
-
 ```
 
 ## 事件传播
@@ -196,8 +189,6 @@ export default function Toolbar() {
 在 React 中所有事件都会传播，除了 `onScroll`，它仅适用于你附加到的 JSX 标签。
 
 </Callback>
-
-
 
 ## 阻止传播
 
@@ -231,7 +222,94 @@ export default function Toolbar() {
     </div>
   );
 }
-
 ```
 
 由于传播被阻止，父级 `<div>` 的 `onClick` 处理函数不会执行。
+
+
+
+## 高阶函数
+
+在类组件中，可以使用高阶函数处理表单事件。
+
+不使用高阶函数：
+
+```jsx
+<input onChange={this.handleChange("name")} />
+
+<input onChange={this.handleChange("age")} />
+
+<input onChange={this.handleChange("email")} />
+```
+
+表单项存在多个，每个表单项都需要单独设置事件监听函数很麻烦
+
+使用高阶函数：
+
+```jsx
+import React, { Component } from "react";
+
+class LoginForm extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      username: "",
+      password: ""
+    };
+  }
+
+  // 高阶函数
+  handleChange = (field) => {
+    return (event) => {
+      this.setState({
+        [field]: event.target.value
+      });
+    };
+  };
+
+  handleSubmit = (event) => {
+    event.preventDefault();
+    console.log(this.state);
+  };
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <div>
+          <label>用户名：</label>
+          <input
+            value={this.state.username}
+            onChange={this.handleChange("username")}
+          />
+        </div>
+
+        <div>
+          <label>密码：</label>
+          <input
+            type="password"
+            value={this.state.password}
+            onChange={this.handleChange("password")}
+          />
+        </div>
+
+        <button type="submit">
+          登录
+        </button>
+      </form>
+    );
+  }
+}
+
+export default LoginForm;
+```
+
+不使用高阶函数也可以解决：
+
+```jsx
+      <input
+        onChange={(e) =>
+          this.handleChange("username", e.target.value)
+        }
+      />
+```

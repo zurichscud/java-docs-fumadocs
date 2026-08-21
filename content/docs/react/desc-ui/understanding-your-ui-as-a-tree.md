@@ -4,13 +4,9 @@ title: "将 UI 视为树"
 
 React 以及许多其他 UI 库，将 UI 建模为树。
 
-
-
 ## 将 UI 视为树
 
-树是项目和 UI 之间的关系模型，通常使用树结构来表示 UI。例如，浏览器使用树结构来建模 HTML（[DOM](https://developer.mozilla.org/docs/Web/API/Document_Object_Model/Introduction)）与CSS（[CSSOM](https://developer.mozilla.org/docs/Web/API/CSS_Object_Model)）。移动平台也使用树来表示其视图层次结构。
-
-
+树是项目和 UI 之间的关系模型，通常使用树结构来表示 UI。例如，浏览器使用树结构来建模 HTML（DOM）与CSS（CSSOM）。移动平台也使用树来表示其视图层次结构。
 
 ## 渲染树
 
@@ -31,10 +27,7 @@ export default function App() {
     </>
   );
 }
-
 ```
-
-
 
 ![image-20260817172828027](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/typora/image-20260817172828027.png)
 

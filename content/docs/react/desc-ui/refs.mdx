@@ -1,0 +1,200 @@
+---
+title: refs
+description: 一种让组件直接访问 DOM 节点或组件实例的机制
+---
+
+它绕过了 React 的单向数据流，通常用于一些**必须直接操作元素**的场景。
+
+## this.refs
+
+`this.refs` 是 React 早期类组件中的 **字符串 ref 写法**，现在已经不推荐使用。
+
+`refs`是组件实例上的属性
+
+```jsx
+import React from "react";
+
+class App extends React.Component {
+
+  focusInput = () => {
+    this.refs.input.focus();
+  }
+
+
+  render() {
+    return (
+      <div>
+        <input ref="input" />
+
+        <button onClick={this.focusInput}>
+          聚焦
+        </button>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+render 时，React会自动保存DOM元素到refs
+
+```jsx
+this.refs = {
+  input: input DOM节点 //HTMLInputElement
+}
+```
+
+`this.refs` 不仅可以获取 DOM，也可以获取子组件实例。
+
+```jsx tab="Child.jsx"
+class Child extends React.Component {
+
+  sayHello(){
+    console.log("hello child");
+  }
+
+
+  render(){
+    return (
+      <div>
+        Child
+      </div>
+    );
+  }
+}
+```
+
+```jsx tab="Parent.jsx"
+class Parent extends React.Component {
+
+  callChild = () => {
+    this.refs.child.sayHello();
+  }
+
+
+  render(){
+    return (
+      <div>
+        <Child ref="child"/>
+
+        <button onClick={this.callChild}>
+          调用子组件方法
+        </button>
+      </div>
+    );
+  }
+}
+```
+
+## 回调 ref
+
+```jsx
+class App extends React.Component {
+
+  focusInput = () => {
+    this.input.focus();
+  }
+
+
+  render() {
+    return (
+      <div>
+        <input
+          ref={el => this.input = el}
+        />
+
+        <button onClick={this.focusInput}>
+          聚焦
+        </button>
+      </div>
+    );
+  }
+}
+```
+
+React 会在挂载时调用ref中的函数：
+
+```jsx
+el => this.input = el
+```
+
+此时Input DOM元素被设置到this的input属性上了
+
+<Callout title="回调Ref的问题：执行两次回调" type="warning" >
+
+在React更新过程中，ref回调会被执行两次，第一次传入参数null，第二次传入参数DOM元素。这是因为React每次执行 render 都会创建新的函数：
+
+```jsx
+<input ref={el => this.input = el}/>
+```
+
+```jsx
+ref1 = el => this.input = el
+ref2 = el => this.input = el
+```
+
+  React 会认为 ref 变了，于是清空旧的ref，并设置新的：
+
+```jsx
+ref1(null)
+ref2(dom)
+```
+
+</Callout>
+
+## React.createRef
+
+`React.createRef()` 是 React **类组件中创建 ref 的方式**，用于获取 DOM 节点或者子组件实例。它会返回一个对象：
+
+```jsx
+{
+  current: null
+}
+```
+
+React 在**组件挂载后**，会把对应的 DOM 或组件实例赋值给 `current`。
+
+```jsx
+import React from 'react';
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.inputRef = React.createRef();
+  }
+
+  focusInput = () => {
+    this.inputRef.current.focus();
+  };
+
+  render() {
+    return (
+      <div>
+        <input ref={this.inputRef} />
+
+        <button onClick={this.focusInput}>
+          聚焦
+        </button>
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+React 看到 ref，会在 DOM 创建后自动赋值：
+
+```jsx
+this.inputRef.current = input DOM节点
+```
+
+<Callout title="React.createRef() 不应该写在 render() 中"  type="warning" >
+
+因为 `render()` 可能会执行多次，每次都会创建一个新的 ref 对象，导致 ref 引用不稳定。正确做法是在类组件的 `constructor` 或类属性中创建一次 ref，例如 `this.inputRef = React.createRef()`，然后在 `render()` 中通过 `ref={this.inputRef}` 使用，这样整个组件生命周期内都会保持同一个 ref 对象，并由 React 自动更新它的 `current` 属性。
+
+</Callout>
+
+

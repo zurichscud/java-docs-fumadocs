@@ -2,8 +2,6 @@
 title: 组件
 ---
 
-
-
 ## 嵌套和组织组件
 
 组件是常规的 JavaScript 函数，所以你可以将多个组件保存在同一份文件中。当组件相对较小或彼此紧密相关时，这是一种省事的处理方式。如果这个文件变得臃肿，你也可以随时将 Profile 移动到单独的文件中。
@@ -28,7 +26,6 @@ export default function Gallery() {
     </section>
   );
 }
-
 ```
 
 组件可以渲染其他组件，但是 请不要嵌套他们的定义：
@@ -80,7 +77,6 @@ export default function Gallery() {
     </section>
   );
 }
-
 ```
 
 在此示例中，所有组件目前都定义在 根组件 App.js 文件中。具体还需根据项目配置决定，有些根组件可能会声明在其他文件中。如果你使用的框架基于文件进行路由，如 Next.js，那你每个页面的根组件都会不一样。
@@ -107,7 +103,6 @@ export default function Gallery() {
     </section>
   );
 }
-
 ```
 
 1. `Gallery.js`：
@@ -117,9 +112,13 @@ export default function Gallery() {
    - 使用 **默认导入** 的方式，从 `Gallery.js` 中导入 `Gallery` 组件。
    - 使用 **默认导出** 的方式，将根组件 `App` 导出。
 
+**通常，文件中仅包含一个组件时，人们会选择默认导出，而当文件中包含多个组件或某个值需要导出时，则会选择具名导出。**
 
+<Callout title="注意" type="warning" >
 
-**通常，文件中仅包含一个组件时，人们会选择默认导出，而当文件中包含多个组件或某个值需要导出时，则会选择具名导出。** 无论选择哪种方式，请记得给你的组件和相应的文件命名一个有意义的名字。我们不建议创建未命名的组件，比如 `export default () => {}`，因为这样会使得调试变得异常困难。
+ 无论选择哪种方式，请记得给你的组件和相应的文件命名一个有意义的名字。我们不建议创建未命名的组件，比如 `export default () => {}`，因为这样会使得调试变得异常困难。
+
+</Callout>
 
 ```jsx
 export function Profile() {
@@ -141,8 +140,76 @@ export default function Gallery() {
     </section>
   );
 }
-
 ```
 
 - 使用 **具名导出** 的方式，将 `Profile` 组件导出，并取名为 `Profile`。
 - 使用 **默认导出** 的方式，将 `Gallery` 组件导出。
+
+## 受控组件
+
+状态由 React 的 state 管理，组件通过 props 接收值，通过事件通知 React 更新。
+
+```jsx
+import { useState } from "react";
+
+function App() {
+  const [name, setName] = useState("");
+
+  return (
+    <input
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+    />
+  );
+}
+```
+
+React 是数据的唯一来源
+
+## 非受控组件
+
+状态由 DOM 自己保存，React 不负责维护。
+
+```jsx
+import { useRef } from "react";
+
+function App() {
+  const inputRef = useRef();
+
+  function submit() {
+    console.log(inputRef.current.value);
+  }
+
+  return (
+    <>
+      <input ref={inputRef} />
+
+      <button onClick={submit}>
+        提交
+      </button>
+    </>
+  );
+}
+```
+
+<Sandpack
+  template="react"
+  files={{
+    "/App.js": `import { useRef } from "react";
+
+export default function App() {
+  const inputRef = useRef();
+
+  function submit() {
+    alert(inputRef.current.value);
+  }
+
+  return (
+    <main>
+      <input ref={inputRef} placeholder="请输入内容" />
+      <button onClick={submit}>提交</button>
+    </main>
+  );
+}`,
+  }}
+/>

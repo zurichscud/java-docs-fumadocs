@@ -6,11 +6,13 @@ import type { MDXComponents } from 'mdx/types';
 import { Callback } from './callback';
 import { File, Files, Folder } from './files';
 import { Mermaid } from './mermaid';
+import { Sandpack } from './sandpack';
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
     ...defaultMdxComponents,
     Mermaid,
+    Sandpack,
     Callback,
     File,
     Files,

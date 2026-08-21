@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-sdk/react": "^4.0.54",
     "@base-ui/react": "^1.7.0",
+    "@codesandbox/sandpack-react": "^2.20.0",
     "@fuma-translate/react": "^1.0.2",
     "@fumadocs/base-ui": "^16.14.3",
     "@openrouter/ai-sdk-provider": "^3.0.0",
