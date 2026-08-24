@@ -64,6 +64,28 @@ return (
 <button className="btn-primary" onClick={handleClick}>点击我</button>
 ```
 
+### 属性名不能重复
+
+JSX 标签本质上是一个对象/函数调用（`React.createElement`），如果在一个元素上写多个相同的属性，后面的属性会直接覆盖前面的属性。
+
+```jsx
+// ❌ 错误示范：后面的 className 会覆盖前面的
+<button className={styles.btn} className={styles.primary}>
+  点击
+</button>
+
+// 编译后的实际效果等同于：
+<button className={styles.primary}>点击</button>
+```
+
+想要应用多个样式类名，需要通过 **字符串拼接** 或 **样式库** 将多个类名合成一个字符串传给 `className`。
+
+```jsx
+<button className={`${styles.btn} ${styles.primary}`}>
+  点击
+</button>
+```
+
 ### 标签必须闭合
 
 即便是单标签（如 `<img>`、`<input>`、`<br>`），在 JSX 中也必须加上自闭合斜杠 `/`：
@@ -228,8 +250,6 @@ export default function TodoList() {
 </>
 ```
 
-
-
 ## 添加注释
 
 1. 单行注释
@@ -274,6 +294,15 @@ function App() {
   );
 }
 ```
+
+
+
+## js文件与jsx文件
+
+本质上它们都是 JavaScript 文件，区别更多是**文件命名约定**。
+
+习惯使用jsx文件表示React组件
+
 
 
 

@@ -1,0 +1,146 @@
+---
+title: CSS模块化
+
+descripation: CSS Modules 解决不同模块之间的命名冲突
+---
+
+
+
+## 核心机制
+
+在传统 CSS 中，所有选择器都是全局生效的；而 CSS 模块化会将你的样式文件（通常命名为 `*.module.css`）编译为 JavaScript 对象，并为 HTML 节点生成独一无二的类名。
+
+- **自动哈希（Hashing）：** 编译时会将选择器转换为带哈希值的唯一类名，例如将 `.button` 编译为 `.Button_button__a1b2c`。
+
+- **显式映射：** 在 JS 文件中直接引入 CSS 模块，以属性形式使用选择器。
+
+## 创建 CSS 模块
+
+```css
+/* 局部样式：会被编译为唯一哈希类名 */
+.primary {
+  background-color: #0066cc;
+  color: #ffffff;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.primary:hover {
+  background-color: #0052a3;
+}
+
+/* 全局样式：保留原类名，不增加哈希值 */
+:global(.active-glow) {
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.6);
+}
+```
+
+## 在 React 组件中使用
+
+```jsx
+import styles from './Button.module.css';
+
+<button className={styles.button}>
+  Button
+</button>
+```
+
+最终生成类似：
+
+```jsx
+<button class="Button_button__a8f3d">
+```
+
+如果两个组件**引用的是同一个 CSS Module 文件，并且使用的是同一个类名**，那么生成的 hash **是相同的**。
+
+```jsx
+import styles from './button.module.css';
+
+function A() {
+  return <button className={styles.button}>A</button>;
+}
+```
+
+```jsx
+import styles from './button.module.css';
+
+function B() {
+  return <button className={styles.button}>B</button>;
+}
+```
+
+编译后：
+
+```jsx
+<button class="button_x7f3a">A</button>
+<button class="button_x7f3a">B</button>
+```
+
+不同 CSS Module 文件中存在同一个class：
+
+```js
+ButtonStyles.button
+// button_a83kd
+
+DialogStyles.button
+// button_91kxz
+```
+
+
+
+## less使用
+
+```css
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+
+  &.primary {
+    background-color: @primary-color;
+    color: #fff;
+  }
+}
+```
+
+Less 编译后普通 CSS 是：
+
+```css
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background-color: #xxx;
+  color: #fff;
+}
+```
+
+CSS Modules 会生成类似：
+
+```css
+.Button_btn__a1b2c {
+  padding: 8px 16px;
+}
+
+.Button_primary__d3e4f {
+  background-color: #xxx;
+}
+```
+
+
+
+```jsx
+import styles from './Button.module.less';
+
+<button className={`${styles.btn} ${styles.primary}`}>
+  提交
+</button>
+```

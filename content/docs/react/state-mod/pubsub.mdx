@@ -1,0 +1,125 @@
+---
+title: PubSubJS
+
+descirption: 发布/订阅
+---
+
+**PubSubJS** 是一个基于 JavaScript 的轻量级发布/订阅（Publish/Subscribe）消息库，用于实现应用内部各模块之间的**解耦通信**。
+
+
+
+## install
+
+```sh
+npm install pubsub-js
+```
+
+
+
+## usage
+
+```jsx
+import PubSub from 'pubsub-js';
+
+// 定义回调函数（第一个参数固定为 msg/topic，第二个参数为传递的数据）
+const orderListener = (msg, data) => {
+  console.log(`收到事件 [${msg}]:`, data);
+};
+
+// 1. 订阅消息
+const token = PubSub.subscribe('orders.created', orderListener);
+
+// 2. 发布消息
+PubSub.publish('orders.created', { orderId: 1001, amount: 250 });
+
+// 3. 取消订阅（必须在组件销毁或不再需要时取消，防止内存泄漏）
+PubSub.unsubscribe(token);
+```
+
+msg：代表**触发该回调的**事件名
+
+
+
+如果你不需要使用msg，你也可以使用`_`占位：
+
+```jsx
+const orderListener = (_, data) => {
+  console.log(`收到data:`, data);
+};
+```
+
+## use in React
+
+```jsx tab="UserNotification.jsx"
+import React, { Component } from 'react';
+import PubSub from 'pubsub-js';
+
+class UserNotification extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      message: '暂无新通知',
+    };
+    // 用于存储订阅的 token
+    this.pubsubToken = null;
+  }
+
+  componentDidMount() {
+    // 1. 在组件挂载完成后进行订阅
+    this.pubsubToken = PubSub.subscribe('USER_NOTIFICATION', this.handleNotice);
+  }
+
+  componentWillUnmount() {
+    // 2. 组件即将在卸载前取消订阅，防止内存泄漏和无效更新
+    if (this.pubsubToken) {
+      PubSub.unsubscribe(this.pubsubToken);
+    }
+  }
+
+  // 使用类事件回调（建议写成箭头函数绑定 this）
+  handleNotice = (msg, data) => {
+    // 可以直接访问 this.setState 和 class 内的其他实例方法
+    this.setState({
+      message: `收到 [${data.type}] 通知: ${data.text}`,
+    });
+  };
+
+  render() {
+    return (
+      <div style={{ padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}>
+        <h4>通知中心 (Class 组件)</h4>
+        <p>{this.state.message}</p>
+      </div>
+    );
+  }
+}
+
+export default UserNotification;
+```
+
+```jsx tab="ActionButton.jsx"
+import React, { Component } from 'react';
+import PubSub from 'pubsub-js';
+
+class ActionButton extends Component {
+  handleSend = () => {
+    // 发布事件
+    PubSub.publish('USER_NOTIFICATION', {
+      type: '系统',
+      text: '您的订单已发货！',
+    });
+  };
+
+  render() {
+    return (
+      <button onClick={this.handleSend}>
+        发送通知
+      </button>
+    );
+  }
+}
+
+export default ActionButton;
+```
+
+

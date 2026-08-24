@@ -1,0 +1,358 @@
+---
+title: React Router v5
+
+---
+
+## 核心设计理念
+
+React Router v5 的核心思想是 **“一切皆组件”**。路由配置不再是写在配置文件里的静态数据，而是直接作为 JSX 组件渲染在页面中。
+
+## install
+
+```sh
+npm install react-router-dom@5
+```
+
+## 常用组件
+
+| **组件 / Hook**        | **作用说明**                                          | **Vue Router 对标**        |
+| ---------------------- | ----------------------------------------------------- | -------------------------- |
+| `<BrowserRouter>`      | 使用 HTML5 History API (`pushState`) 监听 URL         | `createWebHistory()`       |
+| `<HashRouter>`         | 使用 URL 的 hash 部分 (`#`) 管理路由                  | `createWebHashHistory()`   |
+| `<Route>`              | 当 path 匹配当前 URL 时，渲染对应的组件（绑定路由表） | `<router-view>` + 路由节点 |
+| `<Switch>`             | **只渲染第一个匹配的 `<Route>`**，避免多重渲染        | 类似于独占匹配逻辑         |
+| `<Link>` / `<NavLink>` | 声明式导航，`NavLink` 支持高亮样式                    | `<router-link>`            |
+| `<Redirect>`           | 强制重定向到新路径                                    | 路由重定向配置             |
+
+### BrowserRouter/HashRouter
+
+作用：
+
+- 监听 URL
+
+- 提供路由上下文
+
+```jsx
+import React from "react";
+import ReactDOM from "react-dom";
+import {
+  BrowserRouter
+} from "react-router-dom";
+
+import App from "./App";
+
+
+ReactDOM.render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>,
+  document.getElementById("root")
+);
+```
+
+### Route
+
+注册组件与路由的关系
+
+```jsx
+<Route
+  path="/home"
+  component={Home}
+/>
+```
+
+### Link
+
+用于替代：
+
+```jsx
+<a href="/user">
+```
+
+### NavLink
+
+与Link作用相同，但是`NavLink` 支持高亮样式。
+
+`NavLink` 默认会给匹配当前路由的链接添加一个类名：`active`
+
+```jsx
+<a href="/home" class="active">
+  首页
+</a>
+```
+
+### Switch
+
+`<Switch>` 的核心作用是**只渲染第一个与当前路径匹配的子 `<Route>` 或 `<Redirect>`**。
+
+如果没有 `<Switch>`，React Router 会遍历渲染**所有**与当前路径匹配的 `<Route>`。加上 `<Switch>` 后，它在找到第一个匹配项时就会终止遍历。
+
+```jsx
+<Switch>
+
+<Route path="/user" component={User}/>
+
+<Route path="/" component={Home}/>
+
+</Switch>
+```
+
+- **自上而下，独占匹配（Exclusive Render）**
+  `<Switch>` 会从第一个子节点开始按顺序向下检查，一旦某个 `<Route>` 的 `path` 符合条件，就立刻渲染该节点，并**跳过后续所有子节点**。
+
+- **默认是“前缀匹配”，而非“完全匹配”**
+  `<Route path="/user">` 会匹配任何以 `/user` 开头的路径，比如 `/user/123` 或 `/user/settings`。
+
+- **无 `path` 属性的 `<Route>` 永远匹配**
+  如果不写 `path`（例如作为 404 页面），它将匹配任何路径。因此必须把它放在 `<Switch>` 的最底部。
+
+### Redirect
+
+重定向
+
+```jsx
+<Redirect to="/login"/>
+```
+
+### Example
+
+```jsx
+import React from 'react';
+import { BrowserRouter as Router, Switch, Route, Link, Redirect } from 'react_router_dom';
+
+function App() {
+  return (
+    <Router>
+      <nav>
+        <Link to="/">首页</Link>
+        <Link to="/about">关于</Link>
+      </nav>
+
+      <Switch>
+        {/* exact 用于精确匹配，防止 /about 同时也触发 / */}
+        <Route exact path="/" component={Home} />
+        <Route path="/about" component={About} />
+        <Route path="/old-path">
+          <Redirect to="/about" />
+        </Route>
+        {/* 404 页面兜底 */}
+        <Route path="*" component={NotFound} />
+      </Switch>
+    </Router>
+  );
+}
+```
+
+## 路由组件的props
+
+通过 `<Route component="{YourComponent}"/>` 渲染的路由组件，会自动注入三个核心属性（Props）：**`history`**、**`location`** 和 **`match`**。
+
+| **Prop 名称**  | **核心作用**                          | **常用属性 / 方法**                           |
+| -------------- | ------------------------------------- | --------------------------------------------- |
+| **`history`**  | 管理路由历史，控制页面跳转/返回       | `push()`, `replace()`, `goBack()`, `listen()` |
+| **`location`** | 表示当前的 URL 状态（只读快照）       | `pathname`, `search`, `hash`, `state`         |
+| **`match`**    | 包含 `<Route path>` 与 URL 的匹配信息 | `params`, `isExact`, `path`, `url`            |
+
+**1. `history`（导航控制）**
+用于在代码中进行动态跳转或监听路由变化。
+
+- `history.push('/path', [state])`：压入新页面历史，跳转页面。
+
+- `history.replace('/path', [state])`：替换当前历史，页面跳转（不可回退）。
+
+- `history.goBack()` / `history.goForward()`：后退 / 前进。
+
+**2. `location`（当前路由信息）**
+表示当前浏览器地址栏状态，常用于获取查询参数或路由跨页面传递的数据。
+
+- `location.pathname`：当前的路径字符串（例如 `/user`）。
+
+- `location.search`：URL 里的查询字符串（例如 `?name=tom&age=18`，通常用 `new URLSearchParams(location.search)` 解析）。
+
+- `location.state`：通过 `push`/`replace` 或 `<Link '/path', 'home' from: pathname: state: to="{{" { } }}>` 隐式传递的自定义数据。
+
+**3. `match`（路径匹配与嵌套）**
+描述当前路由组件是如何与 `<Route path="...">` 匹配上的。
+
+- `match.params`：解析出的动态路由参数对象（如配置 `path="/user/:id"`，访问 `/user/123` 时，`params` 为 `{ id: "123" }`）。
+
+- `match.path`：定义在 `<Route>` 上的原始 `path` 模式（如 `/user/:id`），**用于构建子 `<Route path>`**。
+
+- `match.url`：实际匹配到的 URL 路径片段（如 `/user/123`），**用于构建子 `<Link to>`**。
+
+## 路由传参
+
+### params 参数
+
+需要提前定义路由：
+
+```jsx
+<Route path="/user/:id" component={User} />
+```
+
+访问：
+
+```jsx
+/user/100
+```
+
+```jsx
+function User(props) {
+  console.log(props.match.params.id);
+
+  return <div>User</div>;
+}
+```
+
+### query 参数
+
+访问：
+
+```jsx
+/user?id=100&name=Tom
+```
+
+获取参数：
+
+```jsx
+function User(props) {
+
+  console.log(props.location.search);//?id=100&name=Tom
+
+}
+```
+
+需要自己解析：
+
+```jsx
+const params = new URLSearchParams(
+  props.location.search
+);
+
+console.log(params.get("id"));
+console.log(params.get("name"));
+```
+
+### state 参数
+
+这种参数不会显示在 URL 中。
+
+访问：
+
+```jsx tab="Link"
+<Link  to={{
+    pathname: "/user",
+    state:{
+      id:100,
+      name:"Tom"
+    }
+  }}
+>
+用户
+</Link>
+```
+
+```jsx tab="push"
+history.push('/target', { userId: 123, from: 'dashboard' });
+```
+
+获取参数：
+
+```jsx
+function User(props){
+
+ console.log(props.location.state.id);
+
+}
+```
+
+<Callout title="state 是不会因为刷新页面而丢失的">
+
+`state` 底层依赖于浏览器的 **HTML5 History API**（即 `window.history.pushState` 和 `window.history.replaceState`）。
+
+- **序列化存储**：当你传递 `state` 时，浏览器会将该对象序列化并保存在当前页面的历史记录条目（History Session Entry）中。
+
+- **刷新保留**：刷新页面时，浏览器重新加载页面，但会保留当前历史记录条目的 `state` 数据，因此通过 `this.props.location.state` 或 `useLocation().state` 依然可以获取到之前传递的值。
+
+- 关闭浏览器后state就会无法获取
+
+</Callout>
+
+## 编程式导航
+
+### 函数组件
+
+使用 `useHistory` Hook
+
+```jsx
+import { useHistory } from 'react-router-dom';
+
+function NavigationDemo() {
+  const history = useHistory();
+
+  // 普通跳转
+  const goToAbout = () => {
+    history.push('/about');
+  };
+
+  // 替换当前历史记录（无法后退回原页）
+  const replaceToHome = () => {
+    history.replace('/home');
+  };
+
+  // 前进 / 后退
+  const goBack = () => history.goBack();
+  const goForward = () => history.goForward();
+  const goCustom = (steps) => history.go(steps); // 如 history.go(-2)
+
+  return (
+    <div>
+      <button onClick={goToAbout}>跳转到 About</button>
+      <button onClick={replaceToHome}>替换到 Home</button>
+      <button onClick={goBack}>返回上一页</button>
+    </div>
+  );
+}
+```
+
+### 类组件
+
+被 `<Route>` 直接渲染的组件，其 `props` 会自动注入 `history`；非直接路由组件需使用 `withRouter` 高阶组件包裹。
+
+```jsx
+import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
+
+class ClassNavigationDemo extends Component {
+  handleNavigation = () => {
+    // 1. 普通跳转
+    this.props.history.push('/dashboard');
+
+    // 2. 替换历史
+    // this.props.history.replace('/dashboard');
+  };
+
+  render() {
+    return <button onClick={this.handleNavigation}>跳转 Dashboard</button>;
+  }
+}
+
+// 如果不是通过 <Route component={ClassNavigationDemo} /> 直接渲染的，必须用 withRouter 包裹
+export default withRouter(ClassNavigationDemo);
+```
+
+
+
+## history.js
+
+React Router 底层就是依赖`history.js`来实现路由跳转、监听路径变化等功能。
+
+React Router v5 中 `this.props.history` 本质上就是 `history.js` 创建出来的 history 对象
+
+```jsx
+history.push()
+history.replace()
+history.goBack()
+history.location
+history.listen()
+```

@@ -8,6 +8,8 @@
     "...desc-ui",
     "---交互---",
     "...event",
+    "react-router",
+    "state-mod",
     "thinking-in-react"
   ]
 }

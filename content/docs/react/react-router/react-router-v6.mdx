@@ -1,0 +1,267 @@
+---
+title: React Router v6
+
+---
+
+## 核心思想
+
+- **组件式路由配置**
+
+- **更简洁的 API**
+
+- **嵌套路由成为核心能力**
+
+- **不再依赖 history 对象操作路由**
+
+## 常见组件
+
+### Navigate
+
+`<Navigate>` 组件是一个**声明式**的导航工具。它在 v6 中彻底**替代了旧版本的 `<Redirect>` 组件**。
+
+它的核心思想是：**当你渲染这个组件时，它会立即触发一个导航动作**，将用户送往指定的路径。
+
+
+
+`<Navigate>` 接收两个主要的 props：
+
+- **`to`**: string | Object。指定目标路径。
+
+- **`replace`**: boolean（可选）。默认为 `false`。如果为 `true`，会用新路径替换当前历史记录栈中的位置，而不是压入新记录。常用于登录后或非法访问后的重定向。
+
+- **`state`**: Object（可选）。传递给目标页面的隐式状态参数（不显示在 URL 中，刷新后不丢失，常用于告知目标页是从哪来的）。
+
+```jsx
+// 组件一挂载渲染，就发现没登录，直接返回 <Navigate> 自动重定向
+function ProfilePage() {
+  const isLogin = false;
+
+  if (!isLogin) {
+    // 渲染瞬间触发跳转，用户根本看不到这个组件的真实内容
+    return <Navigate to="/login" replace />;
+  }
+
+  return <div>个人中心页面内容</div>;
+}
+```
+
+<Callout title="为什么需要Navigate组件" type="idea">
+
+在 **组件渲染阶段（Render Time）** 需要根据状态（State/Props）决定是否跳转时，`<Navigate>` 远比 `useNavigate + useEffect` 写起来顺手且更不容易出现闪烁。
+
+</Callout>
+
+### Routes 和 Route
+
+```jsx tab="v6"
+<Routes>
+  <Route path="/home" element={<Home />} />
+  <Route path="/about" element={<About />} />
+</Routes>
+```
+
+```jsx tab="v5"
+<Switch>
+  <Route path="/home" component={Home}/>
+  <Route path="/about" component={About}/>
+</Switch>
+```
+
+element 为什么传 JSX？
+
+```jsx
+<Route
+ path="/user"
+ element={<User />}
+/>
+```
+
+好处是可以直接传 props：
+
+```jsx
+<Route
+ path="/user"
+ element={<User name="张三"/>}
+/>
+```
+
+## 路由组件的props
+
+在 React Router v6 中，被 `<Route>` 渲染的路由组件**不再默认接收任何路由 props**
+
+- 替代 `props.history` $\rightarrow$ **`useNavigate()`**
+
+- 替代 `props.match.params` $\rightarrow$ **`useParams()`**
+
+- 替代 `props.location` $\rightarrow$ **`useLocation()`**
+
+<Callout title="注意">
+
+**只要该组件处于路由上下文（即 `<BrowserRouter>`、`<HashRouter>` 或 `RouterProvider`）的包裹范围内，你可以在任意深度的组件中直接使用这些 Hooks。**
+
+这也正是 React Router v6 废弃 `withRouter` 和 `props` 传参的主要原因——解除组件层级的限制。
+
+</Callout>
+
+## 路由传参
+
+### params 参数
+
+需要提前定义路由：
+
+```jsx
+<Route path="/user/:id" element={<UserProfile />} />
+```
+
+访问：
+
+```jsx
+import { Link, useNavigate } from 'react-router-dom';
+
+// 声明式跳转
+<Link to="/user/1001">查看用户</Link>
+
+// 编程式导航
+const navigate = useNavigate();
+navigate('/user/1001');
+```
+
+获取参数：
+
+```jsx
+import { useParams } from 'react-router-dom';
+
+function UserProfile() {
+  // 获取 URL 中的 :id 参数
+  const { id } = useParams<{ id: string }>();
+  
+  return <div>用户 ID: {id}</div>;
+}
+```
+
+### query参数
+
+访问：
+
+```jsx
+import { useNavigate } from 'react-router-dom';
+
+const navigate = useNavigate();
+// 直接在路径后追加 query
+navigate('/goods?category=phone&page=2');
+```
+
+获取参数/设置参数：
+
+```jsx
+import { useSearchParams } from 'react-router-dom';
+
+function GoodsList() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // 1. 读取参数
+  const category = searchParams.get('category');
+  const page = searchParams.get('page') || '1';
+
+  // 2. 修改参数（会同步更新 URL）
+  const handlePageChange = (newPage: number) => {
+    // 保留旧参数并更新 page，也可以直接传全新对象 { page: String(newPage) }
+    setSearchParams({ category: category || '', page: String(newPage) });
+  };
+
+  return (
+    <div>
+      <p>分类: {category}, 页码: {page}</p>
+      <button onClick={() => handlePageChange(2)}>下一页</button>
+    </div>
+  );
+}
+```
+
+### state参数
+
+访问：
+
+```jsx
+import { Link, useNavigate } from 'react-router-dom';
+
+const userData = { id: 1001, name: 'Alice', role: 'admin' };
+
+// 声明式跳转
+<Link to="/profile" state={userData}>查看个人资料</Link>
+
+// 编程式导航
+const navigate = useNavigate();
+navigate('/profile', { state: userData });
+```
+
+获取参数：
+
+```jsx
+import { useLocation } from 'react-router-dom';
+
+interface UserState {
+  id: number;
+  name: string;
+  role: string;
+}
+
+function Profile() {
+  const location = useLocation();
+  // 从 location.state 中获取传入的对象（需注意防空处理）
+  const state = location.state as UserState | null;
+
+  if (!state) {
+    return <div>未获取到用户信息</div>;
+  }
+
+  return (
+    <div>
+      <p>姓名: {state.name}</p>
+      <p>角色: {state.role}</p>
+    </div>
+  );
+}
+```
+
+## 编程式导航
+
+在 React Router v6 中，**编程式导航**（即通过 JavaScript 代码触发页面跳转）主要依靠 `useNavigate` Hook，替代了 v5 中的 `useHistory`。
+
+```jsx
+import { useNavigate } from 'react-router-dom';
+
+function NavigationDemo() {
+  const navigate = useNavigate();
+
+  // ① 普通路径跳转（压入历史栈）
+  const goToAbout = () => {
+    navigate('/about');
+  };
+
+  // ② 替换当前历史记录（按返回键不会回到当前页，常用于登录或提交后）
+  const handleLogin = () => {
+    // 登录逻辑...
+    navigate('/dashboard', { replace: true });
+  };
+
+  // ③ 携带隐式 state 状态
+  const goToProfile = () => {
+    navigate('/profile', { state: { from: 'home', userId: 123 } });
+  };
+
+  // ④ 历史栈前进与后退（传入数值）
+  const goBack = () => navigate(-1);      // 后退 1 页
+  const goForward = () => navigate(1);    // 前进 1 页
+  const goBackTwo = () => navigate(-2);   // 后退 2 页
+
+  return (
+    <div>
+      <button onClick={goToAbout}>跳转到关于页</button>
+      <button onClick={handleLogin}>登录并替换历史</button>
+      <button onClick={goToProfile}>带参数跳转</button>
+      <button onClick={goBack}>返回上一页</button>
+    </div>
+  );
+}
+```
