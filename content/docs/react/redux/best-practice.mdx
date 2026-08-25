@@ -1,0 +1,191 @@
+---
+title:  最佳实践
+
+---
+
+## 创建slice
+
+```
+src/
+├── store/
+│   ├── index.js
+│   ├── goodsSlice.js
+│   └── userSlice.js
+```
+
+
+
+```jsx tab="goodsSlice.js"
+import { createSlice } from '@reduxjs/toolkit'
+
+const goodsSlice = createSlice({
+  name: 'goods',
+  initialState: {
+    list: [],
+    total: 0
+  },
+  reducers: {
+    setGoods(state, action) {
+      state.list = action.payload
+    },
+
+    addGoods(state, action) {
+      state.list.push(action.payload)
+      state.total++
+    },
+
+    removeGoods(state, action) {
+      state.list = state.list.filter(
+        item => item.id !== action.payload
+      )
+      state.total--
+    }
+  }
+})
+
+export const {
+  setGoods,
+  addGoods,
+  removeGoods
+} = goodsSlice.actions
+
+export default goodsSlice.reducer
+```
+
+```js tab="userSlice.js"
+import { createSlice } from '@reduxjs/toolkit'
+
+const userSlice = createSlice({
+  name: 'user',
+  initialState: {
+    info: null,
+    token: ''
+  },
+  reducers: {
+    login(state, action) {
+      state.info = action.payload.user
+      state.token = action.payload.token
+    },
+
+    logout(state) {
+      state.info = null
+      state.token = ''
+    },
+
+    updateUser(state, action) {
+      state.info = {
+        ...state.info,
+        ...action.payload
+      }
+    }
+  }
+})
+
+export const {
+  login,
+  logout,
+  updateUser
+} = userSlice.actions
+
+export default userSlice.reducer
+```
+
+## 创建store
+
+```js
+import { configureStore } from '@reduxjs/toolkit'
+
+import goodsReducer from './goodsSlice'
+import userReducer from './userSlice'
+
+
+const store = configureStore({
+  reducer: {
+    goods: goodsReducer,
+    user: userReducer
+  }
+})
+
+
+export default store
+```
+
+## 配置 react-redux
+
+```jsx
+import React from 'react'
+import { render } from 'react-dom'
+import { Provider } from 'react-redux'
+import { createStore } from 'redux'
+import rootReducer from './reducers'
+import App from './components/App'
+
+const store = createStore(rootReducer)
+
+render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+)
+```
+
+代码中，我们将 reducer 传入 Redux 提供的 `createStore` 函数中，它返回了一个 `store` 对象。接着我们将这个对象传入 `react-redux` 提供的 `Provider` 组件中，然后将它挂载在组件树的根部。
+
+这样做可以保证我们在任何时候通过 `react-redux` 的 `connect` 连接到 Redux 时，store 可以在组件中正常使用。
+
+## 读取 state
+
+```jsx
+import { useSelector } from 'react-redux'
+
+function GoodsList() {
+
+  const goods = useSelector(
+    state => state.goods.list
+  )
+
+  return (
+    <div>
+      {
+        goods.map(item => (
+          <div key={item.id}>
+            {item.name}
+          </div>
+        ))
+      }
+    </div>
+  )
+}
+```
+
+## 修改 state
+
+```jsx
+import { useDispatch } from 'react-redux'
+import { addGoods } from './store/goodsSlice'
+
+function AddButton(){
+
+  const dispatch = useDispatch()
+
+  function add(){
+
+    dispatch(
+      addGoods({
+        id: 1,
+        name: 'iPhone'
+      })
+    )
+
+  }
+
+  return (
+    <button onClick={add}>
+      添加商品
+    </button>
+  )
+}
+```
+
+addGoods是Actions Creator，用于返回Action对象

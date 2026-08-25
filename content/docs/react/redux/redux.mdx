@@ -1,9 +1,221 @@
 ---
-
 title: Redux
 
 ---
 
 Redux 是 React 生态中一个**状态管理库**，用于管理应用中的全局状态。
+
+## 快速入门
+
+```js tab="store.js"
+import { createStore } from 'redux';
+
+// 1. 定义 Action Types
+const INCREMENT = 'INCREMENT';
+const DECREMENT = 'DECREMENT';
+const ADD_BY_AMOUNT = 'ADD_BY_AMOUNT';
+
+// 2. 定义 Action Creators
+export const increment = () => ({ type: INCREMENT });
+export const decrement = () => ({ type: DECREMENT });
+export const addByAmount = (amount) => ({
+  type: ADD_BY_AMOUNT,
+  payload: amount
+});
+
+// 3. 初始状态
+const initialState = {
+  count: 0
+};
+
+// 4. 定义 Reducer（必须是纯函数，不能直接修改原 state）
+function counterReducer(state = initialState, action) {
+  switch (action.type) {
+    case INCREMENT:
+      return { ...state, count: state.count + 1 };
+    case DECREMENT:
+      return { ...state, count: state.count - 1 };
+    case ADD_BY_AMOUNT:
+      return { ...state, count: state.count + action.payload };
+    default:
+      return state;
+  }
+}
+
+// 5. 创建 Store
+export const store = createStore(counterReducer);
+```
+
+```jsx tab="Counter.jsx"
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { increment, decrement, addByAmount } from './store';
+
+export default function Counter() {
+  const [inputVal, setInputVal] = useState(5);
+
+  const count = useSelector((state) => state.count);
+
+  const dispatch = useDispatch();
+
+  return (
+    <div style={{ padding: '20px', border: '1px solid #ccc', width: '300px' }}>
+      <h2>Count: {count}</h2>
+
+      <div style={{ marginBottom: '10px' }}>
+        <button onClick={() => dispatch(increment())}>
+          +1
+        </button>
+
+        <button
+          onClick={() => dispatch(decrement())}
+          style={{ marginLeft: '10px' }}
+        >
+          -1
+        </button>
+      </div>
+
+      <div>
+        <input
+          type="number"
+          value={inputVal}
+          onChange={(e) => setInputVal(Number(e.target.value))}
+          style={{ width: '60px', marginRight: '10px' }}
+        />
+
+        <button onClick={() => dispatch(addByAmount(inputVal))}>
+          增加指定数值
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+为什么不直接使用store.dispatch?
+
+**直接使用 `store.getState()`**：即使 Store 中的数据变了，React 组件完全感知不到，页面视图**不会自动刷新**。你必须手动在 `componentDidMount` 中注册监听器并在 `componentWillUnmount` 中取消：
+
+```jsx
+// ❌ 如果直接引入 store，你必须写这些冗余且易错的代码：
+componentDidMount() {
+  this.unsubscribe = store.subscribe(() => {
+    this.forceUpdate(); // 手动强制刷新
+  });
+}
+
+componentWillUnmount() {
+  this.unsubscribe(); // 忘记取消会导致内存泄漏
+}
+```
+
+<Callout title="注意" type="warning">
+
+createStore **不能直接传入多个 reducer**，它只能接收一个 reducer 函数。如果存在多个state，请使用RTK
+
+</Callout>
+
+## Redux 库和工具
+
+Redux 是一个小型的独立 JS 库。 但是，它通常与其他几个包一起使用：
+
+### React-Redux
+
+Redux 可以集成到任何的 UI 框架中，其中最常见的是 React 。[**React-Redux**](https://react-redux.js.org/) 是我们的官方包，它可以让 React 组件访问 state 片段和 dispatch actions 更新 store，从而同 Redux 集成起来。
+
+### Redux Toolkit
+
+[**Redux Toolkit**](https://redux-toolkit.js.org/) 是我们推荐的编写 Redux 逻辑的方法。 它包含我们认为对于构建 Redux 应用程序必不可少的包和函数。 Redux Toolkit 构建是我们建议的最佳实践中，简化了大多数 Redux 任务，预防了常见错误，并使编写 Redux 应用程序变得更加容易。
+
+### Redux DevTools 扩展
+
+[**Redux DevTools 扩展**](https://github.com/zalmoxisus/redux-devtools-extension) 可以显示 Redux 存储中状态随时间变化的历史记录。这允许你有效地调试应用程序，包括使用强大的技术，如“时间旅行调试”。
+
+## **单向数据流**
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1787626509979.png)
+
+当我们有**多个组件需要共享和使用相同 state**时，可能会变得很复杂，尤其是当这些组件位于应用程序的不同部分时。有时这可以通过 "提升 state" 到父组件来解决，但这并不总是有效。
+
+解决这个问题的一种方法是从组件中提取共享 state，并将其放入组件树之外的一个集中位置。这样，我们的组件树就变成了一个大“view”，任何组件都可以访问 state 或触发 action，无论它们在树中的哪个位置！
+
+## Actions
+
+**action** 是一个具有 `type` 字段的普通 JavaScript 对象。**你可以将 action 视为描述应用程序中发生了什么的事件**.
+
+`type` 字段是一个字符串，给这个 action 一个描述性的名字，比如`"todos/todoAdded"`。我们通常把那个类型的字符串写成“域/事件名称”，其中第一部分是这个 action 所属的特征或类别，第二部分是发生的具体事情。
+
+action 对象可以有其他字段，其中包含有关发生的事情的附加信息。按照惯例，我们将该信息放在名为 `payload` 的字段中。
+
+```js
+const addTodoAction = {
+  type: 'todos/todoAdded',
+  payload: 'Buy milk'
+}
+```
+
+## Action Creator
+
+**action creator** 是一个创建并返回一个 action 对象的函数。它的作用是让你不必每次都手动编写 action 对象：
+
+```js
+const addTodo = text => {
+  return {
+    type: 'todos/todoAdded',
+    payload: text
+  }
+}
+```
+
+## Reducer
+
+**reducer** 是一个函数，接收当前的 `state` 和一个 `action` 对象，必要时决定如何更新状态，并返回新状态。函数签名是：`(state, action) => newState`。 **你可以将 reducer 视为一个事件监听器，它根据接收到的 action（事件）类型处理事件。**
+
+Reducer 必需符合以下规则：
+
+- 仅使用 `state` 和 `action` 参数计算新的状态值
+- 禁止直接修改 `state`。必须通过复制现有的 `state` 并对复制的值进行更改的方式来做 *不可变更新*。
+- 禁止任何异步逻辑、依赖随机值或导致其他“副作用”的代码
+
+<Callout title="Reducer名字的由来">
+
+**Redux reducer 函数与“reduce 回调函数”函数的想法完全相同！** 它接受上一个结果（`state`）和当前项（`action` 对象），根据这些参数计算出一个新 state，并返回该新 state。
+
+</Callout>
+
+
+
+## Store
+
+当前 Redux 应用的 state 存在于一个名为 **store** 的对象中。
+
+### getState
+
+获取当前状态
+
+### dispatch
+
+**更新 state 的唯一方法是调用 `store.dispatch()` 并传入一个 action 对象**。 store 将执行**所有 reducer 函数**并计算出更新后的 state
+
+```js
+store.dispatch({ type: 'counter/increment' })
+
+console.log(store.getState())
+// {value: 1}
+```
+
+每次 dispatch，一个 action 会传递给**所有** reducer。每个 reducer 自己决定是否处理这个 action。
+
+并不建议不同state的action相同。通常命名规则为：`state+action.type`
+
+```
+counter/increment
+
+user/login
+
+cart/addItem
+```
+
+
 
 

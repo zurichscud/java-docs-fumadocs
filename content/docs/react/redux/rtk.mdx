@@ -1,0 +1,200 @@
+---
+title: Redux Toolkit
+
+descirption: Redux 官方推荐的现代写法工具集
+
+---
+
+| API                        | 作用                  |
+| -------------------------- | --------------------- |
+| `configureStore`           | 创建 store            |
+| `createSlice`              | 创建 reducer + action |
+| `createAsyncThunk`         | 处理异步请求          |
+| `createEntityAdapter`      | 管理列表数据          |
+| `createListenerMiddleware` | 监听 action           |
+
+## createSlice
+
+创建 reducer + action
+
+```js
+import { createSlice } from '@reduxjs/toolkit';
+
+const counterSlice = createSlice({
+  name: 'counter',
+
+  initialState: {
+    value: 0
+  },
+
+  reducers: {
+    increment(state) {
+      state.value++;
+    },
+
+    decrement(state) {
+      state.value--;
+    }
+  }
+});
+
+
+export const {
+  increment,
+  decrement
+} = counterSlice.actions;
+
+
+export default counterSlice.reducer;
+```
+
+- initialState：初始状态
+
+- reducers：操作数据的方法：`(pre,action)=>{}`
+
+RTK 使用了 **Immer**，因此我们可以在reducer中直接更改state。
+
+## configureStore
+
+传统写法：需要手动合并 reducer、添加中间件、接入 DevTools
+
+```js
+import {
+  createStore,
+  combineReducers,
+  applyMiddleware
+} from 'redux';
+import thunk from 'redux-thunk';
+import { composeWithDevTools } from '@redux-devtools/extension';
+
+const rootReducer = combineReducers({
+  counter: counterReducer,
+  user: userReducer
+});
+
+const store = createStore(
+  rootReducer,
+  composeWithDevTools(applyMiddleware(thunk))
+);
+```
+
+RTK：一个函数搞定所有配置
+
+```js
+import { configureStore } from '@reduxjs/toolkit';
+
+const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+    user: userReducer
+  }
+});
+```
+
+`configureStore` 内部自动完成了：
+
+- **合并 reducer**：传入对象时相当于调用 `combineReducers`
+
+- **默认中间件**：自动添加 `redux-thunk`（异步逻辑开箱即用）
+
+- **DevTools**：自动接入 Redux DevTools 浏览器扩展
+
+- **开发检查**：开发环境默认开启 Immutability / Serializability 检查，能在控制台提前暴露“直接修改 state”“存入不可序列化的值”等错误
+
+常用配置项：
+
+```js
+import { configureStore } from '@reduxjs/toolkit';
+
+const store = configureStore({
+  // 必填：根 reducer（对象或已合并的 reducer 函数）
+  reducer: {
+    counter: counterReducer,
+    user: userReducer
+  },
+
+  // 可选：自定义中间件，getDefaultMiddleware 包含默认的 thunk 等
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(logger),
+
+  // 可选：是否启用 DevTools，默认 true
+  devTools: process.env.NODE_ENV !== 'production',
+
+  // 可选：预置初始 state（常用于 SSR 水合）
+  preloadedState,
+
+  // 可选：追加 store enhancer
+  enhancers: (getDefaultEnhancers) =>
+    getDefaultEnhancers().concat(myEnhancer)
+});
+
+export default store;
+```
+
+## createAsyncThunk
+
+`createAsyncThunk` 是 RTK 中用于处理**异步逻辑**（如 API 请求）的核心函数。它会根据异步操作的生命周期，自动生成对应的 Action Creator 和 Action Type。
+
+当使用 `createAsyncThunk` 时，它会自动为你创建 **3 个 Action 状态**：
+
+- `pending`：请求开始发送（如显示 Loading 状态）
+
+- `fulfilled`：请求成功返回（如保存数据到 State）
+
+- `rejected`：请求失败或报错（如显示错误信息）
+
+```js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+// 1. 定义异步任务
+export const fetchUserById = createAsyncThunk(
+  'users/fetchById',
+  async (userId, thunkAPI) => {
+    try {
+      const response = await fetch(`https://api.example.com/users/${userId}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      // 返回的数据会成为 fulfilled 状态的 action.payload
+      return data; 
+    } catch (error) {
+      // 使用 rejectWithValue 自定义失败时返回的 payload
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+// 2. 创建 Slice 并处理异步状态
+const userSlice = createSlice({
+  name: 'user',
+  initialState: {
+    data: null,
+    loading: false,
+    error: null,
+  },
+  reducers: {},
+  // 使用 extraReducers 监听异步 Action
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUserById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUserById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload; // 接收异步函数 return 的结果
+      })
+      .addCase(fetchUserById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload; // 接收 rejectWithValue 传出的错误信息
+      });
+  },
+});
+
+export default userSlice.reducer;
+```
+
+- 参数 1：Action 前缀字符串 'sliceName/actionName'
+
+- 参数 2：payloadCreator 异步函数，接收 (arg, thunkAPI)

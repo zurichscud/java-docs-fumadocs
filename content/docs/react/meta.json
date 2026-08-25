@@ -9,6 +9,7 @@
     "---交互---",
     "...event",
     "react-router",
+    "redux",
     "state-mod",
     "thinking-in-react"
   ]
