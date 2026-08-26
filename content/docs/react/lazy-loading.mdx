@@ -1,0 +1,121 @@
+---
+title: "懒加载"
+---
+
+React **懒加载（Lazy Loading）**主要用于**按需加载组件代码**，避免首次打开页面时加载所有 JS，提升首屏速度。
+
+React 官方提供了：
+
+- `React.lazy()`：定义懒加载组件
+
+- `Suspense`：加载期间显示占位内容
+
+
+
+## 普通加载的问题
+
+```jsx
+import Home from './Home';
+import User from './User';
+import About from './About';
+
+function App() {
+  return (
+    <>
+      <Home />
+      <User />
+      <About />
+    </>
+  );
+}
+```
+
+打包后：
+
+```jsx
+app.js
+ ├── Home代码
+ ├── User代码
+ └── About代码
+```
+
+用户访问 Home 页面时，即使 User 和 About 没用到，也全部下载。
+
+## React.lazy实现懒加载
+
+```jsx
+import { lazy, Suspense } from 'react';
+
+const Home = lazy(() => import('./Home'));
+const User = lazy(() => import('./User'));
+const About = lazy(() => import('./About'));
+
+function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Home />
+    </Suspense>
+  );
+}
+```
+
+打包后：
+
+```
+main.js
+
+home.chunk.js
+user.chunk.js
+about.chunk.js
+```
+
+访问 Home时，User 和 About 不会加载。
+
+## Suspense为什么必须存在？
+
+因为懒加载组件需要时间。
+
+```jsx
+React:
+我要渲染 User
+
+发现：
+User代码还没下载
+
+暂停渲染
+
+显示 fallback
+```
+
+
+
+```jsx
+<Suspense fallback={<Loading />}>
+  <User />
+</Suspense>
+```
+
+如果里面的组件还没准备好，就显示 Loading。
+
+## 与路由结合
+
+```jsx
+import { lazy, Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
+
+
+const Home = lazy(() => import('./pages/Home'));
+const User = lazy(() => import('./pages/User'));
+
+
+function App() {
+  return (
+    <Suspense fallback={<div>加载中...</div>}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/user" element={<User />} />
+      </Routes>
+    </Suspense>
+  );
+}
+```

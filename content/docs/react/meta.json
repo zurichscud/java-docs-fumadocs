@@ -8,6 +8,7 @@
     "...desc-ui",
     "---交互---",
     "...event",
+    "state",
     "react-router",
     "redux",
     "state-mod",

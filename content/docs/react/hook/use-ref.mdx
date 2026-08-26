@@ -1,0 +1,56 @@
+---
+title: "useRef"
+---
+
+`useRef` 是 React 提供的 Hook，用于**保存一个可变值，并且这个值的变化不会触发组件重新渲染**。
+
+它最常见有两个用途：
+
+1. **获取 DOM 元素**
+
+2. **保存组件生命周期中的变量**
+
+
+
+## 获取 DOM 元素
+
+```jsx
+import { useRef } from "react";
+
+function App() {
+  const inputRef = useRef(null);
+
+  function focusInput() {
+    inputRef.current.focus();
+  }
+
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={focusInput}>
+        聚焦
+      </button>
+    </>
+  );
+}
+```
+
+```jsx
+function App() {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current.focus();  // DOM 挂载后可用
+  }, []);
+
+  return <input ref={inputRef} />;
+}
+```
+
+渲染完成后，React 会自动把 DOM 赋值：
+
+```jsx
+inputRef.current = input DOM对象
+```
+
+

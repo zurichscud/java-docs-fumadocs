@@ -1,0 +1,54 @@
+---
+title: Fragment
+---
+
+
+
+## 基本语法
+
+`Fragment` 让你返回多个子元素而不添加多余的 DOM 节点。类似于Vue的`<template>`
+
+```jsx
+import { Fragment } from 'react';
+
+function List() {
+  return (
+    <Fragment>
+      <h1>标题</h1>
+      <p>内容</p>
+    </Fragment>
+  );
+}
+```
+
+## 短语法
+
+绝大多数场景直接用短语法：
+
+```jsx
+function List() {
+  return (
+    <>
+      <h1>标题</h1>
+      <p>内容</p>
+    </>
+  );
+}
+```
+
+
+
+## Fragment 可以有 key
+
+短语法不能传属性。遍历渲染列表时需要 `key`，只能用 `Fragment`：
+
+```jsx
+{items.map(item => (
+  <Fragment key={item.id}>
+    <dt>{item.term}</dt>
+    <dd>{item.desc}</dd>
+  </Fragment>
+))}
+```
+
+

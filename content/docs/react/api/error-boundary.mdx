@@ -1,0 +1,42 @@
+---
+title: 错误边界
+---
+
+Error Boundary（错误边界） 用于捕获**子组件树**中的 JS 错误，防止整棵树崩溃，显示降级 UI。
+
+## 类组件实现
+
+目前只有类组件能创建错误边界，需定义 `static getDerivedStateFromError` 或 `componentDidCatch`：
+
+```jsx
+class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };  // 渲染降级 UI
+  }
+
+  componentDidCatch(error, info) {
+    // 记录日志
+    console.error(error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? <h1>出错了</h1>;
+    }
+    return this.props.children;
+  }
+}
+
+// 使用
+<ErrorBoundary fallback={<p>侧边栏挂了</p>}>
+  <Sidebar />
+</ErrorBoundary>
+```
+
+## 捕获范围
+
+捕获子树中的：渲染期、生命周期、构造函数中的错误。
+
+错误边界只适用于生产环境，其他不会触发

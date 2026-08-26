@@ -1,0 +1,88 @@
+---
+title: "使用ref引用值"
+---
+
+当你希望组件“记住”某些信息，但又不想让这些信息 **触发新的渲染** 时，你可以使用 ref 。
+
+## 给你的组件添加 ref
+
+在你的组件内，调用 `useRef` Hook 并传入你想要引用的初始值作为唯一参数。
+
+```jsx
+import { useRef } from 'react';
+
+const ref = useRef(0);
+```
+
+这里的 ref 指向一个数字，但是，像 [state](https://zh-hans.react.dev/learn/state-a-components-memory) 一样，你可以让它指向任何东西：字符串、对象，甚至是函数。与 state 不同的是，ref 是一个普通的 JavaScript 对象，具有可以被读取和修改的 `current` 属性。
+
+`useRef` 返回一个这样的对象:
+
+```js
+{
+  current: 0 // 你向 useRef 传入的值
+}
+
+```
+
+你可以用 `ref.current` 属性访问该 ref 的当前值。这个值是有意被设置为可变的，意味着你既可以读取它也可以写入它。
+
+```jsx
+import { useRef } from 'react';
+
+export default function Counter() {
+  let ref = useRef(0);
+  console.log('ref.current', ref.current);//只打印2次
+  function handleClick() {
+    ref.current = ref.current + 1;
+    alert('你点击了 ' + ref.current + ' 次！');
+  }
+
+  return (
+    <button onClick={handleClick}>
+      点击我！
+    </button>
+  );
+}
+
+
+```
+
+请注意，**组件不会在每次递增时重新渲染。** 与 state 一样，React 会在每次重新渲染之间保留 ref。
+
+## ref 和 state的比较
+
+| ref                                                       | state                                                                                     |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `useRef(initialValue)` 返回 `{ current: initialValue }`   | `useState(initialValue)` 返回 state 变量的当前值和一个 state 设置函数 `[value, setValue]` |
+| 更改时不会触发重新渲染                                    | 更改时触发重新渲染                                                                        |
+| **可变** —— 你可以在渲染过程之外修改和更新 `current` 的值 | **“不可变”** —— 你必须使用 state 设置函数来修改 state 变量，从而排队重新渲染              |
+| 你不应在渲染期间读取（或写入）`current` 值                | 你可以随时读取 state。但是，每次渲染都有自己的不变的 state 快照                           |
+
+## ref 和 DOM
+
+你可以将 ref 指向任何值。但是，ref 最常见的用法是访问 DOM 元素。
+
+例如，如果你想以编程方式聚焦一个输入框，这种用法就会派上用场。当你将 ref 传递给 JSX 中的 `ref` 属性时，React 会将相应的 DOM 元素放入 `myRef.current` 中。当元素从 DOM 中删除时，React 会将 `myRef.current` 更新为 `null`。
+
+```jsx
+import { useRef } from 'react';
+
+export default function Form() {
+  const inputRef = useRef(null);
+
+  function handleClick() {
+    inputRef.current.focus();
+  }
+
+  return (
+    <>
+      <input ref={inputRef} />
+      <button onClick={handleClick}>
+        聚焦输入框
+      </button>
+    </>
+  );
+}
+
+```
