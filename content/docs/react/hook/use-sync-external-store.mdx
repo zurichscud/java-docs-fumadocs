@@ -62,11 +62,11 @@ function NetworkStatus() {
 
 4. **触发渲染**：React 收到通知，立刻调用 `getSnapshot()` 获取最新值，并刷新组件。
 
-5. 如果 `getSnapshot` 返回的值**没有发生变化**，React 会直接**跳过（Skip）当前组件的重新渲染**。
+5. 如果 `getSnapshot` 返回的值**没有发生变化**，React 会直接**跳过当前组件的重新渲染**。
 
 <Callout>
 
-useSyncExternalStore的核心是订阅函数，订阅函数中，React将组件更新的控制权主动交给你去实现了
+useSyncExternalStore的核心是订阅函数，订阅函数中，React将组件更新的控制权（callback）主动交给了你
 
 </Callout>
 

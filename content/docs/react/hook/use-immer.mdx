@@ -89,7 +89,7 @@ function TodoList() {
 
 ## useImmerReducer
 
-如果你的逻辑比较复杂，需要结合 Reducer 模式使用，可以用 `useImmerReducer`：
+`useImmerReducer`和`useReducer`类似，但它的 reducer 接收一个 `draft`（草案），你可以直接修改 `draft` 的属性。
 
 ```jsx
 import { useImmerReducer } from 'use-immer';
