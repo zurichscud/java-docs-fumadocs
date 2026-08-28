@@ -1,5 +1,6 @@
 ---
-title: 对 state 进行保留和重置
+title: State 的保留与重置
+description: state 属于组件在 UI 树中的“位置”，而不属于组件本身。
 ---
 
 各个组件的 state 是各自独立的。根据组件在 UI 树中的位置，React 可以跟踪哪些 state 属于哪个组件。你可以控制在重新渲染过程中何时对 state 进行保留和重置。
@@ -33,10 +34,7 @@ export default function Scoreboard()
     </div>
   );
 }
-
 ```
-
-
 
 这段JSX编译后：
 
@@ -120,12 +118,9 @@ function Counter({ isFancy }) {
     </div>
   );
 }
-
 ```
 
-当你勾选或清空复选框的时候，计数器 state 并没有被重置。它是位于相同位置的相同组件，所以对 React 来说，它是同一个计数器。
-
-
+当你勾选或清空复选框的时候，计数器 state 并没有被重置。因为他们是位于相同位置的相同组件，所以React 认为它是同一个计数器。
 
 ## 相同位置的不同组件会使 state 重置
 
@@ -179,12 +174,9 @@ function Counter() {
     </div>
   );
 }
-
 ```
 
 示例中，你在相同位置对 **不同** 的组件类型进行切换。刚开始 `<div>` 的第一个子组件是一个 `Counter`。但是当你切换成 `p` 时，React 将 `Counter` 从 UI 树中移除了并销毁了它的状态。
-
-
 
 ## 在相同位置重置 state
 
@@ -215,7 +207,6 @@ export default function Scoreboard()
     </div>
   );
 }
-
 ```
 
 ### 方法二：使用 key 来重置 state
@@ -243,8 +234,6 @@ export default function Scoreboard() {
 ```
 
 在 React 看来它们是两个不同的计数器。因此它们永远都不会共享 state。
-
-
 
 ### 使用 key 重置表单
 
@@ -274,7 +263,6 @@ const contacts = [
   { id: 1, name: 'Alice', email: 'alice@mail.com' },
   { id: 2, name: 'Bob', email: 'bob@mail.com' }
 ];
-
 ```
 
 你不应该让用户因为一次偶然的点击而把他们已经输入的信息发送给一个错误的人。要修复这个问题，只需给组件添加一个 `key` ：

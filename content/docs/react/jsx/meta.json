@@ -1,0 +1,9 @@
+{
+  "title": "JSX",
+  "pages": [
+    "jsx",
+    "conditional-rendering",
+    "rendering-lists",
+    "understand-jsx"
+  ]
+}

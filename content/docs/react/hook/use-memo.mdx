@@ -1,0 +1,81 @@
+---
+title: "useMemo"
+descirption: "缓存计算结果"
+---
+
+`useMemo` 是 React 提供的一个用于缓存计算结果的 Hook。它会在依赖项不变的情况下，返回上一次缓存的计算值，避免不必要的重复计算。
+
+类比于vue的计算属性
+
+## 基本语法
+
+```jsx
+const memoizedValue = useMemo(() => {
+  return 计算函数(a, b);
+}, [a, b]);
+```
+
+useMemo和useEffect一样依赖项有3种情况：
+
+- 无依赖性：每次render都重新计算并更新缓存
+
+- 空依赖数组：只计算一次
+
+- 依赖数组：任一依赖变化，重新计算并更新缓存
+
+|            | useEffect  | useMemo      |
+| ---------- | ---------- | ------------ |
+| 用途       | 执行副作用 | 缓存计算结果 |
+| 执行时机   | render之后 | render期间   |
+| 返回值     | 忽略       | 返回缓存值   |
+| 无依赖数组 | 每次effect | 每次计算     |
+| 空数组     | 首次effect | 首次计算     |
+| 依赖变化   | 执行effect | 重新计算     |
+
+## 使用场景
+
+### 跳过昂贵的计算
+
+```jsx
+function ProductList({ products, filter }) {
+  // 只有 products 或 filter 变化时才重新过滤排序
+  const sortedProducts = useMemo(() => {
+    console.log('执行了排序计算');
+    return products
+      .filter(p => p.price > filter.minPrice)
+      .sort((a, b) => b.sales - a.sales);
+  }, [products, filter]);
+
+  return (
+    <ul>
+      {sortedProducts.map(p => <li key={p.id}>{p.name}</li>)}
+    </ul>
+  );
+}
+```
+
+### 保持引用稳定
+
+```jsx
+const Child = React.memo(function Child({ config }) {
+  console.log('Child 渲染了');
+  return <div>{config.theme}</div>;
+});
+
+function Parent() {
+  const [count, setCount] = useState(0);
+  
+  // ❌ 不用 useMemo：每次渲染都创建新对象，Child 会跟着重新渲染
+  // const config = { theme: 'dark' };
+  
+  // ✅ 用 useMemo：引用不变，count 变化时 Child 不会重新渲染
+  const config = useMemo(() => ({ theme: 'dark' }), []);
+
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>{count}</button>
+      <Child config={config} />
+    </>
+  );
+}
+```

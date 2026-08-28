@@ -1,0 +1,122 @@
+---
+title: "useSyncExternalStore"
+---
+
+useState 把数据存在 React 内部；useSyncExternalStore 则让 React 组件订阅"React 外部"的数据源，外部数据一变，组件就重新渲染。
+
+## 基本语法
+
+```jsx
+const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot?);
+```
+
+- **`subscribe`**: 一个注册回调函数的函数。当外部 状态 发生变化时，调用callback会触发 React 重新渲染组件。需要返回一个取消订阅的清理函数。
+
+- **`getSnapshot`**: 返回当前 Store 中数据的快照函数。React 会用它来判断数据是否发生改变（使用 `Object.is` 比较）。**注意：如果返回的值改变，组件就会重新渲染；必须保证在 Store 未改变时返回绝对相等的值或引用，否则会导致死循环。**
+
+- **`getServerSnapshot`** *(可选)*: SSR（服务端渲染）及 Hydration 期间使用的快照函数，返回初始 HTML 的数据快照。
+
+
+
+## 订阅浏览器 API
+
+监听窗口大小或媒体查询时，不需要使用 `useEffect` + `useState` 繁琐地绑定事件：
+
+```jsx
+import { useSyncExternalStore } from 'react';
+
+// 1. 定义订阅逻辑
+function subscribe(callback) {
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+}
+
+// 2. 获取快照
+function getSnapshot() {
+  return navigator.onLine;
+}
+
+// 3. 在组件中使用
+function NetworkStatus() {
+  const isOnline = useSyncExternalStore(subscribe, getSnapshot);
+
+  return (
+    <div>
+      网络状态：{isOnline ? '🟢 在线' : '🔴 离线'}
+    </div>
+  );
+}
+```
+
+传入 `subscribe`，就是你给外部数据源和 React 之间搭了一条线：
+
+1. **注册回调**：React 会把自己的**更新函数**（可以理解为 React 内部的 `rerender` 函数）作为参数传给你的 `subscribe(callback)`。
+
+2. **监听变化**：你在 `subscribe` 里把这个 `callback` 绑定到外部事件上（比如 `window.addEventListener`）。
+
+3. **通知 React**：当外部数据发生变化时，触发事件，调用 `callback()`。
+
+4. **触发渲染**：React 收到通知，立刻调用 `getSnapshot()` 获取最新值，并刷新组件。
+
+5. 如果 `getSnapshot` 返回的值**没有发生变化**，React 会直接**跳过（Skip）当前组件的重新渲染**。
+
+<Callout>
+
+useSyncExternalStore的核心是订阅函数，订阅函数中，React将组件更新的控制权主动交给你去实现了
+
+</Callout>
+
+## store
+
+```jsx
+function createStore(initialState) {
+  let state = initialState; // 注意：这个 state 活在 React 之外！
+  const listeners = new Set(); // 所有订阅者
+
+  return {
+    // 给 React 用的订阅函数：注册回调，返回取消订阅函数
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    // 给 React 用的快照函数：返回当前值
+    // ⚠️ 如果这里每次 return { count: state }（新对象），组件会无限重渲染！
+    //    必须返回缓存的同一个引用或原始值
+    getState() {
+      return state;
+    },
+    // 业务方法：更新外部 state，然后手动通知所有订阅者
+    setCount(next) {
+      state = next;
+      listeners.forEach((listener) => listener());
+    },
+  };
+}
+
+const countStore = createStore(0);
+
+/* ---------- 示例 1：基础用法 ---------- */
+
+function BasicDemo() {
+  const count = useSyncExternalStore(
+    countStore.subscribe, // ① 怎么订阅
+    countStore.getState // ② 怎么读当前快照
+  );
+
+  console.log("【BasicDemo】渲染了");
+
+  return (
+    <div className="panel child">
+      <h3>示例 1：基础用法</h3>
+      <p>store 中的 count：{count}</p>
+      <button onClick={() => countStore.setCount(count + 1)}>
+        更新外部 store
+      </button>
+    </div>
+  );
+}
+```

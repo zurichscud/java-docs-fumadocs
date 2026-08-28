@@ -6,8 +6,6 @@ Effect 通常用于暂时“跳出” React 并与一些 **外部** 系统进行
 
 >  尝试从组件生命周期中跳脱出来，独立思考 Effect。Effect 描述了如何将外部系统与当前的 props 和 state 同步
 
-
-
 ## 为什么需要Effect
 
 ```jsx
@@ -28,22 +26,19 @@ function VideoPlayer({ src, isPlaying }) {
 
 当第一次调用 `VideoPlayer` 时，对应的 DOM 节点还不存在！因为 React 在你返回 JSX 之前不知道要创建什么样的 DOM，所以没有 DOM 节点可以调用 `play()` 或 `pause()` 方法。
 
+## usage
 
-
-## 1. 声明 Effect
-
-> 每次渲染后都执行
+### 1. 无依赖项
 
 ```jsx
-function MyComponent() {
   useEffect(() => {
     // 每次渲染后都会执行此处的代码
   });
-  return <div />;
-}
 ```
 
+生命周期：
 
+- 每次渲染后都执行
 
 ```jsx
 import { useEffect, useRef } from 'react';
@@ -63,27 +58,35 @@ function VideoPlayer({ src, isPlaying }) {
 }
 ```
 
-## 2.指定 Effect 的依赖项
-
-### 指定空数组
-
-通过在调用 `useEffect` 时指定一个 **依赖数组** 作为第二个参数，你可以让 React **跳过不必要地重新运行 Effect**。首先，在上面示例的第 14 行中传入一个空数组 `[]`：
+### 2.空依赖项
 
 ```jsx
 useEffect(() => { ... }, []);    // 仅挂载后执行一次
 ```
 
+生命周期：
 
+- 首次挂载执行一次
 
-### 指定依赖依赖数组
-
-依赖发生变化就执行
+### 3.有依赖项
 
 ```jsx
-useEffect(() => { ... }, [a, b]); // a 或 b 变化后执行
+useEffect(() => { ... }, [a, b]); //首次+ a 或 b 变化后执行
 ```
 
-如果你的副作用函数存在依赖的state，那么你必须在数组中声明
+生命周期：
+
+- 首次挂载执行一次（与依赖数组无关）
+
+- 依赖发生变化就执行，类似于vue中的watch
+
+依赖数组可以包含多个依赖项：
+
+- 任意一个依赖变化都会触发回调
+
+- 在一个render中，如果有多个依赖发生变化，则只执行一次回调，不会执行多次
+
+- 如果你的副作用函数存在依赖的state，那么你必须在数组中声明
 
 ```jsx
   useEffect(() => {
@@ -95,56 +98,37 @@ useEffect(() => { ... }, [a, b]); // a 或 b 变化后执行
   }, [isPlaying]); // ……所以它必须在此处声明！
 ```
 
-指定 `[isPlaying]` 作为依赖数组会告诉 React：如果 `isPlaying` 与上次渲染时相同，就跳过重新运行 Effect。
+### 4. 返回清理函数
 
-依赖数组可以包含多个依赖项。只有当你指定的 **所有** 依赖项的值都与上一次渲染时完全相同，React 才会跳过重新运行该 Effect。
-
-## 3. 清理函数
-
-返回一个函数，在下次 **effect 执行前**和**组件卸载时**调用：
+返回一个函数，在下次 **effect 执行前**和**组件卸载前**调用：
 
 ```jsx
   useEffect(() => {
-    const connection = createConnection();
-    connection.connect();
+    console.log("Component mounted");
     return () => {
-      connection.disconnect();
-    };
-  }, []);
-```
-
-```jsx tab="ChatRoom.jsx"
-import { useState, useEffect } from 'react';
-import { createConnection } from './chat.js';
-
-export default function ChatRoom() {
-  useEffect(() => {
-    const connection = createConnection();
-    connection.connect();
-    return () => connection.disconnect();
-  }, []);
-  return <h1>欢迎来到聊天室！</h1>;
-}
-```
-
-```jsx tab="chat.js"
-export function createConnection() {
-  // 真正的实现实际上会连接到服务器
-  return {
-    connect() {
-      console.log('✅ 连接中……');
-    },
-    disconnect() {
-      console.log('❌ 连接断开。');
+      console.log("clear");
     }
-  };
-}
+  },[count]);
+
 ```
 
 ```
-✅ 连接中……
-❌ 连接断开。
-✅ 连接中……
+Component mounted
+clear
+Component mounted
+```
+
+<Callout>
+
+React 18 开发模式下,effect 会经历挂载 → 卸载 → 再挂载,目的是帮你发现缺少清理函数的问题。生产环境只会执行一次,这不是 bug。
+
+</Callout>
+
+当count发生变化时：
+
+```
+clear
+Component mounted
 ```
 
 ## 总结
@@ -162,5 +146,3 @@ useEffect(() => {
   // 这里的代码不但会在组件挂载时运行，而且当 a 或 b 的值自上次渲染后发生变化后也会运行
 }, [a, b]);
 ```
-
-

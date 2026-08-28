@@ -8,13 +8,9 @@ title: 状态队列
 
 ## 批处理
 
-![image-20260818153348368](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/typora/image-20260818153348368.png)
-
-服务员不会在你说第一道菜的时候就跑到厨房！相反，他们会让你把菜点完，让你修改菜品，甚至会帮桌上的其他人点菜。
-
 **React 会等到事件处理函数中的** 所有 **代码都运行完毕再处理你的 state 更新。**
 
-这让你可以更新多个 state 变量——甚至来自多个组件的 state 变量——而不会触发太多的 [重新渲染](https://zh-hans.react.dev/learn/render-and-commit#re-renders-when-state-updates)。但这也意味着只有在你的事件处理函数及其中任何代码执行完成 **之后**，UI 才会更新。这种特性也就是 **批处理**，它会使你的 React 应用运行得更快。它还会帮你避免处理只更新了一部分 state 变量的令人困惑的“半成品”渲染。
+这让你可以更新多个 state 变量——甚至来自多个组件的 state 变量——而不会触发太多的 [重新渲染](https://zh-hans.react.dev/learn/render-and-commit#re-renders-when-state-updates)。但这也意味着只有在你的事件处理函数及其中任何代码执行完成 **之后**，UI 才会更新。这种特性也就是 **批处理**，它会使你的 React 应用运行得更快。
 
 ## 在下次渲染前多次更新同一个 state
 
@@ -48,7 +44,7 @@ export default function Counter() {
 
 事件处理函数执行完成后，React 将触发重新渲染。在重新渲染期间，React 将处理队列。更新函数会在渲染期间执行，因此 **更新函数必须是 [纯函数](https://zh-hans.react.dev/learn/keeping-components-pure)** 并且只 **返回** 结果。不要尝试从它们内部设置 state 或者执行其他副作用。在严格模式下，React 会执行每个更新函数两次（但是丢弃第二个结果）以便帮助你发现错误。
 
-## 命名惯例 
+<Callout title="命名规范">
 
 通常可以通过相应 state 变量的第一个字母来命名更新函数的参数：
 
@@ -60,13 +56,9 @@ setFriendCount(fc => fc * 2);
 
 如果你喜欢更冗长的代码，另一个常见的惯例是重复使用完整的 state 变量名称，如 `setEnabled(enabled => !enabled)`，或使用前缀，如 `setEnabled(prevEnabled => !prevEnabled)`。
 
+</Callout>
 
-
-
-
-
-
-## Example
+## 深入研究
 
 每次用户按下“购买”按钮，“等待”计数器应该增加 1。三秒后，“等待”计数器应该减少，“完成”计数器应该增加。
 
@@ -104,8 +96,80 @@ function delay(ms) {
     setTimeout(resolve, ms);
   });
 }
+```
+
+### 点击一次
+
+第一次渲染：初始渲染
 
 ```
+等待：0
+完成：0
+```
+
+只点击一次，此时`pending=0`，调用`setPending`触发渲染，页面显示：
+
+```jsx
+等待：0
+完成：0
+```
+
+3s后，剩下两个 state 更新合并成一次 render。此时`pending=0`，页面最终显示：
+
+```jsx
+等待：-1
+完成：1
+```
+
+| 时间     | 操作                          | `pending`（闭包中的值） | 界面显示              |
+| -------- | ----------------------------- | ----------------------- | --------------------- |
+| 初始     | —                             | 0                       | 等待：0，完成：0      |
+| 点击瞬间 | `setPending(pending + 1)`     | 0                       | 等待：**1**，完成：0  |
+| 3秒后    | `setPending(pending - 1)`     | 0                       | 等待：**-1**，完成：1 |
+| 3秒后    | `setCompleted(completed + 1)` | —                       | 等待：-1，完成：**1** |
+
+这是 闭包捕获旧状态（stale closure） 的经典问题：
+
+1. `handleClick` 是在 `pending = 0` 的那次渲染中创建的，它闭包捕获的 `pending` 永远是 0
+2. 点击后 `setPending(1)` 虽然触发了重新渲染，界面上的 `pending` 变成了 1
+3. 但 `await` 恢复执行时，`handleClick` 里用的仍然是当初捕获的旧变量 `pending = 0`
+4. 所以 `pending - 1` 计算出的是 `0 - 1 = -1`
+
+> React 中 state 是快照：一次渲染中的事件处理器只能看到那次渲染时的 state，后续更新不会改变已经捕获的值。
+
+<Accordions type="single">
+  <Accordion title="点击一次，触发了几次渲染？">
+
+    2 次重新渲染（不含初始挂载）
+    
+    关键机制：await 把函数切成两段。await 之前和之后是两个独立的同步执行段，批处理以同步段为单位：
+    ```jsx
+    
+    async function handleClick() {
+  setPending(pending + 1);   // ── 同步段 1：1 个 setState → 1 次渲染
+  await delay(3000);         // ← 在这里被切断
+  setPending(pending - 1);   // ┐
+  setCompleted(completed + 1);//┴─ 同步段 2：2 个 setState 连续同步调用
+}                            //    → React 18 自动批处理 → 1 次渲染
+    
+    ```
+
+</Accordion>
+</Accordions>
+
+
+
+### 连续点击两次
+
+| 时间   | 事件           | 闭包中的旧值  | 更新计算                          | 界面显示            |
+| ------ | -------------- | ------------- | --------------------------------- | ------------------- |
+| t=0    | 点击①（闭包A） | —             | `setPending(0+1)` = 1             | 等待 1，完成 0      |
+| t≈0.2s | 点击②（闭包B） | —             | `setPending(1+1)` = 2             | 等待 2，完成 0      |
+| t=3s   | 闭包A恢复      | `pending=0`   | `setPending(0−1)` = **−1**        | 等待 **−1**，完成 1 |
+| t≈3.2s | 闭包B恢复      | `pending=1`   | `setPending(1−1)` = 0             | 等待 0，完成 1      |
+| t≈3.2s | 闭包B继续      | `completed=0` | `setCompleted(0+1)` = 1（无变化） | 等待 0，完成 **1**  |
+
+### 正确写法
 
 ```jsx
   async function handleClick() {
@@ -115,4 +179,3 @@ function delay(ms) {
     setCompleted(c => c + 1);
   }
 ```
-

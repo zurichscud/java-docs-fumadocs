@@ -1,0 +1,129 @@
+---
+title: "useImmer"
+descirption: "直接修改更符合逻辑"
+---
+
+
+
+## install
+
+```sh
+pnpm add use-immer immer
+```
+
+
+
+## useImmer
+
+用于替代替代 `useState`，它的语法与 `useState` 类似，但更新函数接收一个 `draft`（草案），你可以直接修改 `draft` 的属性。
+
+
+
+```jsx
+const [person, setPerson] = useState({
+  name: 'Alice',
+  details: { age: 25, city: 'Shanghai' }
+});
+
+// 更新 age 需要层层拷贝
+function updateAge() {
+  setPerson(prev => ({
+    ...prev,
+    details: {
+      ...prev.details,
+      age: 26
+    }
+  }));
+}
+```
+
+```jsx
+import { useImmer } from 'use-immer';
+
+const [person, updatePerson] = useImmer({
+  name: 'Alice',
+  details: { age: 25, city: 'Shanghai' }
+});
+
+// 直接赋值修改
+function updateAge() {
+  updatePerson(draft => {
+    draft.details.age = 26;
+  });
+}
+```
+
+对数组进行增、删、改时，可以直接调用 `push`、`splice` 等原生变异方法：
+
+```jsx
+import { useImmer } from 'use-immer';
+
+function TodoList() {
+  const [todos, updateTodos] = useImmer([
+    { id: 1, text: '学习 Vue 3', done: true },
+    { id: 2, text: '学习 React', done: false }
+  ]);
+
+  // 添加项
+  function addTodo(text) {
+    updateTodos(draft => {
+      draft.push({ id: Date.now(), text, done: false });
+    });
+  }
+
+  // 修改特定项
+  function toggleTodo(id) {
+    updateTodos(draft => {
+      const todo = draft.find(t => t.id === id);
+      if (todo) {
+        todo.done = !todo.done;
+      }
+    });
+  }
+
+  // 删除项
+  function deleteTodo(id) {
+    updateTodos(draft => {
+      const index = draft.findIndex(t => t.id === id);
+      if (index !== -1) {
+        draft.splice(index, 1);
+      }
+    });
+  }
+}
+```
+
+## useImmerReducer
+
+如果你的逻辑比较复杂，需要结合 Reducer 模式使用，可以用 `useImmerReducer`：
+
+```jsx
+import { useImmerReducer } from 'use-immer';
+
+const initialState = { count: 0, history: [] };
+
+function reducer(draft, action) {
+  switch (action.type) {
+    case 'increment':
+      draft.count += 1;
+      draft.history.push('+1');
+      break;
+    case 'decrement':
+      draft.count -= 1;
+      draft.history.push('-1');
+      break;
+    case 'reset':
+      return initialState; // 注意：完全重置时可以直接 return 一个新对象
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useImmerReducer(reducer, initialState);
+  return (
+    <div>
+      Count: {state.count}
+      <button onClick={() => dispatch({ type: 'increment' })}>+</button>
+    </div>
+  );
+}
+```

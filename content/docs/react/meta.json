@@ -3,15 +3,17 @@
   "icon": "PanelsTopLeft",
   "root": true,
   "pages": [
-    "quick-start",
-    "---描述 UI---",
-    "...desc-ui",
-    "---交互---",
-    "...event",
+    "index",
+    "thinking-in-react",
+    "jsx",
+    "component",
     "state",
+    "effect",
+    "hook",
+    "style",
     "react-router",
     "redux",
     "state-mod",
-    "thinking-in-react"
+    "api"
   ]
 }

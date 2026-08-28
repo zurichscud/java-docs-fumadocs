@@ -4,7 +4,7 @@ title: 类组件
 
 ## 基础语法
 
-在 React 中，创建 **Class 组件（类组件）** 需要继承 `React.Component`，并且必须实现 `render` 方法。
+在 React 中，创建类组件需要继承 `React.Component`，并且必须实现 `render` 方法。
 
 ```jsx
 import React, { Component } from 'react';
@@ -35,8 +35,6 @@ ReactDOM.render(
 1. React发现是类组件，随后使用new创建该类的实例，并通过该实例调用render方法
 
 2. 将render返回的虚拟DOM转为真实DOM。随后呈现在页面中
-
-### 根节点
 
  React 需要一个"入口":
 
@@ -116,48 +114,6 @@ constructor(...args) {
 ```
 
 因此即使不写 `constructor`，`super(props)` 依然会被隐式执行，`this.props` 依然能在组件中正常使用
-
-### 批量传入
-
-父组件可以批量传入props
-
-```jsx
-const userInfo = {
-  name: "Tom",
-  age: 18,
-  gender: "male"
-};
-```
-
-```jsx
-<User {...userInfo} />
-```
-
-React 会展开成：
-
-```jsx
-<User
-  name="Tom"
-  age={18}
-  gender="male"
-/>
-```
-
-React 支持多个展开 props，它会按照**从左到右合并**：
-
-```jsx
-<User {...obj1} {...obj2} />
-```
-
-多个展开对象可以混合普通 props，规则是一样的，后面的覆盖前面的：
-
-```jsx
-<User
-  {...userInfo}
-  id={100}
-  {...obj}
-/>
-```
 
 ### 对props进行限制
 

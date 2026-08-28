@@ -2,6 +2,9 @@
   "title": "状态管理",
   "pages": [
     "state-a-components-memory",
+    "queueing-state",
+    "render-and-commit",
+    "performance-optimization",
     "preserving-and-resetting-state",
     "updating-objects-in-state",
     "updating-arrays-in-state",

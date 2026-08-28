@@ -1,0 +1,141 @@
+---
+title: "性能优化"
+---
+
+在 React 中，**只要父组件重新渲染（无论是因为更新了哪个 state），其所有子组件默认都会跟着重新渲染**，即使这个 state 完全没有通过 props 传递给子组件。
+
+```jsx
+function Child() {
+  console.log('Child 执行了');
+  return <div>我是子组件</div>;
+}
+
+function Parent() {
+  const [count, setCount] = useState(0);
+  return (
+    <>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+      <p>{count}</p>
+      <Child />  {/* count 变化时也会重新执行 */}
+    </>
+  );
+}
+```
+
+组件的state一旦变化，就会执行组件的render重新渲染
+
+## 为什么会这样？
+
+React 的渲染逻辑是**从上到下的递归过程**。当父组件的状态改变触发 `render` 时，React 会重新构建父组件的 JSX 树，并默认重新调用所有子组件的渲染函数，再通过 Virtual DOM 的 Diff 算法决定最终要更新哪些真实 DOM。
+
+因为 React 无法知道子组件的输出是否依赖父组件的数据，所以默认“宁可错杀”，把整个子树都重新执行一遍。
+
+React 通过 **虚拟 DOM 对比（reconciliation）** 和优化机制避免了大部分真正的 DOM 更新。
+
+> **组件重新 render ≠ 浏览器 DOM 重新绘制**
+
+```jsx
+function Parent() {
+  const [count, setCount] = useState(0);
+  return <Child num={count} />;
+}
+```
+
+- 读取 `count` 这个动作发生在 Parent 渲染的时候
+
+- 执行第三行时：`num` 已经是一个裸的 number——一个没有任何包装的普通 JS 值
+
+- Child 内部写 `return <div>{num}</div>` 时，没有任何拦截层能捕获“这次读取”
+
+Vue 能做到精准更新，是因为所有状态访问都必须经过它们的响应式代理，每次读写都有记录。而 React 的 props 就是纯值，读完即丢，痕迹一点不留。
+
+## 如何避免不必要的重新渲染
+
+### React.memo
+
+对于函数式组件可以使用React.memo
+
+`React.memo` 会对子组件的 props 进行浅比较（Shallow Comparison）。如果 props 没有改变，直接跳过该子组件的渲染。
+
+```jsx
+const Child = React.memo(function Child() {
+  console.log("子组件渲染了");
+  return <div>我是子组件</div>;
+});
+```
+
+### shouldComponentUpdate
+
+对于类组件可以使用shouldComponentUpdate钩子。返回false可以阻止render
+
+```jsx
+class Child extends React.Component {
+
+  shouldComponentUpdate(nextProps, nextState) {
+    if (nextProps.name === this.props.name) {
+      return false;
+    }
+
+    return true;
+  }
+
+  render() {
+    console.log("Child render");
+
+    return <div>{this.props.name}</div>;
+  }
+}
+```
+
+### PureComponent
+
+`PureComponent` 自动帮你实现了 `shouldComponentUpdate`，通过**浅比较props 和 state** 来决定是否重新渲染。
+
+```jsx
+class UserCard extends React.PureComponent {
+  render() { ... }
+}
+```
+
+PureComponent会认为user相同，就不会触发render
+
+```jsx
+this.state.user.name = "Jerry";
+
+this.setState({
+  user:this.state.user
+});
+```
+
+正确方式：
+
+```jsx
+this.setState({
+  user:{
+    ...this.state.user,
+    name:"Jerry"
+  }
+});
+```
+
+### 利用children属性
+
+将不变的子组件作为 `children` 传入父组件，React 会识别出 `children` 引用未变而跳过重新渲染。
+
+```jsx
+// 父组件仅作为容器
+function ParentContainer({ children }) {
+  const [count, setCount] = useState(0); // 父组件独有的 state
+  return (
+    <div>
+      <button onClick={() => setCount(count + 1)}>{count}</button>
+      {children} {/* children 不会随着 ParentContainer 的 state 改变而重渲染 */}
+    </div>
+  );
+}
+
+// 使用时
+<ParentContainer>
+  <Child />
+</ParentContainer>
+```

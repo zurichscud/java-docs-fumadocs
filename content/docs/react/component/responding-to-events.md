@@ -98,11 +98,9 @@ export default function Toolbar() {
 
 内置组件（`<button>` 和 `<div>`）仅支持 [浏览器事件名称](https://zh-hans.react.dev/reference/react-dom/components/common#common-props)，例如 `onClick`。但是，当你构建自己的组件时，你可以按你个人喜好命名事件处理函数的 prop。
 
-<Callback title="注意">
-
-按照惯例，事件处理函数 props 应该以 `on` 开头，后跟一个大写字母。
-
-</Callback>
+> **注意**
+>
+> 按照惯例，事件处理函数 props 应该以 `on` 开头，后跟一个大写字母。
 
 ```jsx
 function Button({ onSmash, children }) {
@@ -184,11 +182,7 @@ export default function Toolbar() {
 
 如果你点击任一按钮，它自身的 `onClick` 将首先执行，然后父级 `<div>` 的 `onClick` 会接着执行。因此会出现两条消息。如果你点击 toolbar 本身，将只有父级 `<div>` 的 `onClick` 会执行
 
-<Callback >
-
-在 React 中所有事件都会传播，除了 `onScroll`，它仅适用于你附加到的 JSX 标签。
-
-</Callback>
+> 在 React 中所有事件都会传播，除了 `onScroll`，它仅适用于你附加到的 JSX 标签。
 
 ## 阻止传播
 

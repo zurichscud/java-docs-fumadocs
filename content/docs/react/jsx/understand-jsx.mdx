@@ -1,0 +1,75 @@
+---
+title: "理解JSX"
+---
+
+## 底层机制
+
+在 React 17 之前，JSX 会被编译为 `React.createElement`；而在 React 17 及之后，它被编译为全新的 JSX 转换函数（`jsx-runtime`）：
+
+```jsx tab="React16"
+// 你写的 JSX
+const element = <h1 className="title">Hello World</h1>;
+
+// 经过编译器转换后的真实 JavaScript
+const element = React.createElement(
+  'h1',
+  { className: 'title' },
+  'Hello World',
+);
+```
+
+```jsx tab="React17"
+// 你写的 JSX
+const element = <h1 className="title">Hello World</h1>;
+
+// 经过编译器转换后的真实 JavaScript
+import { jsx as _jsx } from 'react/jsx-runtime';
+const element = _jsx('h1', { className: 'title', children: 'Hello World' });
+```
+
+JSX 本质上创建的是 **描述 UI 的普通 JavaScript 对象（React.ReactElement）**，不是直接创建 DOM。
+
+## Component与ReactElement
+
+```jsx
+// Component：组件定义，可复用的"模具"
+function Greeting(props: { name: string }) {
+  return <h1>Hi, {props.name}</h1>;
+}
+
+// ReactElement：调用 JSX 创建的"实例"，一次性的描述对象
+const element = <Greeting name="Tom" />;
+// ≈ { type: Greeting, props: { name: 'Tom' }, key: null, ref: null }
+```
+
+|                         | Component（组件）   | ReactElement（元素）      |
+| ----------------------- | ------------------- | ------------------------- |
+| 本质                    | **函数或类**        | **普通 JS 对象**          |
+| 类比                    | 类 / 蓝图 / 模具    | 实例 / 快照 / 印章        |
+| 创建方式                | `function App() {}` | `<App />`、`jsx(App, {})` |
+| 数量                    | 定义一次，处处复用  | 每次渲染都新建            |
+| React 如何处理          | 被**调用/实例化**   | 被**读取/比对**，永不执行 |
+| 能否放 `<X />` 标签位置 | ✅                   | ❌                         |
+
+作为 props 传递：
+
+```jsx
+interface Props {
+  Icon: React.ComponentType<{ size?: number }>; // 传 Component
+  icon: React.ReactElement;                     // 传 ReactElement
+}
+
+function Toolbar({ Icon, icon }: Props) {
+  return (
+    <>
+      <Icon size={16} />   {/* 组件：渲染时由我决定传什么 props */}
+      {icon}               {/* 元素：props 已被调用方固定，原样渲染 */}
+    </>
+  );
+}
+
+<Toolbar
+  Icon={SaveIcon}               // 传组件本身（不带 < >）
+  icon={<SaveIcon size={20} />} // 传元素（已绑定 props）
+/>
+```

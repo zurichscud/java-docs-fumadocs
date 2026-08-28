@@ -1,0 +1,24 @@
+---
+title: "useCallback"
+descirption: "缓存函数引用"
+---
+
+在 React 中，每次组件重新渲染时，函数组件内部定义的所有函数都会被**重新创建**（指向新的内存地址）。
+
+`useCallback` 的核心价值不是“加快函数创建速度”，而是**保持函数引用的稳定**。
+
+
+
+```jsx
+import { useCallback } from 'react';
+
+const memoizedCallback = useCallback(
+  (...args) => {
+    // 函数体逻辑
+    doSomething(a, b);
+  },
+  [a, b] // 依赖项：仅当 a 或 b 改变时，才会返回新的函数引用
+);
+```
+
+依赖数组用法参见useMemo和useEffect

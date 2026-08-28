@@ -1,0 +1,16 @@
+---
+title: "useLayoutEffect"
+---
+
+`useLayoutEffect`其 API 签名与 `useEffect` 完全一致，但**触发执行的时机**和**阻塞渲染的行为**截然不同。
+
+## 核心区别
+
+- useEffect（异步 / 非阻塞）：
+
+  DOM 更新 → Paint → 异步执行（不阻塞）
+- useLayoutEffect（同步 / 阻塞）：
+
+  DOM 更新 → 同步执行 → Paint（阻塞绘制）
+
+

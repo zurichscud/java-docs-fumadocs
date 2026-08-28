@@ -2,12 +2,10 @@
   "pages": [
     "components",
     "class-components",
-    "jsx",
     "lifecycle",
     "passing-props-to-a-component",
-    "conditional-rendering",
-    "rendering-lists",
     "keeping-components-pure",
-    "understanding-your-ui-as-a-tree"
+    "event-listen",
+    "responding-to-events"
   ]
 }

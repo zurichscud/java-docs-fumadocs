@@ -100,11 +100,9 @@ obj.delayLog();
 
 $$\text{new 绑定} > \text{显式绑定 (call/apply/bind)} > \text{隐式绑定 (obj.fn)} > \text{默认绑定}$$
 
-<Callback title="注意">
-
-箭头函数优先继承外层作用域，不适用上述传统优先级的重写。
-
-</Callback>
+> **注意**
+>
+> 箭头函数优先继承外层作用域，不适用上述传统优先级的重写。
 
 ## 箭头函数的this
 
@@ -123,22 +121,21 @@ const obj = {
 obj.regularFn(); // 输出 'App'
 ```
 
-<Callback title="setTimeout">
-箭头函数没有自己的 this，它会继承定义时所在作用域的 this。
-
-```js
-const obj = {
-  name: '张三',
-
-  test() {
-    setTimeout(() => {
-      console.log(this.name);
-    }, 1000);
-  }
-};
-
-obj.test();//张三
-```
-
-</Callback>
+> **setTimeout**
+>
+> 箭头函数没有自己的 this，它会继承定义时所在作用域的 this。
+>
+> ```js
+> const obj = {
+>   name: '张三',
+>
+>   test() {
+>     setTimeout(() => {
+>       console.log(this.name);
+>     }, 1000);
+>   }
+> };
+>
+> obj.test();//张三
+> ```
 

@@ -139,7 +139,7 @@ Redux 可以集成到任何的 UI 框架中，其中最常见的是 React 。[**
 
 解决这个问题的一种方法是从组件中提取共享 state，并将其放入组件树之外的一个集中位置。这样，我们的组件树就变成了一个大“view”，任何组件都可以访问 state 或触发 action，无论它们在树中的哪个位置！
 
-## Actions
+## Action
 
 **action** 是一个具有 `type` 字段的普通 JavaScript 对象。**你可以将 action 视为描述应用程序中发生了什么的事件**.
 
@@ -156,7 +156,7 @@ const addTodoAction = {
 
 ## Action Creator
 
-**action creator** 是一个创建并返回一个 action 对象的函数。它的作用是让你不必每次都手动编写 action 对象：
+action creator 是一个创建 action 的工厂。它的作用是让你不必每次都手动编写 action 对象：
 
 ```js
 const addTodo = text => {
@@ -169,21 +169,13 @@ const addTodo = text => {
 
 ## Reducer
 
-**reducer** 是一个函数，接收当前的 `state` 和一个 `action` 对象，必要时决定如何更新状态，并返回新状态。函数签名是：`(state, action) => newState`。 **你可以将 reducer 视为一个事件监听器，它根据接收到的 action（事件）类型处理事件。**
+**reducer** 是一个函数，接收当前的 `state` 和一个 `action` 对象。函数签名是：`(state, action) => newState`。 **你可以将 reducer 视为一个事件监听器，它根据接收到的 action（事件）类型处理事件。**
 
 Reducer 必需符合以下规则：
 
 - 仅使用 `state` 和 `action` 参数计算新的状态值
 - 禁止直接修改 `state`。必须通过复制现有的 `state` 并对复制的值进行更改的方式来做 *不可变更新*。
 - 禁止任何异步逻辑、依赖随机值或导致其他“副作用”的代码
-
-<Callout title="Reducer名字的由来">
-
-**Redux reducer 函数与“reduce 回调函数”函数的想法完全相同！** 它接受上一个结果（`state`）和当前项（`action` 对象），根据这些参数计算出一个新 state，并返回该新 state。
-
-</Callout>
-
-
 
 ## Store
 
@@ -215,7 +207,3 @@ user/login
 
 cart/addItem
 ```
-
-
-
-

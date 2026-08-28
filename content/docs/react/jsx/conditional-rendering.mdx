@@ -18,8 +18,6 @@ function UserStatus({ isLoggedIn }) {
 }
 ```
 
-
-
 ## 条件返回 JSX
 
 ```jsx
@@ -28,8 +26,6 @@ if (isPacked) {
 }
 return <li className="item">{name}</li>;
 ```
-
-
 
 ## 选择性地返回 `null`
 
@@ -42,8 +38,6 @@ if (isPacked) {
 return <li className="item">{name}</li>;
 ```
 
-
-
 ## 三目运算符
 
 ```jsx
@@ -53,10 +47,6 @@ return (
   </li>
 );
 ```
-
-
-
-
 
 ## 与运算符
 
@@ -70,9 +60,11 @@ return (
 
 你可以认为，*“当 `isPacked` 为真值时，则（`&&`）渲染勾选符号，否则，不渲染。”*
 
-<Callback type="warn"  title="切勿将数字放在 && 左侧">
+<Callout title="切勿将数字放在 && 左侧">
+
 JavaScript 会自动将左侧的值转换成布尔类型以判断条件成立与否。然而，如果左侧是 0，整个表达式将变成左侧的值（0），React 此时则会渲染 0 而不是不进行渲染。
-</Callback>
+
+</Callout>
 
 ## 选择性地将 JSX 赋值给变量
 
@@ -91,6 +83,5 @@ function Item({ name, isPacked }) {
   );
 }
 ```
-
 
 

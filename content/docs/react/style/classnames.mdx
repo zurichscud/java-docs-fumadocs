@@ -1,0 +1,32 @@
+---
+title: classnames
+---
+
+`classnames`（或 `clsx`）是一个在 React / 前端开发中极常用的 JavaScript 条件化拼接 CSS 类名的轻量级工具库。
+
+## 基本语法
+
+```jsx
+import classNames from 'classnames';
+
+// 1. 基础字符串 & 忽略假值
+classNames('foo', 'bar'); // => 'foo bar'
+classNames('foo', { bar: true }); // => 'foo bar'
+classNames('foo', { bar: false }); // => 'foo'
+
+// 2. 动态条件（对象语法）
+// 只有当键值为 true/真值 时，对应的 key 才会被加入类名
+classNames({
+  'btn-primary': isPrimary,
+  'is-disabled': isDisabled,
+  'is-loading': isLoading,
+});
+
+// 3. 混合传入（字符串、对象、变量）
+classNames('btn', `btn-${size}`, {
+  'btn-active': isActive,
+});
+
+// 4. 数组用法（支持嵌套）
+classNames(['foo', 'bar'], { baz: true }); // => 'foo bar baz'
+```

@@ -1,10 +1,9 @@
 ---
 title: 迁移状态至Reducer
+descirption: "集中式状态管理"
 ---
 
 你可以将组件的所有状态更新逻辑整合到一个外部函数中，这个函数叫作 **reducer**。
-
-
 
 ## 引入Reducer
 
@@ -62,7 +61,6 @@ const initialTasks = [
   {id: 1, text: '看木偶戏', done: false},
   {id: 2, text: '打卡列侬墙', done: false},
 ];
-
 ```
 
 这个组件的每个事件处理程序都通过 `setTasks` 来更新状态。随着这个组件的不断迭代，其状态逻辑也会越来越多。为了降低这种复杂度，并让所有逻辑都可以存放在一个易于理解的地方，你可以将这些状态逻辑移到组件之外的一个称为 **reducer** 的函数中。
@@ -112,8 +110,6 @@ function handleDeleteTask(taskId) {
 }
 ```
 
-
-
 ### 2.编写一个 reducer 函数
 
 reducer 函数就是你放置状态逻辑的地方。它接受两个参数，分别为当前 state 和 action 对象，并且返回的是更新后的 state：
@@ -159,8 +155,6 @@ function tasksReducer(tasks, action) {
   }
 }
 ```
-
-
 
 ### 3.在组件中使用 reducer
 
@@ -252,7 +246,6 @@ const initialTasks = [
   {id: 1, text: '看木偶戏', done: false},
   {id: 2, text: '打卡列侬墙', done: false}
 ];
-
 ```
 
 如果有需要，你甚至可以把 reducer 移到一个单独的文件中：
@@ -307,7 +300,6 @@ const initialTasks = [
   {id: 1, text: '看木偶戏', done: false},
   {id: 2, text: '打卡列侬墙', done: false},
 ];
-
 ```
 
 ```jsx tab="tasksReducer.js"
@@ -340,7 +332,4 @@ export default function tasksReducer(tasks, action) {
     }
   }
 }
-
 ```
-
-
