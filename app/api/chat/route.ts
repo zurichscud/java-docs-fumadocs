@@ -1,4 +1,4 @@
-import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
@@ -58,8 +58,10 @@ async function chunkedAll<O>(promises: Promise<O>[]): Promise<O[]> {
   return out;
 }
 
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
+const deepseek = createOpenAICompatible({
+  name: 'deepseek',
+  baseURL: 'https://api.deepseek.com',
+  apiKey: process.env.DEEPSEEK_API_KEY,
 });
 
 /** System prompt, you can update it to provide more specific information */
@@ -74,13 +76,13 @@ export async function POST(req: Request, ctx: RouteContext<"/api/chat">) {
   const reqJson = await req.json();
 
   const result = streamText({
-    model: openrouter.chat(process.env.OPENROUTER_MODEL ?? 'anthropic/claude-3.5-sonnet'),
+    model: deepseek.chatModel(process.env.DEEPSEEK_MODEL ?? 'deepseek-chat'),
+    instructions: systemPrompt,
     stopWhen: stepCountIs(5),
     tools: {
       search: searchTool,
     },
     messages: [
-      { role: 'system', content: systemPrompt },
       ...(await convertToModelMessages<ChatUIMessage>(reqJson.messages ?? [], {
         convertDataPart(part) {
           if (part.type === 'data-client')

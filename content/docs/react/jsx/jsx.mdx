@@ -110,8 +110,6 @@ function MyComponent() {
 
 React 默认会对渲染的文本进行转义（防止 XSS 攻击）。当你使用 dangerouslySetInnerHTML 时，等于告诉 React：“我知道这段 HTML 是安全的，跳过转义直接注入。”
 
-## 通过大括号使用JS
-
 ### 使用引号传递字符串
 
 当你想把一个字符串属性传递给组件时，把它放到单引号或双引号中：
@@ -127,6 +125,8 @@ export default function Avatar() {
   );
 }
 ```
+
+## 通过大括号使用JS
 
 ### 使用大括号
 
@@ -184,7 +184,7 @@ return (
 
 ### 使用双大括号
 
-除了字符串、数字和其它 JavaScript 表达式，你甚至可以在 JSX 中传递对象。
+可以在 JSX 中直接传递对象。
 
 对象也用大括号表示，例如 `{ name: "Hedy Lamarr", inventions: 5 }`。因此，为了能在 JSX 中传递，你必须用另一对额外的大括号包裹对象：`person={{ name: "Hedy Lamarr", inventions: 5 }}`。
 

@@ -1,0 +1,61 @@
+---
+title: Provider
+---
+
+
+
+```tsx
+const Context = createContext<{
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  chat: UseChatHelpers<ChatUIMessage>;
+} | null>(null);
+```
+
+```tsx
+export function AISearch({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const chat = useChat<ChatUIMessage>({
+    id: 'search',
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
+  });
+
+  return (
+    <Context value={useMemo(() => ({ chat, open, setOpen }), [chat, open])}>{children}</Context>
+  );
+}
+```
+
+
+
+```tsx
+export function useAISearchContext() {
+  return use(Context)!;
+}
+
+function useChatContext() {
+  return use(Context)!.chat;
+}
+```
+
+
+
+```jsx
+     <AISearch>
+        <AISearchPanel />
+        <AISearchTrigger
+          position="float"
+          className={cn(
+            buttonVariants({
+              variant: 'secondary',
+              className: 'text-fd-muted-foreground rounded-2xl',
+            }),
+          )}
+        >
+          <MessageCircleIcon className="size-4.5" />
+          Ask AI
+        </AISearchTrigger>
+      </AISearch>
+```

@@ -48,9 +48,9 @@ export function AISearchPanelHeader({ className, ...props }: ComponentProps<'div
       {...props}
     >
       <div className="px-3 py-2 flex-1">
-        <p className="text-sm font-medium mb-2">AI Chat</p>
+        <p className="text-sm font-medium mb-2">AI 智能助手</p>
         <p className="text-xs text-fd-muted-foreground">
-          AI can be inaccurate, please verify the answers.
+          AI也会犯错，请仔细甄别
         </p>
       </div>
 
@@ -150,7 +150,7 @@ export function AISearchInput(props: ComponentProps<'form'>) {
     <form {...props} className={cn('flex items-start pe-2', props.className)} onSubmit={onStart}>
       <Input
         value={input}
-        placeholder={isLoading ? 'AI is answering...' : 'Ask a question'}
+        placeholder={isLoading ? 'AI正在回答...' : '询问问题'}
         autoFocus
         className="p-3"
         disabled={status === 'streaming' || status === 'submitted'}
@@ -177,7 +177,7 @@ export function AISearchInput(props: ComponentProps<'form'>) {
           onClick={stop}
         >
           <Loader2 className="size-4 animate-spin text-fd-muted-foreground" />
-          Abort Answer
+          中止
         </button>
       ) : (
         <button
