@@ -4,11 +4,9 @@ title: CSS模块化
 descripation: CSS Modules 解决不同模块之间的命名冲突
 ---
 
-
-
 ## 核心机制
 
-在传统 CSS 中，所有选择器都是全局生效的；而 CSS 模块化会将你的样式文件（通常命名为 `*.module.css`）编译为 JavaScript 对象，并为 HTML 节点生成独一无二的类名。
+在传统 CSS 中，所有选择器都是全局生效的；而 CSS 模块化会将你的样式文件（通常命名为 `*.module.css`）编译为 JavaScript 对象，并生成独一无二的类名。
 
 - **自动哈希（Hashing）：** 编译时会将选择器转换为带哈希值的唯一类名，例如将 `.button` 编译为 `.Button_button__a1b2c`。
 
@@ -18,7 +16,7 @@ descripation: CSS Modules 解决不同模块之间的命名冲突
 
 ```css
 /* 局部样式：会被编译为唯一哈希类名 */
-.primary {
+.button {
   background-color: #0066cc;
   color: #ffffff;
   padding: 10px 16px;
@@ -79,18 +77,6 @@ function B() {
 <button class="button_x7f3a">B</button>
 ```
 
-不同 CSS Module 文件中存在同一个class：
-
-```js
-ButtonStyles.button
-// button_a83kd
-
-DialogStyles.button
-// button_91kxz
-```
-
-
-
 ## less使用
 
 ```css
@@ -134,8 +120,6 @@ CSS Modules 会生成类似：
   background-color: #xxx;
 }
 ```
-
-
 
 ```jsx
 import styles from './Button.module.less';

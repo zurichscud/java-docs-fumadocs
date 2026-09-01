@@ -1,0 +1,44 @@
+---
+title: "useParams"
+description: "拿到当前 URL 中动态路由的实际值。"
+---
+
+
+
+## Parameters
+
+调用时不用传任何东西，Next.js 会根据当前 URL 自动填充：
+
+```js
+const params = useParams()
+```
+
+## Returns
+
+返回一个对象，键是 `[xxx]` 里的名字，值是 URL 里实际填的内容。
+
+| 路由                            | URL         | `useParams()`             |
+| ------------------------------- | ----------- | ------------------------- |
+| `app/shop/page.js`              | `/shop`     | `{}`                      |
+| `app/shop/[slug]/page.js`       | `/shop/1`   | `{ slug: '1' }`           |
+| `app/shop/[tag]/[item]/page.js` | `/shop/1/2` | `{ tag: '1', item: '2' }` |
+| `app/shop/[...slug]/page.js`    | `/shop/1/2` | `{ slug: ['1', '2'] }`    |
+
+## Example
+
+```jsx
+'use client'
+ 
+import { useParams } from 'next/navigation'
+ 
+export default function ExampleClientComponent() {
+  const params = useParams<{ tag: string; item: string }>()
+ 
+  // Route -> /shop/[tag]/[item]
+  // URL -> /shop/shoes/nike-air-max-97
+  // `params` -> { tag: 'shoes', item: 'nike-air-max-97' }
+  console.log(params)
+ 
+  return '...'
+}
+```

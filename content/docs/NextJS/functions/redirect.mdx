@@ -1,0 +1,124 @@
+---
+title: "redirect"
+description: "把用户重定向到另一个 URL"
+---
+
+`redirect` 是 Next.js App Router 提供的**服务端重定向函数**，用于把用户跳转到另一个 URL。
+
+
+
+## Parameters
+
+```js
+redirect(path, type)
+```
+
+```jsx
+import { redirect } from 'next/navigation'
+
+export default async function Page() {
+  const user = await getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  return <div>Hello {user.name}</div>
+}
+```
+
+| 参数   | 类型                  | 说明                                           |
+| ------ | --------------------- | ---------------------------------------------- |
+| `path` | `string`              | 重定向目标，可以是相对路径、绝对路径、外部 URL |
+| `type` | `'replace' \| 'push'` | 操作浏览器历史记录的方式                       |
+
+`type` 的默认值很有讲究：
+
+- Server Actions 中默认 `push`（历史栈新增一条，用户可以点“后退”回到当前页）
+- 其他场景默认 `replace`（替换当前历史记录，用户点“后退”会跳过当前页）
+
+也可以显式指定：
+
+```jsx
+import { redirect, RedirectType } from 'next/navigation'
+
+redirect('/dashboard', RedirectType.replace)
+redirect('/dashboard', RedirectType.push)
+```
+
+注意：`type` 参数在 Server Components 中无效（服务端渲染没有浏览器历史记录的概念）。
+
+## Behavior
+
+`redirect` 不是“执行跳转然后返回”，而是通过抛出 `NEXT_REDIRECT` 错误来中断渲染。由此产生两条铁律：
+
+### 必须放在 try/catch 之外
+
+```jsx
+// ❌ 错误：catch 会吞掉 redirect 抛出的内部错误，重定向失效
+try {
+  redirect('/login')
+} catch (e) {
+  console.log(e)
+}
+
+// ✅ 正确：redirect 放 try 外面
+try {
+  await saveData()
+} catch (e) {
+  // 处理错误
+}
+redirect('/success')
+```
+
+### 不需要 return
+
+```jsx
+if (!team) {
+  redirect('/login')  // 无需 return，代码到这里就中断了
+  console.log('不会执行')
+}
+```
+
+## Example
+
+### Server Component（最常见）
+
+```jsx
+import { redirect } from 'next/navigation'
+
+export default async function Profile({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const team = await fetchTeam(id)
+
+  if (!team) {
+    redirect('/login')  // 找不到数据 → 跳转登录页，后续渲染终止
+  }
+  // ...
+}
+```
+
+典型用途：权限检查、数据存在性检查。调用后当前路由段的渲染立即终止。
+
+### Client Component（渲染阶段）
+
+```jsx
+'use client'
+import { redirect, usePathname } from 'next/navigation'
+
+export function ClientRedirect() {
+  const pathname = usePathname()
+  if (pathname.startsWith('/admin') && !pathname.includes('/login')) {
+    redirect('/admin/login')
+  }
+  return <div>Login Page</div>
+}
+```
+
+<Callout title="注意" type="warning">
+
+ Client Components 里只能在渲染过程中调用，不能在事件处理器里调用（点击按钮跳转请用 `useRouter().push()`）。
+
+</Callout>
+
+

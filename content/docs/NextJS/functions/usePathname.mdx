@@ -1,0 +1,97 @@
+---
+title: "usePathname"
+description: "拿到当前 URL 的路径部分（pathname）。"
+---
+
+
+
+## Parameters
+
+调用时不用传任何东西，Next.js 会根据当前 URL 自动填充：
+
+```js
+const pathname = usePathname()
+```
+
+## Returns
+
+返回一个字符串，表示当前 URL 的 pathname。**不包含查询参数**（如 `/dashboard?v=2` 返回 `'/dashboard'`）。
+
+| URL                 | 返回值                |
+| ------------------- | --------------------- |
+| `/`                 | `'/'`                 |
+| `/dashboard`        | `'/dashboard'`        |
+| `/dashboard?v=2`    | `'/dashboard'`        |
+| `/blog/hello-world` | `'/blog/hello-world'` |
+
+## Example
+
+```jsx
+'use client'
+
+import { usePathname } from 'next/navigation'
+
+export default function ExampleClientComponent() {
+  const pathname = usePathname()
+  return <p>Current pathname: {pathname}</p>
+}
+```
+
+## 注意事项
+
+- 只能在 `'use client'` 客户端组件中使用，**Server Component 不支持读取 URL**——这是刻意设计，为了让布局状态在页面导航间保持
+- 客户端组件首次加载时会渲染进 HTML，导航到新路由时不需要重新请求，组件只在客户端 bundle 中下载一次，然后根据当前状态重新渲染
+- Pages Router 兼容：如果组件被 Pages Router 路由引用，`usePathname` 在 router 未初始化时可能返回 `null`（如 fallback 路由或自动静态优化场景）
+
+## 与 Cache Components 的行为
+
+启用 `cacheComponents` 时：
+
+- **静态路由**或使用 `generateStaticParams` 的路由：构建时已知 pathname，无需 `Suspense` 边界
+- **未覆盖的动态路由**：请求时才解析，`usePathname` 会挂起（suspend），必须用 `<Suspense>` 包裹组件或其父级，否则构建失败。即使调用它的组件本身是静态的（如 layout 中的侧边栏高亮链接），只要下方页面有未知动态参数也会挂起
+
+## 响应路由变化
+
+配合 `useSearchParams` 在路由变化时执行逻辑：
+
+```jsx
+'use client'
+
+import { useEffect } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+
+function ExampleClientComponent() {
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    // Do something here...
+  }, [pathname, searchParams])
+}
+```
+
+## 避免 rewrite 导致的水合错误
+
+静态预渲染页面如果通过 rewrite（`next.config`）或 Proxy 访问，服务端与客户端 pathname 可能不一致，`usePathname()` 会读 rewrite 后的 pathname，导致水合不匹配。解决方式是挂载后再设置 pathname，只让一小块 UI 依赖客户端 pathname，其余部分渲染稳定的 fallback：
+
+```jsx
+'use client'
+
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+
+export default function PathnameBadge() {
+  const pathname = usePathname()
+  const [clientPathname, setClientPathname] = useState('')
+
+  useEffect(() => {
+    setClientPathname(pathname)
+  }, [pathname])
+
+  return (
+    <p>
+      Current pathname: <span>{clientPathname}</span>
+    </p>
+  )
+}
+```

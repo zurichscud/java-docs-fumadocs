@@ -1,0 +1,30 @@
+---
+title: "Link"
+---
+
+`<Link>` 是一个 React 组件，它扩展了 HTML `<a>` 元素，提供路由预加载和客户端路由导航功能。它是 Next.js 中路由导航的主要方式。
+
+
+
+## Usage
+
+```jsx
+import Link from 'next/link'
+ 
+export default function Page() {
+  return <Link href="/dashboard">Dashboard</Link>
+}
+```
+
+
+
+## Reference
+
+| Prop                                                                                           | Example                          | Type                       | Required |
+| ---------------------------------------------------------------------------------------------- | -------------------------------- | -------------------------- | -------- |
+| [`href`](https://nextjs.org/docs/app/api-reference/components/link#href-required)              | `href="/dashboard"`              | String or Object           | Yes      |
+| [`replace`](https://nextjs.org/docs/app/api-reference/components/link#replace)                 | `replace={false}`                | Boolean                    | -        |
+| [`scroll`](https://nextjs.org/docs/app/api-reference/components/link#scroll)                   | `scroll={false}`                 | Boolean                    | -        |
+| [`prefetch`](https://nextjs.org/docs/app/api-reference/components/link#prefetch)               | `prefetch={false}`               | Boolean, `"auto"`, or null | -        |
+| [`onNavigate`](https://nextjs.org/docs/app/api-reference/components/link#onnavigate)           | `onNavigate={(e) => {}}`         | Function                   | -        |
+| [`transitionTypes`](https://nextjs.org/docs/app/api-reference/components/link#transitiontypes) | `transitionTypes={['slide-in']}` | `string[]`                 | -        |

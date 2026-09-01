@@ -21,8 +21,6 @@ app/
 
 `template`(模板) 基本功能跟布局一样，只是不会保存状态
 
-
-
 ## loading
 
 Next.js的loading是借助了`Suspense`实现的
@@ -36,8 +34,6 @@ export default function Loading() {
     )
 }
 ```
-
-
 
 ## error
 
@@ -56,7 +52,11 @@ export default function Error() {
 
 ## not-found
 
-Next.js 默认会生成一个404页面，我们也可以自定义：
+Next.js 默认会生成一个404页面
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788252193189.png)
+
+我们也可以自定义：
 
 ```tsx
 export default function NotFound() {
@@ -67,8 +67,6 @@ export default function NotFound() {
     )
 }
 ```
-
-
 
 ## 动态路由
 
@@ -83,5 +81,3 @@ export default function NotFound() {
 | `app/blog/[slug]/page.tsx`      | `/blog/my-first-post`                                                |
 | `app/shop/[...slug]/page.tsx`   | `/shop/clothing`, `/shop/clothing/shirts`                            |
 | `app/docs/[[...slug]]/page.tsx` | `/docs`, `/docs/layouts-and-pages`, `/docs/api-reference/use-router` |
-
-

@@ -1,5 +1,5 @@
 ---
-title: "next/image"
+title: "Image"
 ---
 
 `next/image` 是 Next.js 内置的图片组件,它对原生 `<img>` 标签做了大量优化,是提升网页性能的重要工具。
@@ -14,15 +14,36 @@ title: "next/image"
 4. 防止布局偏移(CLS) — 强制你声明宽高,避免图片加载时页面跳动
 5. 按需缩放 — 服务端按请求的实际需要缩放图片,原图多大都没关系
 
-
-
 ## 基本用法
 
 ### 本地图片
 
+根路径为`public`目录
+
+```jsx
+import Image from "next/image"
+export default function Home() {
+    return (
+        <div>
+            <h1>Home</h1>
+            <Image
+                src="/1.png"
+                width={100}
+                height={100}
+                alt="1"
+            />
+        </div>
+    )
+}
+```
+
+### 静态图片
+
+使用`import`引入图片，是不需要填写宽度和高度，Next.js会自动确定图片的尺寸。
+
 ```jsx
 import Image from 'next/image';
-import profilePic from '../public/me.png';
+import profilePic from '@/public/me.png';
 
 export default function Avatar() {
   return (
@@ -34,8 +55,6 @@ export default function Avatar() {
   );
 }
 ```
-
-
 
 ### 远程图片
 
@@ -66,5 +85,3 @@ module.exports = {
   },
 };
 ```
-
-

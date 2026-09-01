@@ -1,19 +1,25 @@
-'use client';
+"use client";
 
-import { Check, LinkIcon } from 'lucide-react';
-import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from 'react';
-import { cn } from '../lib/cn';
-import { useCopyButton } from '@fumadocs/base-ui/utils/use-copy-button';
-import { buttonVariants } from './ui/button';
-import { mergeRefs } from '../lib/merge-refs';
-import { useTranslations } from '@fuma-translate/react';
+import { Check, LinkIcon } from "lucide-react";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { cn } from "../lib/cn";
+import { useCopyButton } from "@fumadocs/base-ui/utils/use-copy-button";
+import { buttonVariants } from "./ui/button";
+import { mergeRefs } from "../lib/merge-refs";
+import { useTranslations } from "@fuma-translate/react";
 import {
   Accordion as Root,
   AccordionContent,
   AccordionHeader,
   AccordionItem,
   AccordionTrigger,
-} from './ui/accordion';
+} from "./ui/accordion";
 
 export function Accordions({
   ref,
@@ -32,7 +38,7 @@ export function Accordions({
 
     const selected = document.getElementById(id);
     if (!selected || !element.contains(selected)) return;
-    const value = selected.getAttribute('data-accordion-value');
+    const value = selected.getAttribute("data-accordion-value");
 
     if (value) setValue((prev) => [value, ...prev]);
   }, []);
@@ -44,8 +50,8 @@ export function Accordions({
       onValueChange={setValue}
       className={(s) =>
         cn(
-          'divide-y divide-fd-border overflow-hidden rounded-lg border bg-fd-card',
-          typeof className === 'function' ? className(s) : className,
+          "divide-y divide-fd-border overflow-hidden rounded-lg border bg-fd-card",
+          typeof className === "function" ? className(s) : className,
         )
       }
       {...props}
@@ -59,7 +65,7 @@ export function Accordion({
   value = String(title),
   children,
   ...props
-}: Omit<ComponentProps<typeof AccordionItem>, 'value' | 'title'> & {
+}: Omit<ComponentProps<typeof AccordionItem>, "value" | "title"> & {
   title: string | ReactNode;
   value?: string;
 }) {
@@ -70,7 +76,7 @@ export function Accordion({
         {id ? <CopyButton id={id} /> : null}
       </AccordionHeader>
       <AccordionContent hiddenUntilFound>
-        <div className="px-4 pb-2 text-[0.9375rem] prose-no-margin [&[hidden]:not([hidden='until-found'])]:hidden">
+        <div className="px-4  pb-2 text-[0.9375rem] prose-no-margin [&[hidden]:not([hidden='until-found'])]:hidden">
           {children}
         </div>
       </AccordionContent>
@@ -79,7 +85,7 @@ export function Accordion({
 }
 
 function CopyButton({ id }: { id: string }) {
-  const t = useTranslations({ note: 'accordion' });
+  const t = useTranslations({ note: "accordion" });
   const [checked, onClick] = useCopyButton(() => {
     const url = new URL(window.location.href);
     url.hash = id;
@@ -90,16 +96,20 @@ function CopyButton({ id }: { id: string }) {
   return (
     <button
       type="button"
-      aria-label={t('Copy Link', { note: 'aria-label' })}
+      aria-label={t("Copy Link", { note: "aria-label" })}
       className={cn(
         buttonVariants({
-          color: 'ghost',
-          className: 'text-fd-muted-foreground me-2',
+          color: "ghost",
+          className: "text-fd-muted-foreground me-2",
         }),
       )}
       onClick={onClick}
     >
-      {checked ? <Check className="size-3.5" /> : <LinkIcon className="size-3.5" />}
+      {checked ? (
+        <Check className="size-3.5" />
+      ) : (
+        <LinkIcon className="size-3.5" />
+      )}
     </button>
   );
 }
