@@ -1,0 +1,86 @@
+---
+title: mergeRefs
+descirption: 把多个 React ref 合并成一个 ref，让同一个 DOM 节点同时绑定多个 ref。
+---
+
+## 解决的问题
+
+React 中一个元素只能绑定一个 `ref`，但实际开发中经常需要同时把同一个元素暴露给多个地方，比如：
+
+```jsx
+const MyInput = React.forwardRef((props, forwardedRef) => {
+  const localRef = useRef(null); // 组件内部也需要引用这个 input
+
+  // ❌ 报错：ref 只能设置一次
+  return <input ref={forwardedRef} ref={localRef} />;
+});
+```
+
+## 使用方式
+
+```jsx
+const MyInput = ({ref,...props}) => {
+  const localRef = useRef(null);
+
+  // ✅ 用 mergeRefs 把两个 ref 合成一个
+  return <input ref={mergeRefs(ref, localRef)} {...props} />;
+};
+```
+
+## 实现
+
+```ts
+import type * as React from 'react';
+
+export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+  return (value) => {
+    refs.forEach((ref) => {
+      if (typeof ref === 'function') {
+        ref(value);
+      } else if (ref) {
+        ref.current = value;
+      }
+    });
+  };
+}
+```
+
+```tsx
+export function Accordions({
+  ref,
+  className,
+  defaultValue,
+  ...props
+}: ComponentProps<typeof Root>) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const composedRef = mergeRefs(ref, rootRef);
+  const [value, setValue] = useState<unknown[]>(defaultValue ?? []);
+
+  useEffect(() => {
+    const id = window.location.hash.substring(1);
+    const element = rootRef.current;
+    if (!element || id.length === 0) return;
+
+    const selected = document.getElementById(id);
+    if (!selected || !element.contains(selected)) return;
+    const value = selected.getAttribute('data-accordion-value');
+
+    if (value) setValue((prev) => [value, ...prev]);
+  }, []);
+
+  return (
+    <Root
+      ref={composedRef}
+      value={value}
+      onValueChange={setValue}
+      className={(s) =>
+        cn(
+          'divide-y divide-fd-border overflow-hidden rounded-lg border bg-fd-card',
+          typeof className === 'function' ? className(s) : className,
+        )
+      }
+      {...props}
+    />
+  );
+}
+```

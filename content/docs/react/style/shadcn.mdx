@@ -1,5 +1,264 @@
 ---
 title: shadcn/ui
 
-descirption: shadcn/ui 是一套可复制、可修改的组件代码方案
+description: shadcn/ui 不是一个 npm 组件库，而是一份复制到你项目里的源码
 ---
+
+## 介绍
+
+### Open Code
+
+shadcn/ui 会直接提供组件代码。您可以完全控制组件的自定义和扩展，以满足您的需求。这意味着：
+
+- **完全透明：** 您可以清楚地看到每个组件是如何构建的。
+- **轻松定制：** 修改组件的任何部分，以满足您的设计和功能要求。
+- **AI 集成：** 通过访问代码，LLM 可以轻松阅读、理解甚至改进您的组件。
+
+> 在一般的库中，如果需要改变按钮的行为，就必须重写样式或重新包装组件。而使用 shadcn/ui，只需直接编辑按钮代码即可。
+
+### Beautiful Defaults
+
+shadcn/ui 包含大量组件，这些组件都经过精心挑选，并拥有默认样式。它们的设计既能独立呈现美观效果，又能作为一个统一的系统协同工作
+
+### 基于BaseUI/RadixUI
+
+Base UI 是底层组件引擎，shadcn/ui 是基于它封装出来的一套可复制、可修改的 UI 组件方案。
+
+shadcn/ui 自己不实现任何交互逻辑。它的 Dialog、DropdownMenu、Tooltip 全部构建在 Base UI之上，自己只负责样式和「代码归你所有」的分发模式。
+
+## 使用第一个组件
+
+### 安装
+
+每个组件页中都有安装说明，可以直接使用cli进行安装，也可以参考手动导入步骤
+
+- 自动
+
+```sh
+pnpm dlx shadcn@latest add accordion
+```
+
+- 手动
+
+<Steps>
+
+<Step>
+
+安装以下依赖：
+
+```sh
+pnpm add @base-ui/react
+```
+
+</Step>
+
+<Step>
+
+将以下代码复制并粘贴到你的项目中。
+
+自动安装，默认会在@/components/ui下创建组件源码，例如：
+
+<Files>
+  <Folder name="components" defaultOpen>
+    <Folder name="ui" defaultOpen>
+      <File name="accordion.tsx" />
+    </Folder>
+  </Folder>
+</Files>
+
+你可以手动在该目录下创建`accordion.tsx`，内容如下：
+
+```jsx title="components/ui/accordion.tsx"
+"use client"
+
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion"
+
+import { cn } from "@/lib/utils"
+import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+
+function Accordion({ className, ...props }: AccordionPrimitive.Root.Props) {
+  return (
+    <AccordionPrimitive.Root
+      data-slot="accordion"
+      className={cn("flex w-full flex-col", className)}
+      {...props}
+    />
+  )
+}
+
+function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
+  return (
+    <AccordionPrimitive.Item
+      data-slot="accordion-item"
+      className={cn("not-last:border-b", className)}
+      {...props}
+    />
+  )
+}
+
+function AccordionTrigger({
+  className,
+  children,
+  ...props
+}: AccordionPrimitive.Trigger.Props) {
+  return (
+    <AccordionPrimitive.Header className="flex">
+      <AccordionPrimitive.Trigger
+        data-slot="accordion-trigger"
+        className={cn(
+          "focus-visible:ring-ring/50 focus-visible:border-ring focus-visible:after:border-ring **:data-[slot=accordion-trigger-icon]:text-muted-foreground rounded-lg py-2.5 text-left text-sm font-medium hover:underline focus-visible:ring-3 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4 group/accordion-trigger relative flex flex-1 items-start justify-between border border-transparent transition-all outline-none aria-disabled:pointer-events-none aria-disabled:opacity-50",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        <ChevronDownIcon data-slot="accordion-trigger-icon" className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden" />
+        <ChevronUpIcon data-slot="accordion-trigger-icon" className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline" />
+      </AccordionPrimitive.Trigger>
+    </AccordionPrimitive.Header>
+  )
+}
+
+function AccordionContent({
+  className,
+  children,
+  ...props
+}: AccordionPrimitive.Panel.Props) {
+  return (
+    <AccordionPrimitive.Panel
+      data-slot="accordion-content"
+      className="data-open:animate-accordion-down data-closed:animate-accordion-up text-sm overflow-hidden"
+      {...props}
+    >
+      <div
+        className={cn(
+          "pt-0 pb-2.5 h-(--accordion-panel-height) data-ending-style:h-0 data-starting-style:h-0 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+          className
+        )}
+      >
+        {children}
+      </div>
+    </AccordionPrimitive.Panel>
+  )
+}
+
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent }
+```
+
+</Step>
+
+<Step>更新 import 路径以匹配你的项目结构。</Step>
+
+</Steps>
+
+### 用法
+
+```jsx
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+```
+
+```jsx
+<Accordion type="single" collapsible defaultValue="item-1">
+  <AccordionItem value="item-1">
+    <AccordionTrigger>Is it accessible?</AccordionTrigger>
+    <AccordionContent>
+      Yes. It adheres to the WAI-ARIA design pattern.
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
+```
+
+### 自定义样式
+
+如果对样式不满意，可以直接修改组件源码
+
+## 深入理解shadcn
+
+Base UI 管「行为」，shadcn 管「长相」，而你管一切——这正是「代码归你所有」这个设计理念的直接体现。
+
+```jsx
+<Dialog-modal side="top" className="bg-red-500">
+   │          │           │
+   │          │           └── 第3层：className（样式覆盖入口，shadcn 提供）
+   │          └──────────── 第2层：variant/size 等变体 props（shadcn 自己定义）
+   └─────────────────────── 第1层：行为 props（open、onOpenChange...）→ 透传给 Base UI
+```
+
+### 行为 props
+
+shadcn 的组件本质是薄封装，核心就是把收到的 props 原样展开传给底层原语：
+
+```jsx
+// shadcn 生成的 Dialog 源码（Base UI 版本示意）
+function Dialog({ ...props }: Dialog.Root.Props) {
+  return <Dialog.Root {...props} />;
+  //                 👆 所有行为 props 直接透传
+}
+```
+
+所以 `open`、`onOpenChange`、`modal`、`defaultOpen` 这些交互逻辑相关的 props，全是 Base UI 的 API，shadcn 不做任何处理，只是搬运工。
+
+TypeScript 类型也是透传的——shadcn 新版源码直接引用原语的类型：
+
+```tsx
+// 类型自动继承 Base UI 的全部 props，补全体验无损
+function DialogContent({ className, ...props }: Dialog.Panel.Props) {
+  return <Dialog.Panel className={cn("...", className)} {...props} />;
+}
+```
+
+### ui props
+
+这才是 shadcn 真正「自己管理」的部分，用 CVA（class-variance-authority） 实现。以 Button 为例：
+
+```tsx
+const buttonVariants = cva("inline-flex items-center rounded-md text-sm", {
+  variants: {
+    variant: {
+      default: "bg-primary text-primary-foreground",
+      destructive: "bg-destructive text-white",
+      outline: "border bg-background",
+      ghost: "hover:bg-accent",
+    },
+    size: {
+      default: "h-9 px-4",
+      sm: "h-8 px-3",
+      lg: "h-10 px-6",
+      icon: "size-9",
+    },
+  },
+  defaultVariants: { variant: "default", size: "default" },
+});
+
+function Button({ className, variant, size, ...props }) {
+  return (
+    <button
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
+  );
+}
+```
+
+### className
+
+`className` 会被 `cn()`（clsx + tailwind-merge）合并，允许你从外部覆盖任何默认样式：
+
+```tsx
+<Button variant="outline" className="w-full rounded-full">
+  {/* shadcn 样式 + 你的覆盖 */}
+</Button>
+```
+
+## 参考
+
+- [shadcn中文网](https://www.shadcn.com.cn/docs)
+
+- [shadcn官网](https://ui.shadcn.com/docs)
+
+- [BaseUI官网](https://base-ui.com/react/overview/quick-start)

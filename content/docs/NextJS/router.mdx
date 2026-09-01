@@ -1,0 +1,87 @@
+---
+title: "路由系统"
+---
+
+在 Next.js 中，app 目录下的每个文件夹都代表一个路由段（route segment），并直接映射到 URL 路径。无需配置路由表，框架会根据您的文件结构自动处理。
+
+## layout/template
+
+```
+app/
+├── page.tsx               # /
+├── about/
+│   └── page.tsx           # /about
+├── blog/test
+│        └── page.tsx      # /blog/test
+└── contact/
+    └── page.tsx           # /contact
+```
+
+`layout`(布局) 布局是多个页面共享UI，例如导航栏、侧边栏、底部等。
+
+`template`(模板) 基本功能跟布局一样，只是不会保存状态
+
+
+
+## loading
+
+Next.js的loading是借助了`Suspense`实现的
+
+```jsx
+export default function Loading() {
+    return (
+        <div>
+            <h1>Loading...</h1>
+        </div>
+    )
+}
+```
+
+
+
+## error
+
+Next.js的error是借助了`Error Boundary`实现的。
+
+```tsx
+'use client' //错误组件必须是客户端组件
+export default function Error() {
+    return (
+        <div>
+            <h1>Error</h1>
+        </div>
+    )
+}
+```
+
+## not-found
+
+Next.js 默认会生成一个404页面，我们也可以自定义：
+
+```tsx
+export default function NotFound() {
+    return (
+        <div>
+            <h1>404 Page</h1>
+        </div>
+    )
+}
+```
+
+
+
+## 动态路由
+
+- `[segment]`表示单个参数
+
+- `[...segment]` 表示所有参数
+
+- `[[...segment]] `表示可选参数
+
+| Path                            | URL pattern                                                          |
+| ------------------------------- | -------------------------------------------------------------------- |
+| `app/blog/[slug]/page.tsx`      | `/blog/my-first-post`                                                |
+| `app/shop/[...slug]/page.tsx`   | `/shop/clothing`, `/shop/clothing/shirts`                            |
+| `app/docs/[[...slug]]/page.tsx` | `/docs`, `/docs/layouts-and-pages`, `/docs/api-reference/use-router` |
+
+

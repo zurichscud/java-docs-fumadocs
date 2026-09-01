@@ -1,0 +1,45 @@
+---
+title: "a"
+description: "链接"
+---
+
+
+
+## target
+
+`target` 指定链接打开的位置
+
+| 值        | 作用                                                 |
+| --------- | ---------------------------------------------------- |
+| `_self`   | **默认值**，在当前标签页/框架中打开                  |
+| `_blank`  | 在新标签页（或新窗口）打开                           |
+| `_parent` | 在父级框架中打开（无父框架时等同 `_self`）           |
+| `_top`    | 在顶层窗口打开，跳出所有框架（无框架时等同 `_self`） |
+
+## rel
+
+```html
+<a href="https://example.com" target="_blank" rel="noopener noreferrer">外部链接</a>
+```
+
+当使用 `target="_blank"` 在新标签页打开链接时，新页面可以通过 `window.opener` 访问到原页面的 window 对象。这就产生了安全隐患：
+
+```js
+// 恶意网站可以在新标签页中执行：
+window.opener.location = "https://phishing-site.com";
+// 原来的标签页会被悄悄跳转到钓鱼网站
+```
+
+`noopener`
+
+- 让新页面的 `window.opener` 为 `null`，切断新页面与原页面的联系
+- 防止上述劫持攻击
+- 额外好处：新标签页可以在独立进程中运行，不会被原页面阻塞主线程，性能更好
+
+`noreferrer`
+
+- 包含 `noopener` 的全部功能（opener 同样为 null）
+- 额外作用：跳转到目标页时不发送 `Referer` 请求头
+- 目标网站无法知道访客来自哪个页面（保护隐私，尤其是 URL 中可能带有 token 等敏感信息时）
+
+

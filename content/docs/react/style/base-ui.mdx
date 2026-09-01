@@ -5,20 +5,170 @@ title: Base UI
 
 如果你是在做自己的组件库 / Design System：选 Base UI。
 
-## Base UI 更适合什么情况？
 
-假设你要做一个公司的组件库：
+
+## 复合组件
+
+每个组件都拆成多个「部件」，各管一段职责，通过静态属性挂在命名空间对象上
 
 ```jsx
-@company/ui
-├── Button
-├── Dialog
-├── Select
-├── Combobox
-├── Tooltip
-└── DatePicker
+<Menu.Root>
+  <Menu.Trigger>打开</Menu.Trigger>
+  <Menu.Portal>
+    <Menu.Positioner side="bottom" align="start">
+      <Menu.Popup>
+        <Menu.Item>复制</Menu.Item>
+        <Menu.Item>粘贴</Menu.Item>
+      </Menu.Popup>
+    </Menu.Positioner>
+  </Menu.Portal>
+</Menu.Root>
 ```
 
-这种情况下 Base UI 很合适。
+部件间靠内部 Context 通信，你不需要碰——只管按需取用部件。
+
+## API
+
+### id
+
+组件唯一标识：
+
+```jsx
+<Select id="country">
+</Select>
+```
+
+### className / style
+
+```jsx
+className?: string | ((state: State) => string);
+style?: CSSProperties | ((state: State) => CSSProperties);
+```
+
+`state` 是该组件的状态快照，不同组件的state不同，可以参考官方文档
+
+```jsx
+function Button(props){
+
+ const {state} = useButton(props);
+
+
+ return (
+   <button
+     className={
+       typeof props.className === "function"
+       ? props.className(state)
+       : props.className
+     }
+   >
+     {props.children}
+   </button>
+ )
+}
+```
+
+**原生 HTML 的 `class` 属性只支持字符串**。
+
+### render
+
+保留 Base UI 行为，但是换标签。
+
+```jsx
+<Button
+ render={<a href="/home" />}
+/>
+```
+
+
+
+### value / defaultValue
+
+- 非受控
+
+```jsx
+<Select defaultValue="apple">
+  ...
+</Select>
+```
+
+
+
+- 受控
+
+```jsx
+const [value, setValue] = useState('apple');
+
+<Select
+  value={value}
+  onValueChange={setValue}
+/>
+```
+
+
+
+### onXxxChange
+
+| API                     | 作用         |
+| ----------------------- | ------------ |
+| `onValueChange`         | 值变化       |
+| `onOpenChange`          | 打开关闭变化 |
+| `onCheckedChange`       | 勾选变化     |
+| `onHighlightChange`     | 高亮项变化   |
+| `onSelectedValueChange` | 选择变化     |
+
+```jsx
+<Dialog
+  open={open}
+  onOpenChange={setOpen}
+/>
+```
+
+
+
+### open / defaultOpen
+
+用于控制弹层类组件：
+
+例如：
+
+- Dialog
+
+- Popover
+
+- Menu
+
+- Tooltip
+
+- Select
+
+```jsx
+<Dialog
+ open={open}
+ onOpenChange={setOpen}
+/>
+```
+
+
+
+### ref
+
+Base UI 组件基本支持 ref 转发。
+
+```jsx
+const ref = useRef<HTMLButtonElement>();
+
+<Button ref={ref}>
+</Button>
+```
+
+
+
+## 组件参考
+
+- Portal：传送门，把组件内容渲染到 DOM 树的其他位置。
+
+- Trigger：触发器，负责打开/关闭组件的那个元素。
+
+- Backdrop：背景遮罩，弹窗打开时，覆盖页面背景的那一层。
 
 

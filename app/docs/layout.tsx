@@ -1,26 +1,26 @@
-import { source } from '@/lib/source';
-import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
-import { baseOptions } from '@/lib/layout.shared';
-import { AISearch, AISearchPanel, AISearchTrigger } from '@/components/ai/search';
-import { MessageCircleIcon } from 'lucide-react';
-import { cn } from '@/lib/cn';
-import { buttonVariants } from 'fumadocs-ui/components/ui/button';
+import { source } from "@/lib/source";
+import { DocsLayout } from "fumadocs-ui/layouts/notebook";
+import { baseOptions } from "@/lib/layout.shared";
+import {
+  AISearch,
+  AISearchPanel,
+  AISearchTrigger,
+} from "@/components/ai/search";
+import { MessageCircleIcon } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
 
-export default function Layout({ children }: LayoutProps<'/docs'>) {
+export default function Layout({ children }: LayoutProps<"/docs">) {
   return (
-    <DocsLayout
-      {...baseOptions()}
-      tabMode="navbar"
-      tree={source.getPageTree()}
-    >
+    <DocsLayout {...baseOptions()} tabMode="navbar" tree={source.getPageTree()}>
       <AISearch>
         <AISearchPanel />
         <AISearchTrigger
           position="float"
           className={cn(
             buttonVariants({
-              variant: 'secondary',
-              className: 'text-fd-muted-foreground rounded-2xl',
+              variant: "secondary",
+              className: "text-fd-muted-foreground rounded-2xl",
             }),
           )}
         >
@@ -28,8 +28,6 @@ export default function Layout({ children }: LayoutProps<'/docs'>) {
           Ask AI
         </AISearchTrigger>
       </AISearch>
-
-
       {children}
     </DocsLayout>
   );

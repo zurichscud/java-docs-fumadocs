@@ -1,0 +1,95 @@
+---
+title: "快速入门"
+---
+
+## 安装
+
+```sh
+pnpm create next-app@latest my-app --yes
+```
+
+`--yes` 参数会使用已保存的首选项或默认值跳过提示：
+
+- 默认设置启用 TypeScript、Tailwind CSS、ESLint、App Router 和 Turbopack
+
+- 导入别名使用 `@/*`
+
+- 并包含 AGENTS.md 文件（以及引用该文件的 CLAUDE.md 文件），以指导编码代理编写最新的 Next.js 代码。
+
+## package.json
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
+  }
+}
+```
+
+`next dev`：启动开发服务器
+
+`next build`：构建用于生产环境的应用程序。
+
+`next start`：启动生产服务器
+
+eslint：运行ESLint
+
+## 创建app目录
+
+Next.js 使用文件系统路由，这意味着应用程序中的路由取决于文件的结构方式。
+
+创建一个名为 app 的文件夹。然后在 app 文件夹内创建一个名为 layout.tsx 的文件。该文件是根布局文件，是必需的，并且必须包含 `<html>` 和 `<body>` 标签。
+
+```tsx title="app/layout.tsx"
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+创建一个名为 app/page.tsx 的首页文件，并添加一些初始内容：
+
+```tsx title="app/page.tsx"
+export default function Page() {
+  return <h1>Hello, Next.js!</h1>
+}
+```
+
+当用户访问应用程序的根目录（/）时，layout.tsx 和 page.tsx 都会被渲染。
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788242478401.png)
+
+## 创建public目录
+
+在项目根目录创建一个 public 文件夹，用于存储静态资源，例如图像、字体等。然后，你的代码可以从基本 URL (/) 开始引用 public 文件夹中的文件。
+
+```tsx title="app/page.tsx"
+import Image from 'next/image'
+ 
+export default function Page() {
+  return <Image src="/profile.png" alt="Profile" width={100} height={100} />
+}
+```
+
+## IDE Plugin
+
+Next.js 包含一个自定义的 TypeScript 插件和类型检查器，VSCode 和其他代码编辑器可以使用它进行高级类型检查和自动完成。
+
+您可以通过以下方式在 VS Code 中启用该插件：
+
+1. 打开命令面板（Ctrl/⌘ + Shift + P）
+
+2. 搜索“TypeScript: 选择 TypeScript 版本”
+
+3. 选择“使用工作区版本”

@@ -1,0 +1,177 @@
+---
+title: "延迟卸载"
+---
+
+```jsx
+export function AISearchPanel() {
+  const { open, setOpen } = useAISearchContext();
+  const [actualOpen, setActualOpen] = useState(open);
+  useHotKey();
+
+  if (open && !actualOpen) setActualOpen(open);
+
+  return (
+    <>
+      <style>
+        {`
+        @keyframes ask-ai-open {
+          from {
+            translate: 100% 0;
+          }
+          to {
+            translate: 0 0;
+          }
+        }
+        @keyframes ask-ai-close {
+          from {
+            width: var(--ai-chat-width);
+          }
+          to {
+            width: 0px;
+          }
+        }`}
+      </style>
+      {actualOpen && (
+        <div
+          className={cn(
+            'fixed inset-0 z-30 backdrop-blur-xs bg-fd-overlay lg:hidden',
+            open ? 'animate-fd-fade-in' : 'animate-fd-fade-out',
+          )}
+          onClick={() => setOpen(false)}
+          onAnimationEnd={() => {
+            if (!open) flushSync(() => setActualOpen(false));
+          }}
+        />
+      )}
+      {actualOpen && (
+        <div
+          className={cn(
+            'overflow-hidden z-30 bg-fd-card text-fd-card-foreground [--ai-chat-width:400px] 2xl:[--ai-chat-width:460px]',
+            'max-lg:fixed max-lg:inset-x-2 max-lg:inset-y-4 max-lg:border max-lg:rounded-2xl max-lg:shadow-xl',
+            'lg:sticky lg:top-0 lg:h-dvh lg:border-s lg:ms-auto lg:in-[#nd-docs-layout]:[grid-area:toc] lg:in-[#nd-notebook-layout]:row-span-full lg:in-[#nd-notebook-layout]:col-start-5',
+            open
+              ? 'animate-fd-dialog-in lg:animate-[ask-ai-open_200ms]'
+              : 'animate-fd-dialog-out lg:animate-[ask-ai-close_200ms]',
+          )}
+          onAnimationEnd={() => {
+            if (!open) flushSync(() => setActualOpen(false));
+          }}
+        >
+          <div className="flex flex-col size-full p-2 lg:p-3 lg:w-(--ai-chat-width)">
+            <AISearchPanelHeader />
+            <AISearchPanelList className="flex-1" />
+            <div className="rounded-xl border bg-fd-secondary text-fd-secondary-foreground shadow-sm has-focus-visible:shadow-md">
+              <AISearchInput />
+              <div className="flex items-center gap-1.5 p-1 empty:hidden">
+                <AISearchInputActions />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+如果只使用 `open`，关闭时会有一个问题：
+
+```jsx
+{open && (
+  <div className="animate-close">
+    ...
+  </div>
+)}
+```
+
+如果open === false，div将直接从DOM中删除
+
+结果：
+
+- ❌ 关闭动画还没开始，元素已经不存在了
+
+- ❌ CSS animation 没机会播放
+
+所以这里拆成两个状态：
+
+```jsx
+const { open } = useAISearchContext();
+const [actualOpen, setActualOpen] = useState(open);
+```
+
+| 状态         | 作用                          |
+| ------------ | ----------------------------- |
+| `open`       | 业务状态：用户想不想打开      |
+| `actualOpen` | DOM状态：组件是否还存在于页面 |
+
+初始：
+
+```jsx
+open = false
+actualOpen = false
+```
+
+用户点击打开：
+
+```jsx
+open = true
+actualOpen = false
+```
+
+执行：
+
+```jsx
+if (open && !actualOpen) 
+  setActualOpen(open);
+```
+
+```jsx
+open = true
+actualOpen = true
+```
+
+用户关闭：
+
+```jsx
+open = false
+actualOpen = true
+```
+
+DOM仍然存在，当DOM动画结束：
+
+```jsx
+onAnimationEnd={() => {
+  if (!open) {
+    flushSync(() => setActualOpen(false));
+  }
+}}
+```
+
+```jsx
+open = false
+actualOpen = false
+```
+
+最后 DOM 被延迟删除。
+
+调用 `setState` 后,React 不会立刻重新渲染,而是调度到稍后统一提交:
+
+```jsx
+function handleClick() {
+  setCount(c => c + 1);
+  console.log(ref.current.textContent); // ❌ 还是旧值,DOM 尚未更新
+}
+```
+
+强制 React 同步处理状态更新：
+
+```jsx
+import { flushSync } from 'react-dom';
+
+flushSync(() => {
+  setSomething(123);
+});
+// 执行到这里时,DOM 已经更新完毕 ✅
+```
+
+

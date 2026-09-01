@@ -14,16 +14,16 @@ const [state, setState] = useState(initialState);
 
 - **`initialState`**：状态的初始值（任意类型）
 
+每次你的组件渲染时，`useState` 都会给你一个包含两个值的数组：
+
+1. **state 变量** (`index`) 会保存上次渲染的值。
+2. **state setter 函数** (`setIndex`) 可以更新 state 变量并触发 React 重新渲染组件。
+
 <Callout title="命名规范">
 
 惯例是将这对返回值命名为 const [thing, setThing]。你也可以将其命名为任何你喜欢的名称，但遵照约定俗成能使跨项目合作更易理解。
 
 </Callout>
-
-每次你的组件渲染时，`useState` 都会给你一个包含两个值的数组：
-
-1. **state 变量** (`index`) 会保存上次渲染的值。
-2. **state setter 函数** (`setIndex`) 可以更新 state 变量并触发 React 重新渲染组件。
 
 
 

@@ -1,0 +1,49 @@
+---
+title: forwardRef
+descirption: 把父组件传入的 ref 转发到子组件内部的元素上
+---
+
+<Callout title="注意" type="warning">
+
+React 19 把 `forwardRef` 废除了，ref 可以当普通 prop 传
+
+</Callout>
+
+## 为什么需要它
+
+ref 不是普通 prop。你给自定义组件传 `ref` 时，它不会出现在 `props` 里：
+
+```jsx
+// ❌ 行不通
+function MyButton(props) {
+  console.log(props.ref); // undefined！React 根本不会把 ref 放进 props
+  return <button ref={props.ref} />;
+}
+
+// 外部使用
+<MyButton ref={buttonRef} />; // ❌ 会有警告，ref 被丢弃
+```
+
+原因：在 React 的设计里，`ref` 是保留字。需要你显式声明「我知道了，帮我把 ref 转发进去」。
+
+## 基本用法
+
+```jsx
+import { forwardRef, useRef } from 'react';
+
+const MyInput = forwardRef((props, ref) => {
+  //        👆 第二个参数就是外部传进来的 ref
+  return <input ref={ref} {...props} />;
+});
+
+// 外部就能拿到真实的 DOM 了
+function App() {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current?.focus(); // ✅ 直接聚焦 input
+  }, []);
+
+  return <MyInput ref={inputRef} />;
+}
+```

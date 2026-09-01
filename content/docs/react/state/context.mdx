@@ -1,6 +1,6 @@
 ---
-title: "使用 Context 深层传递参数"
-descirption: "跨层级传递数据"
+title: "Context"
+descirption: "使用 Context 深层传递参数"
 ---
 
 通常来说，你会通过 props 将信息从父组件传递到子组件。但是，如果你必须通过许多中间组件向下传递 props，或是在你应用中的许多组件需要相同的信息，传递 props 会变的十分冗长和不便。**Context** 允许父组件向其下层无论多深的任何组件提供信息，而无需通过 props 显式传递。
@@ -13,13 +13,9 @@ descirption: "跨层级传递数据"
 
 ![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1787724197187.png)
 
-
-
 ## Context：传递 props 的另一种方法
 
 Context 让父组件可以为它下面的整个组件树提供数据。
-
-
 
 ### 1.创建 context
 
@@ -33,8 +29,6 @@ const ThemeContext = createContext(null);
 ```
 
 `createContext` 只需**默认值**这么一个参数。这个参数可以是任意类型
-
-
 
 ### 2.上层组件提供数据
 
@@ -51,8 +45,6 @@ function App() {
 }
 ```
 
-
-
 <Callout title="注意" type="warning">
 
 React 19 起可省略 .Provider，你可以直接：
@@ -64,8 +56,6 @@ React 19 起可省略 .Provider，你可以直接：
 ```
 
 </Callout>
-
-
 
 ### 3.任意深度的后代消费
 
@@ -87,8 +77,6 @@ useContext查找规则：
 2. 一路都没有 → 返回 `createContext(defaultValue)` 里的默认值
 
 找到后它不只是“读一次”，而是订阅：Provider 的 `value` 变化时，所有消费组件自动重渲染。
-
-
 
 ## Context的更新
 
@@ -178,8 +166,6 @@ export default function AddTask() {
 </TasksProvider>
 ```
 
-
-
 为什么拆成两个 Context？
 
 `tasks` 频繁变化，但 `dispatch` 引用永远稳定
@@ -188,8 +174,6 @@ export default function AddTask() {
 <TasksContext.Provider value={tasks}>              ← 这个会变
 <TasksDispatchContext.Provider value={dispatch}>   ← 这个【永远不变】
 ```
-
-
 
 ```
 tasks 变化
@@ -213,5 +197,3 @@ tasks 变化
 → React 单独通知订阅者：TaskList ✅、统计栏 ✅
 → AddTask 只订阅 DispatchContext，且该 context 没变 💤
 ```
-
-

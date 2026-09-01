@@ -1,3 +1,11 @@
 {
-    "pages":["(framework)","spring","spring-security","Web","react","JS"]
+    "pages": [
+        "(framework)",
+        "spring",
+        "spring-security",
+        "Web",
+        "react",
+        "JS",
+        "NextJS"
+    ]
 }

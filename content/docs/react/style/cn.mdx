@@ -1,0 +1,119 @@
+---
+title: cn
+description: 条件化拼接 CSS 类名
+---
+
+## 问题引入
+
+在 React 中，类名经常需要**条件化拼接**：根据 props、状态或外部传入的 `className` 动态组合样式。直接用模板字符串书写会非常繁琐：
+
+```tsx
+// 模板字符串写法：难以阅读，且 px-2 与传入的 px-4 同时存在时会冲突
+<div className={`flex w-full ${isLarge ? "px-4" : "px-2"} ${className}`} />
+```
+
+`cn` 就是解决这个问题的工具函数。典型实现来自 shadcn/ui，由 `clsx`（条件拼接）和 `tailwind-merge`（去重冲突）组合而成：
+
+```ts title="lib/utils.ts"
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+
+## 基本语法
+
+### clsx 规则
+
+clsx 接收任意数量的参数，支持字符串、对象、数组的任意组合，falsy 值会被自动过滤：
+
+```tsx
+import { clsx } from "clsx"
+
+// 字符串 + 条件：isLarge 为 true 时输出 "px-2 px-4"，否则输出 "px-2"
+clsx("px-2", isLarge && "px-4")
+
+// 对象：value（truthy）决定 key 是否保留，open 为 false 时输出 "border-b"
+clsx({ hidden: !open, "border-b": true })
+
+// 数组：会递归展开，btn primary px-2"
+clsx([
+  "btn",
+  "primary"
+],["px-2"]);
+
+// falsy 值（false、null、undefined、0、""）全部被过滤，输出 ""
+clsx(false, null, undefined, 0, "")
+
+//支持与Vue相似语法：px-4 bg-blue-500
+clsx([
+  "px-4",
+  {
+    "bg-blue-500": true,
+    "text-white": false
+  }
+])
+
+
+```
+
+### tailwind-merge 规则
+
+tailwind-merge 会识别相互冲突的 Tailwind 类名，**后面的覆盖前面的**：
+
+```tsx
+import { twMerge } from "tailwind-merge"
+
+// "py-1 px-4"：px 冲突，后者覆盖
+twMerge("px-2 py-1", "px-4")
+
+// "text-blue-500"
+twMerge("text-red-500", "text-blue-500")
+
+// "block"：display 组内的 flex 被覆盖
+twMerge("flex", "block")
+```
+
+因此 `cn` 天然适合组件开发——外部传入的 `className` 总能覆盖默认样式：
+
+```tsx
+function Card({ className, ...props }) {
+  return (
+    <div className={cn("rounded-lg border p-4 shadow-sm", className)} {...props} />
+  )
+}
+```
+
+## 具体模块
+
+常见的具体实现模块：
+
+### clsx
+
+clsx 是目前最流行的选择，体积小、执行快，是 shadcn/ui 的默认依赖：
+
+```sh
+pnpm add clsx
+```
+
+### classnames
+
+classnames 是 React 早期最经典的实现，仅负责条件拼接，不处理类名冲突。clsx 的 API 与它完全兼容，可以直接替换。
+
+### tailwind-merge
+
+如果项目使用 Tailwind CSS，通常会在 clsx 之上再叠一层 tailwind-merge 来解决类名冲突，也就是上文 `cn` 的实现：
+
+```sh
+pnpm add clsx tailwind-merge
+```
+
+<Callout title="注意">
+
+具体的区别主要是包体积和效率：classnames 约 1 kB，clsx 约 240 B 且执行更快；
+
+tailwind-merge 因内置完整的 Tailwind 类名规则表，体积相对较大（约 6 kB），只在使用 Tailwind 时才值得引入。
+
+</Callout>

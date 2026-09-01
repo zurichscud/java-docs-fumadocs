@@ -4,11 +4,9 @@ title: 更新 state 中的数组
 
 数组是另外一种可以存储在 state 中的 JavaScript 对象，它虽然是可变的，但是却应该被视为不可变。同对象一样，当你想要更新存储于 state 中的数组时，你需要创建一个新的数组（或者创建一份已有数组的拷贝值），并使用新数组设置 state。
 
-## 在没有 mutation 的前提下更新数组 
+## 将state视为只读的
 
 **你需要将 React state 中的数组视为只读的**。这意味着你不应该使用类似于 `arr[0] = 'bird'` 这样的方式来重新分配数组中的元素，也不应该使用会直接修改原始数组的方法，例如 `push()` 和 `pop()`。
-
-
 
 ## 向数组中添加元素
 
@@ -44,7 +42,6 @@ export default function List() {
     </>
   );
 }
-
 ```
 
 你应该创建一个 **新** 数组，其包含了原始数组的所有元素 **以及** 一个在末尾的新元素。
@@ -98,10 +95,7 @@ export default function List() {
     </>
   );
 }
-
 ```
-
-
 
 ## 转换数组
 
@@ -161,10 +155,7 @@ export default function ShapeEditor() {
     </>
   );
 }
-
 ```
-
-
 
 ## 替换数组中的元素
 
@@ -210,10 +201,7 @@ export default function CounterList() {
     </ul>
   );
 }
-
 ```
-
-
 
 ## 向数组中插入元素
 
@@ -275,7 +263,7 @@ export default function List() {
 
 总会有一些事，是你仅仅依靠展开运算符和 `map()` 或者 `filter()` 等不会直接修改原值的方法所无法做到的。例如，你可能想翻转数组，或是对数组排序。而 JavaScript 中的 `reverse()` 和 `sort()` 方法会改变原数组，所以你无法直接使用它们。
 
-**然而，你可以先拷贝这个数组，再改变这个拷贝后的值。**
+解决方式：**你可以先拷贝这个数组，再改变这个拷贝后的值。**
 
 ```jsx
 import { useState } from 'react';
@@ -308,14 +296,11 @@ export default function List() {
     </>
   );
 }
-
 ```
 
 在这段代码中，你先使用 `[...list]` 展开运算符创建了一份数组的拷贝值。当你有了这个拷贝值后，你就可以使用像 `nextList.reverse()` 或 `nextList.sort()` 这样直接修改原数组的方法。你甚至可以通过 `nextList[0] = "something"` 这样的方式对数组中的特定元素进行赋值。
 
 ## 更新数组内部的对象
-
-对象并不是 *真的* 位于数组“内部”。可能他们在代码中看起来像是在数组“内部”，但其实数组中的每个对象都是这个数组“指向”的一个存储于其它位置的值。
 
 ```jsx
 import { useState } from 'react';
@@ -389,7 +374,6 @@ function ItemList({ artworks, onToggle }) {
     </ul>
   );
 }
-
 ```
 
 问题出在下面这段代码中:
@@ -416,4 +400,3 @@ setMyList(myList.map(artwork => {
   }
 }));
 ```
-
