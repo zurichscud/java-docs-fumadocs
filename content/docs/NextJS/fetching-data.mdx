@@ -1,0 +1,202 @@
+---
+title: "Fetching Data"
+description: "获取数据"
+---
+
+数据获取的核心哲学是：**优先推荐在服务端（Server Components）获取数据**，并结合 **流式传输（Streaming）** 与 React Suspense 来优化加载体验。
+
+
+
+## 服务端组件获取数据
+
+Next.js 推荐尽可能在服务端组件（`async Component`）中直接请求数据，主要有两种方式：
+
+### 使用原生 fetch API
+
+可以直接在异步组件中使用 `await fetch(...)`。
+
+```tsx
+export default async function Page() {
+  const data = await fetch('https://api.vercel.app/blog')
+  const posts = await data.json()
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+
+
+### 使用 ORM 或数据库直接查询
+
+因为服务端组件运行在服务端，你的数据库凭据和查询逻辑**完全不会泄漏到客户端 Bundle 中**。
+
+```tsx
+import { db, posts } from '@/lib/db'
+
+export default async function Page() {
+  const allPosts = await db.select().from(posts)
+  return (
+    <ul>
+      {allPosts.map((post) => (
+        <li key={post.id}>{post.title}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+
+
+## 流式渲染与加载状态
+
+
+
+### 渲染阻塞
+
+```tsx
+type AdviceSlip = {
+  slip: {
+    id: number;
+    advice: string;
+  };
+};
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export default async function Advice() {
+  const res = await fetch("https://api.adviceslip.com/advice");
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch advice: ${res.status}`);
+  }
+
+  const data: AdviceSlip = await res.json();
+  // 阻塞渲染
+  await delay(5_000);
+
+  console.log("5s delay finished");
+
+  return <div>{data.slip.advice}</div>;
+}
+
+
+```
+
+如果在服务端组件请求数据很慢将导致渲染阻塞：
+
+- 整页白屏/卡顿
+
+- 浏览器一直转圈
+
+
+
+为了解决这个问题，Next.js 引入了**流式传输（Streaming）**——将页面拆分成一个个小块（Chunks），准备好一部分就先发送给客户端一部分。
+
+### 1. 路由级别：使用 `loading.js`
+
+在页面同级目录下放置 `loading.tsx`，Next.js 会自动将其作为当前路由段的 `<Suspense>` Fallback。
+
+切换页面时，用户会**立即看到 Layout + loading.js 的骨架屏**，等后台数据请求完毕后再自动替换为实际内容。
+
+**`loading.jsx` 的本质**：Next.js 会自动用一个 `<Suspense>` 把你的整个 `page.jsx` 包裹起来，而 `loading.jsx` 就是这个外层 `<Suspense>` 的 `fallback`。
+
+### 2. 组件级别：使用 `<Suspense>`
+
+如果页面上只有某一部分（比如文章列表）需要异步请求，可以只将该组件包裹在 `<Suspense>` 中。这也是NextJS推荐的写法
+
+```jsx
+// app/dashboard/page.jsx
+export default function Page() { // 注意：顶层没有 await 阻塞整页
+  return (
+    <div>
+      <h1>页面标题（立即显示）</h1>
+      
+      {/* 异步子组件 1 */}
+      <Suspense fallback={<ChildSkeleton1 />}>
+        <AsyncChild1 /> 
+      </Suspense>
+
+      {/* 异步子组件 2 */}
+      <Suspense fallback={<ChildSkeleton2 />}>
+        <AsyncChild2 />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+Advice的延迟渲染，不会影响其他部分的渲染
+
+### 深入理解Suspense
+
+如果你在 `page` 函数最顶层直接 `await` 了一个耗时请求：
+
+```jsx
+// app/dashboard/page.jsx
+export default async function Page() {
+  // 顶层 await！整页数据没拿到前，page 本身无法返回 JSX
+  const mainData = await fetchMainData(); 
+
+  return (
+    <div>
+      <h1>{mainData.title}</h1>
+      <Suspense fallback={<ComponentSkeleton />}>
+        <ChildAsyncComponent />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+1. 页面刚开始加载时，由于 `page` 整体被阻塞在顶层 `await`，外层的 `loading.jsx` 生效。
+
+2. 当 `fetchMainData()` 请求完成后，`page.jsx` 渲染出来，`loading.jsx` 消失。
+
+3. 此时如果 `<ChildAsyncComponent/>` 还在加载，内层的 `<Suspense>` 接管。
+
+
+
+## 客户端组件获取数据
+
+当必须在客户端组件（`'use client'`）处理数据时，主要有以下途径：
+
+服务端**发起请求但不 `await`**，将 Promise 传给客户端组件，客户端组件通过 React 的 `use()` hook 读取该 Promise：
+
+- **服务端组件 (`app/blog/page.tsx`)**：
+
+  ```tsx
+  import Posts from '@/app/ui/posts'
+  import { Suspense } from 'react'
+  
+  export default function Page() {
+    const postsPromise = getPosts() // 注意：这里不 await
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <Posts posts={postsPromise} />
+      </Suspense>
+    )
+  }
+  ```
+
+- **客户端组件 (`app/ui/posts.tsx`)**：
+
+  ```tsx
+  'use client'
+  import { use } from 'react'
+  
+  export default function Posts({ posts }: { posts: Promise<any[]> }) {
+    const allPosts = use(posts) // 读取服务端传来的 Promise
+    return (
+      <ul>
+        {allPosts.map((post) => <li key={post.id}>{post.title}</li>)}
+      </ul>
+    )
+  }
+  ```

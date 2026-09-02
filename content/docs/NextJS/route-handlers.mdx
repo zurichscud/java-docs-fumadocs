@@ -1,0 +1,48 @@
+---
+title: "Route Handlers"
+description: "Controller"
+---
+
+**Route Handlers**（路由处理程序）是 Next.js **App Router** 中用于创建自定义 Web API 的核心机制。
+
+## 核心概念与文件规范
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788341663514.png)
+
+- **文件名**：必须命名为 `route.js` 或 `route.ts`。
+
+- **位置**：放置在 `app` 目录下任意文件夹内（如 `app/api/users/route.ts`）。
+
+- **冲突规则**：**同一个层级下不能同时存在 `page.js` 和 `route.js`**。因为它们都会占用该路径的 HTTP 请求处理权。
+
+| **page.js 路径** | **route.js 路径**  | **结果**              |
+| ---------------- | ------------------ | --------------------- |
+| `app/page.js`    | `app/route.js`     | ❌ **冲突 (Conflict)** |
+| `app/page.js`    | `app/api/route.ts` | ✅ **合法 (Valid)**    |
+
+
+
+## HTTP 请求方法支持
+
+Route Handlers 基于标准 Web API（`Request` 和 `Response`），按导出的函数名来匹配 HTTP 方法：
+
+```js
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: Request) {
+  return Response.json({ message: 'Hello World' });
+}
+
+export async function POST(request: Request) {
+  const data = await request.json();
+  return Response.json({ received: data });
+}
+```
+
+## API 扩展与类型支持
+
+- **内置扩展**：除了支持原生 Web API 外，Next.js 还提供了 `NextRequest` 和 `NextResponse`，用于方便地处理 Cookie、Header 或重定向。
+
+- **动态路由与类型 (Route Context)**：在处理动态路由（如 `app/users/[id]/route.ts`）时，可以使用 Next.js 提供的 `RouteContext` 来收窄参数类型：
+
+

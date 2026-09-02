@@ -1,0 +1,299 @@
+---
+title: "服务端组件和客户端组件"
+---
+
+默认情况下，layouts 和 pages 都是服务器组件（Server Components），这让你可以在服务器上获取数据并渲染部分 UI，可选择缓存结果，并将其流式传输到客户端。当你需要交互功能或浏览器 API 时，可以使用客户端组件（Client Components）来叠加这些能力。
+
+## 何时使用 Server 和 Client Components？
+
+客户端和服务器环境具有不同的能力。Server 和 Client Components 允许你根据用例在各自的环境中运行逻辑。
+
+在以下情况下使用 Client Components：
+
+- 状态（State）和事件处理器。例如 `onClick`、`onChange`。
+- 生命周期逻辑。例如 `useEffect`。
+- 仅在浏览器中可用的 API。例如 `localStorage`、`window`、`navigator.geolocation` 等。
+- 自定义 Hooks。
+
+在以下情况下使用 Server Components：
+
+- 从靠近数据源的数据库或 API 获取数据。
+- 使用 API 密钥、令牌和其他机密信息，而不会将它们暴露给客户端。
+- 减少发送到浏览器的 JavaScript 数量。
+- 改善首次内容绘制（FCP），并将内容逐步流式传输到客户端。
+
+
+
+## Server 和 Client Components 在 Next.js 中如何工作？
+
+> **默认服务端，按需客户端**（Server-first approach）
+
+
+
+
+
+### Server Components的工作机制
+
+- **渲染为 RSC Payload**：服务器将组件树渲染为一个轻量级的二进制数据格式（RSC Payload），而非单纯的 HTML。
+
+- **零 JS 发送**：组件中引用的第三方库（如 `lodash`、`marked` 等）代码留在服务端，浏览器完全接收不到这些依赖的打包文件。
+
+- **安全直连**：可以在组件内部直接使用 `async/await` 查询数据库，无需经过 API 接口层，且敏感信息（如 API Key）不会泄露给前端。
+
+### Client Components的工作机制
+
+- **服务端预渲染**：为了极快的首屏加载，Client Component 在服务端也会被预渲染成静态 HTML。
+
+- **水合**：浏览器接收到 HTML 后，同时下载该组件的 JS 代码，React 在客户端运行这些 JS 代码并将事件监听器绑定到 HTML 节点上，使其具备交互能力。
+
+
+
+> 水合是 React 将[事件处理器](https://react.dev/learn/responding-to-events)附加到 DOM 上，使静态 HTML 变得可交互的过程。
+
+## Usage
+
+### Client Components
+
+你可以通过在文件顶部、导入语句之上添加 `"use client"`指令来创建 Client Component：
+
+```jsx
+'use client'
+
+import { useState } from 'react'
+
+export default function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>{count} likes</p>
+      <button onClick={() => setCount(count + 1)}>Click me</button>
+    </div>
+  )
+}
+```
+
+一旦某个文件被标记为 `"use client"`，它的所有导入以及它直接渲染的组件都会被包含进客户端 bundle 中。这意味着你不需要为每个打算在客户端使用的组件都添加该指令。
+
+### Reducing JS bundle size
+
+为了减小客户端 JavaScript bundle 的体积，请将 `'use client'` 添加到特定的交互式组件上，而不是把大块 UI 标记为 Client Components。
+
+例如，`<Layout>` 组件主要包含静态元素（如 logo 和导航链接），但包含一个交互式搜索栏。`<Search />` 需要是一个 Client Component，而布局的其余部分可以保持为 Server Component。
+
+```tsx title="app/layout.tsx"
+// Client Component
+import Search from './search'
+// Server Component
+import Logo from './logo'
+
+// Layout 默认是 Server Component
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <nav>
+        <Logo />
+        <Search />
+      </nav>
+      <main>{children}</main>
+    </>
+  )
+}
+```
+
+```jsx title="app/ui/search.tsx"
+'use client'
+ 
+export default function Search() {
+  // ...
+}
+```
+
+
+
+### Passing data from Server to Client Components
+
+你可以使用 props 将数据从 Server Components 传递给 Client Components：
+
+例如，`<Page>` 组件是一个 Server Component，它获取关于某篇文章的数据，并将其作为 props 传递给处理客户端交互的 `<LikeButton>`：
+
+```tsx title="app/[id]/page.tsx"
+import LikeButton from '@/app/ui/like-button'
+import { getPost } from '@/lib/data'
+ 
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const post = await getPost(id)
+ 
+  return (
+    <div>
+      <main>
+        <h1>{post.title}</h1>
+        {/* ... */}
+        <LikeButton likes={post.likes} />
+      </main>
+    </div>
+  )
+}
+```
+
+```tsx title="app/ui/like-button.tsx"
+'use client'
+ 
+import { useState } from 'react'
+ 
+export default function LikeButton({ likes }: { likes: number }) {
+  // ...
+}
+```
+
+
+
+### Context Providers
+
+Server Components 不支持 React context。要使用 context，请创建一个接受 `children` 的 Client Component：
+
+```tsx title="app/theme-provider.tsx"
+'use client'
+
+import { createContext } from 'react'
+
+export const ThemeContext = createContext({})
+
+export default function ThemeProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return <ThemeContext.Provider value="dark">{children}</ThemeContext.Provider>
+}
+```
+
+然后，将其导入到一个 Server Component 中（例如 `layout`）：
+
+```tsx
+import ThemeProvider from './theme-provider'
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+现在，你的 Server Component 将能够直接渲染你的 provider，而应用中的所有其他 Client Components 都能够消费这个 context。
+
+### Third-party components
+
+当使用依赖仅客户端特性的第三方组件时，你可以将其包裹在 Client Component 中，以确保它按预期工作。
+
+例如，`<Carousel />` 可以从 `acme-carousel` 包中导入。该组件使用了 `useState`，但它还没有 `"use client"` 指令。
+
+如果你在 Client Component 中使用 `<Carousel />`，它将按预期工作：
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { Carousel } from 'acme-carousel'
+
+export default function Gallery() {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div>
+      <button onClick={() => setIsOpen(true)}>View pictures</button>
+      {/* 可以工作，因为 Carousel 在 Client Component 中使用 */}
+      {isOpen && <Carousel />}
+    </div>
+  )
+}
+```
+
+如果你尝试直接在 Server Component 中使用它，你会看到一个错误。这是因为 Next.js 不知道 `<Carousel />` 使用了仅客户端特性。
+
+要修复此问题，你可以将依赖仅客户端特性的第三方组件包裹在你自己的 Client Component 中：
+
+```tsx
+'use client'
+
+import { Carousel } from 'acme-carousel'
+
+export default Carousel
+```
+
+现在，你可以直接在 Server Component 中使用 `<Carousel />`：
+
+```tsx
+import Carousel from './carousel'
+
+export default function Page() {
+  return (
+    <div>
+      <p>View pictures</p>
+      {/* 可以工作，因为 Carousel 是一个 Client Component */}
+      <Carousel />
+    </div>
+  )
+}
+```
+
+
+
+### Preventing environment poisoning
+
+```tsx
+export async function getData() {
+  const res = await fetch('https://external-service.com/data', {
+    headers: {
+      authorization: process.env.API_KEY,
+    },
+  })
+
+  return res.json()
+}
+```
+
+这个函数包含一个绝不应暴露给客户端的 `API_KEY`。
+
+在 Next.js 中，只有以 `NEXT_PUBLIC_` 为前缀的环境变量才会被包含进客户端 bundle。如果变量没有前缀，Next.js 会将它们替换为空字符串。
+
+因此，即使 `getData()` 可以在客户端被导入并执行，它也不会按预期工作。
+
+为了防止在 Client Components 中被意外使用，你可以使用 `server-only` 包。
+
+```sh
+pnpm add server-only
+```
+
+然后，将该包导入到包含仅限服务器代码的文件中：
+
+```tsx
+import 'server-only'
+
+export async function getData() {
+  const res = await fetch('https://external-service.com/data', {
+    headers: {
+      authorization: process.env.API_KEY,
+    },
+  })
+
+  return res.json()
+}
+```
+
+现在，如果你尝试将该模块导入到 Client Component 中，将会出现构建时错误。
+
+
