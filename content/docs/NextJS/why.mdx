@@ -16,8 +16,6 @@ title: "为什么需要Next"
 
 ## Hydration（水合）
 
-SSR 产出的是“死” HTML
-
 - 脱水
 
 服务端渲染出来的只是一段静态标记：没有事件监听、没有组件状态、没有交互逻辑。按钮看起来能点，点了没反应。这个阶段叫“脱水”状态。
@@ -47,14 +45,5 @@ import App from './App';
 
 hydrateRoot(document.getElementById('root'), <App />);
 ```
-
-
-
-完整流程：
-
-1. 构建时：打包器产出服务端 bundle + 客户端 bundle（多个 chunk）
-2. 请求时：Node 执行服务端 bundle → 生成 HTML + `<script>` 标签 → 返回浏览器
-3. 浏览器解析 HTML：立即显示内容（FCP），同时并行下载 JS
-4. JS 下载执行：同一个 `App` 组件在浏览器重新跑一遍，对上现有 DOM → 水合完成（TTI）
 
 

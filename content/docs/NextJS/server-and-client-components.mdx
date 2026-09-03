@@ -6,8 +6,6 @@ title: "服务端组件和客户端组件"
 
 ## 何时使用 Server 和 Client Components？
 
-客户端和服务器环境具有不同的能力。Server 和 Client Components 允许你根据用例在各自的环境中运行逻辑。
-
 在以下情况下使用 Client Components：
 
 - 状态（State）和事件处理器。例如 `onClick`、`onChange`。
@@ -22,15 +20,9 @@ title: "服务端组件和客户端组件"
 - 减少发送到浏览器的 JavaScript 数量。
 - 改善首次内容绘制（FCP），并将内容逐步流式传输到客户端。
 
-
-
 ## Server 和 Client Components 在 Next.js 中如何工作？
 
 > **默认服务端，按需客户端**（Server-first approach）
-
-
-
-
 
 ### Server Components的工作机制
 
@@ -46,9 +38,7 @@ title: "服务端组件和客户端组件"
 
 - **水合**：浏览器接收到 HTML 后，同时下载该组件的 JS 代码，React 在客户端运行这些 JS 代码并将事件监听器绑定到 HTML 节点上，使其具备交互能力。
 
-
-
-> 水合是 React 将[事件处理器](https://react.dev/learn/responding-to-events)附加到 DOM 上，使静态 HTML 变得可交互的过程。
+> 水合是 React 将事件处理器附加到 DOM 上，使静态 HTML 变得可交互的过程。
 
 ## Usage
 
@@ -109,8 +99,6 @@ export default function Search() {
 }
 ```
 
-
-
 ### Passing data from Server to Client Components
 
 你可以使用 props 将数据从 Server Components 传递给 Client Components：
@@ -150,8 +138,6 @@ export default function LikeButton({ likes }: { likes: number }) {
   // ...
 }
 ```
-
-
 
 ### Context Providers
 
@@ -250,8 +236,6 @@ export default function Page() {
 }
 ```
 
-
-
 ### Preventing environment poisoning
 
 ```tsx
@@ -295,5 +279,3 @@ export async function getData() {
 ```
 
 现在，如果你尝试将该模块导入到 Client Component 中，将会出现构建时错误。
-
-

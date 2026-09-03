@@ -1,0 +1,232 @@
+---
+title: "Mutating Data"
+description: "修改数据"
+---
+
+## 什么是Server Function
+
+Next.js 中的 **Server Function**（通常也被称为 **Server Actions**）是 React Server Components (RSC) 架构下的核心特性。
+
+它允许你在服务器端直接定义并执行异步函数，而无需手动编写传统的 API 路由（如 `/api/xxx`）。
+
+在底层，action 使用 `POST` 方法，且只有这一种 HTTP 方法可以调用它们。
+
+<Callout title="注意" type="warning">
+
+Server Function 可以通过直接发送 POST 请求访问到，而不仅仅通过应用 UI。请务必在每个 Server Function 内部认证和授权
+
+</Callout>
+
+通常在lib中存储服务端函数
+
+
+
+:::accordions
+
+:::accordion title="什么是 Next.js？"
+
+Next.js 是 React 框架。
+
+:::
+
+:::accordion title="什么是 Prisma？"
+
+Prisma 是 ORM 工具。
+
+:::
+
+:::
+
+
+
+## 创建Server Functions
+
+### 服务端组件
+
+- 组件内：必须在函数体顶部使用 `'use server'` 指令：
+
+```tsx
+// app/posts/page.tsx (Server Component)
+export default function Page() {
+  async function createPost(formData: FormData) {
+    'use server'
+    const title = formData.get('title')
+    // 直接在服务器端操作数据库或调用后端 API
+    await db.post.create({ data: { title } })
+  }
+
+  return (
+    <form action={createPost}>
+      <input type="text" name="title" />
+      <button type="submit">创建文章</button>
+    </form>
+  )
+}
+```
+
+- 独立文件内：在独立的 `.ts` 或 `.js` 文件顶部添加 `'use server'`：
+
+```js
+// app/actions.ts
+'use server'
+
+export async function updateUser(userId: string, data: any) {
+  // 数据库更新逻辑
+  await db.user.update({ where: { id: userId }, data })
+}
+```
+
+### 客户端组件
+
+无法在 Client Components 中定义 Server Function。不过，你可以在 Client Components 中调用它们
+
+```jsx
+"use client";
+
+import { addTodo } from "./actions";
+
+export default function TodoButton() {
+  async function handleClick() {
+    await addTodo("学习 Next.js");
+  }
+
+  return (
+    <button onClick={handleClick}>
+      添加
+    </button>
+  );
+}
+```
+
+### 通过 props 传递 action
+
+你还可以将 action 作为 prop 传递给 Client Component：
+
+```jsx
+<ClientComponent updateItemAction={updateItem} />
+```
+
+```jsx
+'use client'
+
+export default function ClientComponent({ updateItemAction }) {
+  return <form action={updateItemAction}>{/* ... */}</form>
+}
+```
+
+## 调用 Server Functions
+
+调用 Server Function 主要有两种方式：
+
+1. Server Components 和 Client Components 中的[表单（Forms）](#%E8%A1%A8%E5%8D%95-forms)
+
+2. Client Components 中的[事件处理器（Event Handlers）](#%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E5%99%A8-event-handlers)和 [useEffect](#useeffect)
+
+### Forms
+
+略
+
+### 事件处理器（Event Handlers）
+
+你可以在 Client Component 中通过 `onClick` 等事件处理器调用 Server Function：
+
+```jsx
+'use client'
+
+import { incrementLike } from './actions'
+import { useState } from 'react'
+
+export default function LikeButton({ initialLikes }) {
+  const [likes, setLikes] = useState(initialLikes)
+
+  return (
+    <>
+      <p>Total Likes: {likes}</p>
+      <button
+        onClick={async () => {
+          const updatedLikes = await incrementLike()
+          setLikes(updatedLikes)
+        }}
+      >
+        Like
+      </button>
+    </>
+  )
+}
+```
+
+## Usage
+
+### 刷新数据
+
+数据变更之后，你可能希望刷新当前页面以展示最新数据。你可以在 Server Action 中调用来自 `next/cache` 的 [`refresh`](https://nextjs.org/docs/app/api-reference/functions/refresh) 来实现：
+
+```jsx
+'use server'
+
+import { auth } from '@/lib/auth'
+import { refresh } from 'next/cache'
+
+export async function updatePost(formData) {
+  const session = await auth()
+  if (!session?.user) {
+    throw new Error('Unauthorized')
+  }
+  // 变更数据
+  // ...
+
+  refresh()
+}
+```
+
+这会刷新客户端路由器，确保 UI 反映最新状态。
+
+### 重定向
+
+你可能希望在数据变更后将用户重定向到其他页面。可以通过在 Server Function 内调用 [`redirect`](https://nextjs.org/docs/app/api-reference/functions/redirect) 来实现。
+
+```jsx
+'use server'
+
+import { auth } from '@/lib/auth'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+
+export async function createPost(formData) {
+  const session = await auth()
+  if (!session?.user) {
+    throw new Error('Unauthorized')
+  }
+  // 变更数据
+  // ...
+
+  revalidatePath('/posts')
+  redirect('/posts')
+}
+```
+
+### useEffect
+
+你可以使用 React 的 [`useEffect`](https://react.dev/reference/react/useEffect) Hook 在组件挂载或依赖变化时调用 Server Action。
+
+```jsx
+'use client'
+
+import { incrementViews } from './actions'
+import { useState, useEffect, useTransition } from 'react'
+
+export default function ViewCount({ initialViews }) {
+  const [views, setViews] = useState(initialViews)
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    startTransition(async () => {
+      const updatedViews = await incrementViews()
+      setViews(updatedViews)
+    })
+  }, [])
+
+  // 你可以使用 `isPending` 向用户提供反馈
+  return <p>Total Views: {views}</p>
+}
+```

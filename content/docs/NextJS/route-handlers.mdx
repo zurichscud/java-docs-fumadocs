@@ -13,16 +13,20 @@ description: "Controller"
 
 - **位置**：放置在 `app` 目录下任意文件夹内（如 `app/api/users/route.ts`）。
 
-- **冲突规则**：**同一个层级下不能同时存在 `page.js` 和 `route.js`**。因为它们都会占用该路径的 HTTP 请求处理权。
+- **冲突规则**：**同一个层级下不能同时存在 `page.js` 和 `route.js`**。因为它们都会占用该路径的 HTTP 请求处理权。通常放在`app/api`目录下
 
-| **page.js 路径** | **route.js 路径**  | **结果**              |
-| ---------------- | ------------------ | --------------------- |
-| `app/page.js`    | `app/route.js`     | ❌ **冲突 (Conflict)** |
-| `app/page.js`    | `app/api/route.ts` | ✅ **合法 (Valid)**    |
+| **page.js 路径** | **route.js 路径**  | **结果** |
+| ---------------- | ------------------ | -------- |
+| `app/page.js`    | `app/route.js`     | ❌        |
+| `app/page.js`    | `app/api/route.ts` | ✅        |
 
+## 定义Handler
 
+除了支持原生的 [Request](https://developer.mozilla.org/docs/Web/API/Request) 和 [Response](https://developer.mozilla.org/docs/Web/API/Response) API 之外，Next.js 还通过 [`NextRequest`](https://nextjs.org/docs/app/api-reference/functions/next-request) 和 [`NextResponse`](https://nextjs.org/docs/app/api-reference/functions/next-response) 对它们进行了扩展，为高级用例提供了便捷的辅助功能。
 
-## HTTP 请求方法支持
+```js
+export async function GET(request: NextRequest, context: RouteContext) { ... }
+```
 
 Route Handlers 基于标准 Web API（`Request` 和 `Response`），按导出的函数名来匹配 HTTP 方法：
 
@@ -39,10 +43,99 @@ export async function POST(request: Request) {
 }
 ```
 
-## API 扩展与类型支持
+## RouteContext
 
-- **内置扩展**：除了支持原生 Web API 外，Next.js 还提供了 `NextRequest` 和 `NextResponse`，用于方便地处理 Cookie、Header 或重定向。
+在 TypeScript 中，你可以使用全局可用的 [`RouteContext`](https://nextjs.org/docs/app/api-reference/file-conventions/route#route-context-helper) 辅助类型为路由处理程序的 `context` 参数添加类型：
 
-- **动态路由与类型 (Route Context)**：在处理动态路由（如 `app/users/[id]/route.ts`）时，可以使用 Next.js 提供的 `RouteContext` 来收窄参数类型：
+```js
+import type { NextRequest } from 'next/server'  
+​  
+export async function GET(_req: NextRequest, ctx: RouteContext<'/users/[id]'>) {  
+  const { id } = await ctx.params  
+  return Response.json({ id })  
+}
+```
 
+RouteContext是为TS提供类型提示。需要你传入当前文件的路由地址。NextJS是知道路由地址的，但是TS并不知道。
 
+核心属性：`params`
+
+**作用**：一个包含当前动态路由参数的对象 Promise。
+
+## 获取参数
+
+### params
+
+`params` 用于获取动态路由段。它是一个 Promise，需要使用 `await` 解析。假设文件路径为 `app/users/[id]/route.ts`，请求 `/users/123` 时：
+
+```ts title="app/users/[id]/route.ts"
+export async function GET(
+  _req: NextRequest,
+  ctx: RouteContext<'/users/[id]'>
+) {
+  const { id } = await ctx.params
+  return Response.json({ id }) // { "id": "123" }
+}
+```
+
+对于多个动态段，例如 `app/posts/[slug]/comments/[id]/route.ts`：
+
+```ts title="app/posts/[slug]/comments/[id]/route.ts"
+export async function GET(
+  _req: NextRequest,
+  ctx: RouteContext<'/posts/[slug]/comments/[id]'>
+) {
+  const { slug, id } = await ctx.params
+  return Response.json({ slug, id })
+}
+```
+
+### query
+
+查询参数（Query Parameters）即 URL 中 `?` 之后的部分，可以通过 `NextRequest` 的 `nextUrl.searchParams` 获取。例如请求 `/search?q=next&page=2`：
+
+```ts title="app/search/route.ts"
+import type { NextRequest } from 'next/server'
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+
+  const query = searchParams.get('q') // "next"
+  const page = searchParams.get('page') // "2"
+
+  return Response.json({ query, page })
+}
+```
+
+常用方法：`get(name)` 返回第一个匹配值（不存在时返回 `null`）；`getAll(name)` 返回所有匹配值；`has(name)` 判断参数是否存在。
+
+### formData
+
+表单数据需要读取请求体。对于 `POST` 请求，可以使用 Web 标准的 `request.formData()`：
+
+```ts title="app/users/route.ts"
+export async function POST(request: Request) {
+  const formData = await request.formData()
+
+  const name = formData.get('name') as string
+  const file = formData.get('file') as File
+
+  return Response.json({
+    name,
+    fileName: file?.name,
+    fileSize: file?.size,
+  })
+}
+```
+
+### json
+
+如果请求体是 JSON，则使用 `request.json()`：
+
+```ts filename="app/users/route.ts"
+export async function POST(request: Request) {
+  const body = await request.json()
+
+  return Response.json({ name: body.name })
+}
+```
