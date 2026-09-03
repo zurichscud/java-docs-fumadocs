@@ -1,0 +1,50 @@
+---
+title: "Link"
+---
+
+`<Link>` 是一个 React 组件，它扩展了 HTML `<a>` 元素，提供路由预加载和客户端路由导航功能。它是 Next.js 中路由导航的主要方式。
+
+## Usage
+
+```jsx
+import Link from 'next/link'
+ 
+export default function Page() {
+  return <Link href="/dashboard">Dashboard</Link>
+}
+```
+
+## Reference
+
+| Prop                                                                              | Default | Type                       | Required |
+| --------------------------------------------------------------------------------- | ------- | -------------------------- | -------- |
+| [`href`](https://nextjs.org/docs/app/api-reference/components/link#href-required) | -       | String or Object           | Yes      |
+| [`replace`](https://nextjs.org/docs/app/api-reference/components/link#replace)    | `false` | Boolean                    | -        |
+| [`scroll`](https://nextjs.org/docs/app/api-reference/components/link#scroll)      | `true`  | Boolean                    | -        |
+| [`prefetch`](https://nextjs.org/docs/app/api-reference/components/link#prefetch)  | `true`  | Boolean, `"auto"`, or null | -        |
+
+### href
+
+目标路径（必填），支持字符串或 URL 对象
+
+```jsx
+// 字符串拼接
+<Link href={`/blog/${post.slug}`}>{post.title}</Link>
+
+// URL 对象形式
+<Link href={{ pathname: '/blog/[slug]', query: { slug: 'hello' } }}>
+  文章
+</Link>
+```
+
+### replace
+
+替换当前 history 记录而非新增，默认 `false`
+
+### scroll
+
+跳转后是否滚动到页面顶部，默认 `true`
+
+### prefetch
+
+进入视口时预加载页面，默认 `true`（仅生产环境生效）

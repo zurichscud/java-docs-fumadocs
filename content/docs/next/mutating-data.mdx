@@ -9,35 +9,23 @@ Next.js 中的 **Server Function**（通常也被称为 **Server Actions**）是
 
 它允许你在服务器端直接定义并执行异步函数，而无需手动编写传统的 API 路由（如 `/api/xxx`）。
 
-在底层，action 使用 `POST` 方法，且只有这一种 HTTP 方法可以调用它们。
-
-<Callout title="注意" type="warning">
-
-Server Function 可以通过直接发送 POST 请求访问到，而不仅仅通过应用 UI。请务必在每个 Server Function 内部认证和授权
-
-</Callout>
-
-通常在lib中存储服务端函数
-
 
 
 :::accordions
 
-:::accordion title="什么是 Next.js？"
+:::accordion title="Server Actions的底层"
 
-Next.js 是 React 框架。
-
-:::
-
-:::accordion title="什么是 Prisma？"
-
-Prisma 是 ORM 工具。
+在底层，action 使用 `POST` 方法。Server Function 可以通过直接发送 POST 请求访问到，而不仅仅通过应用 UI。因此请务必在每个 Server Function 内部认证和授权
 
 :::
 
+:::accordion title="Server Actions应该放在哪"
+
+通常在`lib`中存储服务端函数
+
 :::
 
-
+:::
 
 ## 创建Server Functions
 

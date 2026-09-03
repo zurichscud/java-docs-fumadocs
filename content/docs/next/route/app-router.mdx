@@ -1,0 +1,169 @@
+---
+title: "App Router"
+---
+
+## 项目结构
+
+```
+src/
+└── app
+    ├── page.tsx -> / 首页
+    ├── layout.tsx -> 布局组件
+    ├── template.tsx -> 模板组件
+    ├── loading.tsx -> 加载组件
+    ├── error.tsx -> 错误组件
+    └── not-found.tsx -> 404组件
+    ├── xiaoman
+    │   └── page.tsx -> /xiaoman 小满页面
+    └── daman
+        └── page.tsx -> /daman 大满页面
+```
+
+## 路由组（Route Groups）
+
+带括号的文件夹，如 `(marketing)` 和 `(dashboard)`
+
+用括号命名的文件夹，不影响 URL
+
+## layout
+
+Layout 是一个接收 `children` React Node 的默认导出组件：
+
+### 根布局
+
+ `app/layout.tsx`必需文件，所有页面共享，必须包含 `<html>` 和 `<body>` 标签：
+
+```jsx title=" app/layout.tsx"
+export const metadata = {
+  title: '我的网站',
+  description: '网站描述',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="zh-CN">
+      <body>
+        <header>全局导航</header>
+        {children}
+        <footer>全局页脚</footer>
+      </body>
+    </html>
+  )
+}
+```
+
+### 嵌套布局
+
+在子目录中添加 `layout.tsx`,会嵌套在父布局内部：
+
+```
+app/
+├── layout.tsx        ← 根布局
+├── dashboard/
+│   ├── layout.tsx    ← dashboard 专用布局
+│   ├── page.tsx
+│   └── settings/
+│       └── page.tsx  ← 同时被两个布局包裹
+```
+
+```tsx
+// app/dashboard/layout.tsx
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex">
+      <aside>侧边栏</aside>
+      <main>{children}</main>
+    </div>
+  )
+}
+```
+
+渲染时的组件嵌套关系为：
+
+`<RootLayout>` $\rightarrow$ `<DashboardLayout>` $\rightarrow$ `<DashboardPage>`
+
+### 多个根布局
+
+例如：
+
+- `/` 首页使用一种布局
+
+- `/products` 商品页使用另一种布局
+
+使用Route Groups用括号命名的文件夹，不影响 URL,可用于让不同页面组有完全不同的布局：
+
+```
+app/
+├── (home)/
+│   ├── layout.tsx    ← 首页页面布局
+│   └── page.tsx      → /
+├── (shop)/
+│   ├── layout.tsx    ← 商店布局
+│   └── products/
+│       └── page.tsx  → /products
+```
+
+<Callout title="注意" type="warning">
+
+多个根布局时需要删掉顶层的 `app/layout.tsx`,每个 group 的`layout.tsx`里写完整的 `<html>`。
+
+</Callout>
+
+
+
+## loading
+
+Next.js的loading是借助了`Suspense`实现的
+
+```jsx
+export default function Loading() {
+    return (
+        <div>
+            <h1>Loading...</h1>
+        </div>
+    )
+}
+```
+
+## error
+
+Next.js的error是借助了`Error Boundary`实现的。
+
+```tsx
+'use client' //错误组件必须是客户端组件
+export default function Error() {
+    return (
+        <div>
+            <h1>Error</h1>
+        </div>
+    )
+}
+```
+
+## not-found
+
+Next.js 默认会生成一个404页面
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788252193189.png)
+
+我们也可以自定义：
+
+```tsx
+export default function NotFound() {
+    return (
+        <div>
+            <h1>404 Page</h1>
+        </div>
+    )
+}
+```
+
+## 
