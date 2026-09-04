@@ -19,10 +19,10 @@ import {
   PreviewImages,
   Writing,
 } from '@/app/(home)/page.client';
-import ShadcnImage from './shadcn.png';
-import StoryImage from './story.png';
-import CLIImage from './cli.png';
-import Bg2Image from './bg-2.png';
+import ShadcnImage from './images/shadcn.png';
+import StoryImage from './images/story.png';
+import CLIImage from './images/cli.png';
+import Bg2Image from './images/bg-2.png';
 import { story } from '@/content/docs/(framework)/integrations/story/client.story';
 
 const headingVariants = cva('font-medium tracking-tight', {

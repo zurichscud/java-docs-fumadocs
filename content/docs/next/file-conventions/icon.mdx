@@ -1,0 +1,55 @@
+---
+title: "图标"
+---
+
+`favicon`、`icon` 或 `apple-icon` 文件约定允许你为应用设置图标。
+
+它们非常适合用于添加应用图标，这些图标会显示在浏览器标签页、手机主屏幕以及搜索引擎结果等位置。
+
+## 图像文件
+
+通过在 `/app` 目录中放置一个 `favicon`、`icon` 或 `apple-icon` 图像文件，即可使用图像文件来设置应用图标。其中 `favicon` 图像只能位于 `app/` 的顶层。
+
+Next.js 会评估该文件，并自动将相应的标签添加到你应用的 `<head>` 元素中。
+
+| 文件约定                    | 支持的文件类型                          | 有效位置   |
+| --------------------------- | --------------------------------------- | ---------- |
+| [`favicon`](#favicon)       | `.ico`                                  | `app/`     |
+| [`icon`](#icon)             | `.ico`、`.jpg`、`.jpeg`、`.png`、`.svg` | `app/**/*` |
+| [`apple-icon`](#apple-icon) | `.jpg`、`.jpeg`、`.png`                 | `app/**/*` |
+
+### `favicon`
+
+将一个 `favicon.ico` 图像文件添加到根 `/app` 路由段中。
+
+```html
+<link rel="icon" href="/favicon.ico" sizes="any" />
+```
+
+### `icon`
+
+添加一个 `icon.(ico|jpg|jpeg|png|svg)` 图像文件。
+
+```html
+<link  
+  rel="icon"  
+  href="/icon?<generated>"  
+  type="image/<generated>"  
+  sizes="<generated>"  
+/>
+```
+
+### `apple-icon`
+
+添加一个 `apple-icon.(jpg|jpeg|png)` 图像文件。
+
+```html
+<link  
+  rel="apple-touch-icon"  
+  href="/apple-icon?<generated>"  
+  type="image/<generated>"  
+  sizes="<generated>"  
+/>
+```
+
+

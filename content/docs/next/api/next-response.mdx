@@ -1,0 +1,94 @@
+---
+title: "NextResponse"
+---
+
+`NextResponse` 是 Next.js 提供的、继承自标准 Web `Response` API 的扩展类，来自 `next/server` 包。它主要用于 Middleware 和 Route Handlers 中，在标准 Response 的基础上增加了一些 Next.js 特有的能力。
+
+NextResponse方法的返回值是一个`NextResponse` 实例。
+
+## TS
+
+```ts
+export declare class NextResponse<Body = unknown> extends Response {
+    [INTERNALS]: {
+        cookies: ResponseCookies;
+        url?: NextURL;
+        body?: Body;
+    };
+    constructor(body?: BodyInit | null, init?: ResponseInit);
+    get cookies(): ResponseCookies;
+    static json<JsonBody>(body: JsonBody, init?: ResponseInit): NextResponse<JsonBody>;
+    static redirect(url: string | NextURL | URL, init?: number | ResponseInit): NextResponse<unknown>;
+    static rewrite(destination: string | NextURL | URL, init?: MiddlewareResponseInit): NextResponse<unknown>;
+    static next(init?: MiddlewareResponseInit): NextResponse<unknown>;
+}
+```
+
+`init` ： **创建 Response 时的配置项**。
+
+## Method
+
+### `NextResponse.json()`
+
+最常用的方法，用于 Route Handler 返回JSON数据：
+
+```ts
+export async function GET() {
+  return NextResponse.json(
+    { message: '成功', data: [1, 2, 3] },
+    { status: 200, headers: { 'Cache-Control': 'no-store' } }
+  )
+}
+```
+
+### `NextResponse.redirect()`
+
+重定向。参数必须是绝对 URL：
+
+```ts
+// Middleware 中常见的登录校验
+return NextResponse.redirect(new URL('/login', request.url))
+```
+
+### `NextResponse.rewrite()`
+
+用户看到的 URL 不变，但实际服务的内容变了，**概念上比较像 Spring Boot 里的 `forward`**：
+
+```ts
+// 访问 /blog 实际渲染 /articles 页面
+return NextResponse.rewrite(new URL('/articles', request.url))
+```
+
+### `NextResponse.next()`
+
+在 Middleware 中表示"放行"，请求继续向下传递：
+
+```ts
+return NextResponse.next()
+```
+
+## cookies
+
+内置了链式 Cookie API：
+
+```ts
+export async function POST(request: Request) {
+  const response = NextResponse.json({ success: true })
+
+  response.cookies.set('token', 'abc123', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 24,
+    path: '/',
+  })
+
+  // 读取和删除
+  // response.cookies.get('token')
+  // response.cookies.delete('token')
+
+  return response
+}
+```
+
+

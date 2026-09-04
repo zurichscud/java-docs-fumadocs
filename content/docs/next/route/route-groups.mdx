@@ -2,4 +2,27 @@
 title: "路由组"
 ---
 
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788487173225.png)
+
+## 基本用法
+
+路由组也是一种基于文件夹的约定范式，可以让我们开发者，按类别或者团队组织路由模块，并且不影响 URL 路径。
+
+只需要通过`(groupName)`包裹住文件夹名即可，例如`(shop)`，`(user)`等，名字可以自定义。
+
+
+
+## Example
+
+例如在fumadocs中，首页和docs页具有不同的布局：
+
+```
+app/
+├── (home)/
+│   ├── layout.tsx    ← 首页页面布局
+│   └── page.tsx      → /
+├── (docs)/
+│   ├── layout.tsx    ← 文档布局
+```
+
 

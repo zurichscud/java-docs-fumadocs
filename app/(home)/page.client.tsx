@@ -14,9 +14,9 @@ import {
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import Image from 'next/image';
-import MainImg from './main.png';
-import OpenAPIImg from './openapi.png';
-import NotebookImg from './notebook.png';
+import MainImg from './images/main.png';
+import OpenAPIImg from './images/openapi.png';
+import NotebookImg from './images/notebook.png';
 import { cva } from 'class-variance-authority';
 import { useTheme } from 'next-themes';
 import dynamic from 'next/dynamic';

@@ -1,8 +1,9 @@
 ---
 title: "服务端组件和客户端组件"
+description: "默认服务端，按需客户端（Server-first approach）"
 ---
 
-默认情况下，layouts 和 pages 都是服务器组件（Server Components），这让你可以在服务器上获取数据并渲染部分 UI，可选择缓存结果，并将其流式传输到客户端。当你需要交互功能或浏览器 API 时，可以使用客户端组件（Client Components）来叠加这些能力。
+默认情况下，layouts 和 pages 都是服务器组件（Server Components），这让你可以在服务器上获取数据并渲染部分 UI，可选择缓存结果，并将其流式传输到客户端。**当你需要交互功能或浏览器 API 时，可以使用客户端组件（Client Components）来叠加这些能力。**
 
 ## 何时使用 Server 和 Client Components？
 
@@ -22,8 +23,6 @@ title: "服务端组件和客户端组件"
 
 ## Server 和 Client Components 在 Next.js 中如何工作？
 
-> **默认服务端，按需客户端**（Server-first approach）
-
 ### Server Components的工作机制
 
 - **渲染为 RSC Payload**：服务器将组件树渲染为一个轻量级的二进制数据格式（RSC Payload），而非单纯的 HTML。
@@ -39,6 +38,16 @@ title: "服务端组件和客户端组件"
 - **水合**：浏览器接收到 HTML 后，同时下载该组件的 JS 代码，React 在客户端运行这些 JS 代码并将事件监听器绑定到 HTML 节点上，使其具备交互能力。
 
 > 水合是 React 将事件处理器附加到 DOM 上，使静态 HTML 变得可交互的过程。
+
+## Server-first approach
+
+当一个页面需要交互，但是又需要使用服务端的API。可以将文件拆分为：
+
+- page.tsx：服务端组件
+
+- page.client.tsx：客户端组件，可以使用DOM，水合后恢复交互能力
+
+思路：服务端组件优先，如果服务端组件无法满足，则抽离出客户端组件
 
 ## Usage
 

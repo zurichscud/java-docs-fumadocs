@@ -1,5 +1,21 @@
 {
     "title": "NextJS",
     "icon": "PanelsTopLeft",
-    "root": true
+    "root": true,
+    "pages": [
+        "index",
+        "why",
+        "server-and-client-components",
+        "route",
+        "fetching-data",
+        "mutating-data",
+        "proxy",
+        "caching",
+        "components",
+        "functions",
+        "file-conventions",
+        "api",
+        "ai",
+        "prisma"
+    ]
 }

@@ -2,4 +2,121 @@
 title: "动态路由"
 ---
 
+动态路由是指在路由中使用方括号`[]`来定义路由参数，例如`/blog/[id]`，其中`[id]`就是动态路由参数
 
+:::accordions
+
+:::accordion title="slug是什么？"
+
+`slug` 原本是出版行业的术语，后来在 Web 开发中变成了：
+
+> **URL 中用于唯一标识资源的可读字符串**
+
+例如一个博客文章：
+
+```
+/posts/what-is-nextjs
+```
+
+这里的`what-is-nextjs`就是 slug。
+
+:::
+
+:::
+
+## 基本用法
+
+> [slug]
+
+使用动态路由只需要在文件夹名加上方括号`[]`即可，例如`[id]`,`[params]`等，名字可以自定义。
+
+```tsx title="app/shop/[id]/page.tsx"
+export default function Post({ params }) {
+  return <h1>文章 ID: {params.id}</h1>
+}
+```
+
+## 多层动态路由
+
+```tsx title="app/user/[userId]/post/[postId]/page.tsx"
+export default function Page({
+  params,
+}: {
+  params: {
+    userId: string
+    postId: string
+  }
+}) {
+  return (
+    <>
+      <div>User: {params.userId}</div>
+      <div>Post: {params.postId}</div>
+    </>
+  )
+}
+```
+
+## Catch-all 路由
+
+> [...slug]
+
+我们如果需要捕获多个路由参数，例如`/shop/123/456`，我们可以使用路由片段来捕获多个路由参数，他的用法就是`[...slug]`，其中`slug`就是路由片段。
+
+```tsx title="app/docs/[...slug]/page.tsx"
+export default function Page({
+  params,
+}: {
+  params: {
+    slug: string[]
+  }
+}) {
+  return <div>{params.slug.join("/")}</div>
+}
+```
+
+`params.slug` 为数组，如 `['a', 'b', 'c']`
+
+## Optional Catch-all 路由
+
+> [[...slug]]
+
+可选路由指的是，我们可能会有这个路由参数，也可能会没有这个路由参数，例如`/shop/123`，也可能是`/shop`，我们可以使用可选路由来捕获这个路由参数，他的用法就是`[[...slug]]`，其中`slug`就是路由片段。
+
+```tsx title="app/docs/[[...id]]/page.tsx"
+export default function Page() {
+    return <div>Page</div>
+}
+```
+
+```
+/docs       ✅
+/docs/a     ✅
+/docs/a/b   ✅
+```
+
+## 获取参数
+
+### 客户端组件
+
+客户端组件使用`useParams`可以获取动态路由参数
+
+```tsx
+'use client'
+import { useParams } from 'next/navigation'
+
+export default function ClientComponent() {
+  const { id } = useParams()
+  return <div>ID: {id}</div>
+}
+```
+
+### 服务端组件
+
+通过 `params` Prop 获取动态路由参数
+
+```tsx
+export default async function Post({ params }) {
+  const { id } = await params
+  return <h1>文章 ID: {id}</h1>
+}
+```

@@ -1,0 +1,34 @@
+---
+title: "私有文件夹"
+---
+
+私有文件夹是 App Router 中的一种文件组织约定：在文件夹名前加下划线 `_`，即可将该文件夹及其所有子内容从路由系统中排除。
+
+## 基本用法
+
+```tsx
+app/
+  gallery/
+    _components/          ← 私有文件夹，不会成为路由
+      image-card.tsx
+      lightbox.tsx
+      use-gallery.ts
+    page.tsx              ← 生成路由 /gallery
+```
+
+- 访问 `/gallery` ✅ 正常
+- 访问 `/gallery/_components` ❌ 404，该文件夹对路由系统不可见
+- 但 `_components` 里的文件可以正常被 import
+
+```tsx
+// app/gallery/page.tsx
+import ImageCard from './_components/image-card'
+
+export default function GalleryPage() {
+  return (
+    <div>
+      <ImageCard />
+    </div>
+  )
+}
+```

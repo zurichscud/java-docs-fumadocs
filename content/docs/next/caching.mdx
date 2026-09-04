@@ -1,0 +1,90 @@
+---
+title: "缓存"
+---
+
+## **启用 Cache Components**
+
+你可以在 Next 配置文件中添加 [`cacheComponents`](https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents) 选项来启用 Cache Components：
+
+```ts title="next.config.ts"
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+}
+
+export default nextConfig
+```
+
+## **Usage**
+
+默认什么都不缓存，想缓存就显式写 `'use cache'`;动态内容必须包在 `<Suspense>` 里。
+
+### 函数级缓存
+
+要缓存一个获取数据的异步函数，可以在函数体的顶部添加 `use cache` 指令：
+
+```ts
+import { cacheLife } from 'next/cache'
+
+export async function getUsers() {
+  'use cache'
+  cacheLife('hours')
+  return db.query('SELECT * FROM users')
+}
+```
+
+### 组件级缓存
+
+要缓存整个组件、页面或布局，可以在组件或页面的顶部添加 `use cache` 指令：
+
+```tsx
+import { cacheLife } from 'next/cache'
+
+export default async function Page() {
+  'use cache'
+  cacheLife('hours')
+
+  const users = await db.query('SELECT * FROM users')
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  )
+}
+```
+
+### 页面级
+
+如果你在文件顶部添加 `use cache`，该文件中所有导出的函数都会被缓存。
+
+## cacheLife
+
+`cacheLife` 决定“缓存多新、何时刷新、何时彻底失效”，
+
+不写 `cacheLife` 使用 `default` 配置
+
+```ts
+import { cacheLife } from 'next/cache';
+
+async function getProfileData(userId: string) {
+  'use cache';
+  cacheLife('hours'); // 设置缓存有效期为预设的 "hours" 配置
+
+  const res = await fetch(`https://api.example.com/users/${userId}`);
+  return res.json();
+}
+```
+
+| **预设名称 (Profile)** | **适用场景**                               | **重新验证等待时间** | **浏览器缓存 (Client Cache)** |
+| ---------------------- | ------------------------------------------ |:-------------------- | ----------------------------- |
+| **`"seconds"`**        | 高频变动数据（如股票行情、实时聊天）       | 数秒                 | 短暂/不缓存                   |
+| **`"minutes"`**        | 经常更新的数据（如热搜榜、社交动态）       | 数分钟               | 短                            |
+| **`"hours"`**          | 每天更新几次的数据（如天气、新闻列表）     | 数小时               | 中                            |
+| **`"days"`**           | 不常变动的数据（如文章内容、用户公开资料） | 数天                 | 长                            |
+| **`"max"`**            | 极少改变的数据（如静态文档、历史归档）     | 几个月/无限          | 极长                          |
+
+

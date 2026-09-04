@@ -2,6 +2,8 @@
 title: "App Router"
 ---
 
+在 Next.js 中，app 目录下的每个文件夹都代表一个路由段（route segment），并直接映射到 URL 路径。无需配置路由表，框架会根据您的文件结构自动处理。
+
 ## 项目结构
 
 ```
@@ -19,11 +21,7 @@ src/
         └── page.tsx -> /daman 大满页面
 ```
 
-## 路由组（Route Groups）
-
-带括号的文件夹，如 `(marketing)` 和 `(dashboard)`
-
-用括号命名的文件夹，不影响 URL
+## page
 
 ## layout
 
@@ -117,8 +115,6 @@ app/
 
 </Callout>
 
-
-
 ## loading
 
 Next.js的loading是借助了`Suspense`实现的
@@ -137,7 +133,7 @@ export default function Loading() {
 
 Next.js的error是借助了`Error Boundary`实现的。
 
-```tsx
+```tsx title="error.tsx"
 'use client' //错误组件必须是客户端组件
 export default function Error() {
     return (
@@ -150,13 +146,13 @@ export default function Error() {
 
 ## not-found
 
-Next.js 默认会生成一个404页面
+Next.js 默认的404页面：
 
 ![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788252193189.png)
 
 我们也可以自定义：
 
-```tsx
+```tsx title="not-found.tsx"
 export default function NotFound() {
     return (
         <div>

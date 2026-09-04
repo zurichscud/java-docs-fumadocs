@@ -1,0 +1,117 @@
+---
+title: "代理"
+description: "中间件"
+---
+
+代理（Proxy）类似于Springboot的Filter。你可以根据传入的请求，通过重写（rewrite）、重定向（redirect）、修改请求或响应头，或直接响应来修改响应结果。
+
+## 基本用法
+
+你可以将代理函数导出为默认导出，或命名导出 `proxy`：
+
+```ts title="proxy.ts"
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+// 如果内部使用了 `await`，可以将此函数标记为 `async`
+export function proxy(request: NextRequest) {
+  return NextResponse.redirect(new URL('/home', request.url))
+}
+
+// 或者，你也可以使用默认导出：
+// export default function proxy(request: NextRequest) { ... }
+
+export const config = {
+  matcher: '/about/:path*',
+}
+```
+
+### config
+
+`matcher` 配置允许你过滤代理，使其只在特定路径上运行。
+
+```ts
+//配置匹配路径
+export const config = {
+    matcher: '/api/:path*',
+    //matcher: ['/api/:path*','/api/user/:path*'], 支持单个以及多个路径匹配
+    //matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'], 同样支持正则表达式匹配
+}
+```
+
+### 是否放行
+
+| 返回                      | 请求是否继续                             |
+| ------------------------- | ---------------------------------------- |
+| `NextResponse.next()`     | ✅ 继续                                   |
+| `NextResponse.json()`     | ❌ 当前请求结束                           |
+| `NextResponse.redirect()` | ❌ 当前请求结束，之后浏览器发新请求       |
+| `NextResponse.rewrite()`  | ❌ 当前路径流程被改写，然后继续处理新目标 |
+
+<Callout title="注意" type="warning">
+
+`NextResponse.rewrite()` **不会重新执行一次 proxy**。
+
+</Callout>
+
+## 使用场景
+
+- 处理跨域请求
+- 接口转发例如/api/user -> (可能是其他服务器java/go/python等) -> /api/user
+- 限流例如配合第三方服务做限流
+- 鉴权/判断是否登录
+
+Prxoy代理其实跟拦截器类似，它可以在请求完成之前进行拦截，然后进行一些处理，例如：修改请求头、修改请求体、修改响应体等。
+
+## 约定
+
+在项目根目录下（如适用，也可以在 `src` 目录内）创建一个 `proxy.ts`（或 `.js`）文件，使其与 `pages` 或 `app` 位于同一层级。
+
+## 请求生命周期
+
+```
+浏览器发送请求
+        |
+        v
+     Next.js Server
+        |
+        v
+      proxy()
+        |
+        +----------------+
+        |                |
+        v                v
+NextResponse.next()   redirect/rewrite/Response
+        |                |
+        v                v
+继续处理请求          请求结束
+        |
+        v
+匹配 route/page/layout
+        |
+        v
+生成响应
+        |
+        v
+返回浏览器
+```
+
+## Example
+
+```ts title="proxy.ts"
+import { NextRequest, NextResponse } from 'next/server'
+
+export default function proxy(request: NextRequest) {
+  const token = request.cookies.get('token')?.value
+
+  // 未登录访问受保护页面 → 重定向
+  if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // 放行，并可以附加响应头
+  const response = NextResponse.next()
+  response.headers.set('x-custom-header', 'value')
+  return response
+}
+```

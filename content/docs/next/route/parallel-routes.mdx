@@ -1,0 +1,98 @@
+---
+title: "平行路由"
+description: "决定「一个 URL 如何映射到多个插槽」"
+---
+
+> **90% 的业务根本不需要平行路由**。
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788487147088.png)
+
+**平行路由（Parallel Routes）** 允许你在同一个布局中，同时渲染多个独立的页面区域，而不是只有一个children。
+
+## 基本用法
+
+### slot
+
+使用 **@文件夹** 命名约定来定义(称为插槽 / Slot)。
+
+```
+app
+└── dashboard
+    ├── layout.tsx
+    ├── @team
+    │   └── page.tsx
+    └── @analytics
+        └── page.tsx
+```
+
+这里的`@team`、`@analytics`叫做 **slot**，不是 URL。访问路径依然是`/dashboard`，不会变成`/dashboard/team`。
+
+插槽会作为 props 传入父级布局:
+
+```tsx title="app/dashboard/layout.tsx"
+// app/layout.tsx
+export default function Layout({
+  children,
+  team,
+  analytics,
+  notifications,
+}: {
+  children: React.ReactNode
+  team: React.ReactNode
+  analytics: React.ReactNode
+  notifications: React.ReactNode
+}) {
+  return (
+    <>
+      {children}
+      {team}
+      {analytics}
+      {notifications}
+    </>
+  )
+}
+```
+
+每个插槽可以**独立加载**(各自有独立的**loading.tsx**和**error.tsx**),互不阻塞:
+
+```tsx
+app/
+├── @user/
+│   ├── page.tsx
+│   └── loading.tsx
+├── @revenue/
+│   ├── page.tsx
+│   └── loading.tsx
+```
+
+### default.tsx
+
+如果某个 slot 当前没有匹配到页面，例如`@user`，Next 会寻找`@user/default.tsx`。如果`@user`中没有，就向上寻找`default.tsx`，如果没有找到合适的`default,tsx`就会出现404。
+
+## Example
+
+### 多个面板
+
+多个面板独立渲染
+
+### Modal
+
+例如电商网站：
+
+当前：
+
+```
+/products
+```
+
+点击商品：
+
+```
+/products/1
+```
+
+希望出现：商品列表（还在）+商品详情弹窗。而不是跳转新页面。
+
+刷新`/products/1`时又希望变成：完整商品详情页。这种效果靠普通路由很难优雅实现。
+
+所以 Next 官方搞出了平行路由

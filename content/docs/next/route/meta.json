@@ -4,7 +4,7 @@
     "app-router",
     "route-navigation",
     "dynamic-routes",
-    "nested-routes",
+    "parallel-routes",
     "route-groups",
     "route-handlers"
   ]
