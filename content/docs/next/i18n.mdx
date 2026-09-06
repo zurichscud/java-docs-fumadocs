@@ -1,0 +1,189 @@
+---
+title: "国际化"
+---
+
+## 术语解释
+
+### language
+
+1. 英语(English) 用`en`表示
+2. 中文(Chinese) 用`zh`表示(zh取自`Zhongwen`的拼音)
+3. 日本语(Japanese) 用`ja`表示
+4. 韩国语(Korean) 用`ko`表示
+
+语言速查表: https://zh.wikipedia.org/wiki/ISO_639-1
+
+### territory
+
+地区
+
+1. 美国(United States) 用`US`表示
+2. 中国(China) 用`CN`表示
+3. 日本(Japan) 用`JP`表示
+4. 韩国(Korea) 用`KR`表示
+
+地区速查表: https://zh.wikipedia.org/wiki/ISO_3166-1
+
+### locale
+
+一般我们把语言和地区组合起来，称为`locale`，例如`en-US`表示英语(美国)，`zh-CN`表示中文(中国)。`zh-TW`表示中国台湾
+
+## 实现原理
+
+使用http报文头来判断用户使用的语言`Accept-Language`，例如
+
+```
+Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
+```
+
+表示：
+
+| 语言  | 说明             | 权重(q)     |
+| ----- | ---------------- | ----------- |
+| zh-CN | 简体中文（中国） | 1.0（默认） |
+| zh    | 中文（不限地区） | 0.9         |
+| en    | 英文             | 0.8         |
+
+我最希望看到中国大陆简体中文；  
+如果没有，就给我任意中文；  
+再不行，就给我英文。
+
+如果用户没有设置Accept-Language，则使用浏览器默认语言。
+
+在 Next.js (App Router)、Remix 或 Node.js i18n 路由中，业界最标准的做法是将两者组合使用：
+
+- 用 `negotiator` 解析 HTTP `Accept-Language` 请求头，拿到**按权重排序的客户端语言列表**。
+
+- 用 `@formatjs/intl-localematcher` 将该列表与**服务端支持的语言列表**进行符合 Web 标准的算法匹配。
+
+```ts
+const Negotiator = require('negotiator');
+const { match } = require('@formatjs/intl-localematcher');
+
+// 模拟 HTTP 请求头: 客户端想要 法语/德语
+const request = {
+  headers: {
+    'accept-language': 'fr-FR,fr;q=0.9,de;q=0.8'
+  }
+};
+
+// 1. 服务端配置
+const locales = ['zh-CN', 'en-US', 'es']; // 支持的语言列表
+const defaultLocale = 'en-US';            // 默认语言
+
+// 2. 用 negotiator 解析请求头，提取客户端期望的语言数组
+const negotiator = new Negotiator(request);
+const requestedLanguages = negotiator.languages(); 
+// 输出: ['fr-FR', 'fr', 'de']
+
+// 3. 用 @formatjs/intl-localematcher 进行智能匹配
+// match(requestedLocales, availableLocales, defaultLocale)
+const bestMatch = match(requestedLanguages, locales, defaultLocale);
+
+console.log(bestMatch); 
+// 输出: 'en-US' (没有任何重合时，自动回退到 defaultLocale)
+```
+
+## 创建字典
+
+```ts tab="index.ts"
+export type Dictionary = {
+  title: string;
+  description: string;
+  keywords: string;
+  hello: string;
+  goToDocs: string;
+};
+export const locales = ["en", "zh", "ja"]; // 支持的语言
+export const defaultLocale = "en";
+export function getDictionary(locale: string): Promise<Dictionary> {
+  return import(`./${locale}.json`).then((module) => module.default);
+}
+
+```
+
+```json tab="zh.json"
+{
+    "title": "标题",
+    "description": "描述",
+    "keywords": "关键词"
+}
+```
+
+```json tab="en.json"
+{
+    "title": "title",
+    "description": "description",
+    "keywords": "keywords"
+}
+```
+
+## 重定向
+
+实现：访问时自动添加语言参数
+
+```
+/docs -> /zh/docs
+```
+
+```ts
+import { NextRequest, NextResponse } from 'next/server'
+import Negotiator from 'negotiator'
+import { match } from '@formatjs/intl-localematcher'
+import { locales, defaultLocale } from '@dict/index' // 导入项目支持的语言和默认语言
+export default function proxy(req: NextRequest, res: NextResponse) {
+    // 如果请求路径为根路径，则直接返回 首页不做任何处理
+    if(req.nextUrl.pathname === '/') {
+        return NextResponse.next()
+    }
+    //如果路径已经包含所支持的语言，则直接返回 例如 /zh/about /zs/home 等
+    if(locales.some(locale => req.nextUrl.pathname.startsWith(`/${locale}`))){
+        return NextResponse.next()
+    }
+    // 获取请求头
+    const headers = {
+        'accept-language': req.headers.get('accept-language') || ''
+    }
+    // 解析请求头
+    const negotiator = new Negotiator({ headers })
+    // 获取语言
+    const language = negotiator.languages()
+    //['zh-CN', 'zh', 'en-US', 'en', 'ja']  // 按优先级从高到低排序
+    const lang = match(language, locales, defaultLocale)
+    //language-浏览器支持的语言 locales-项目支持的语言 defaultLocale-项目默认语言
+    // 匹配语言例如 zh-CN 则 lang 返回 zh en-US 则 lang 返回 en 如果没有匹配到则返回默认语言defaultLocale
+    const pathname = req.nextUrl.pathname
+    // 拼接语言
+    req.nextUrl.pathname = `/${lang}${pathname}`
+    // 重定向 例如用户访问的是/home 我们则读取语言后重定向到/zh/home 给它增加语言前缀
+    return NextResponse.redirect(req.nextUrl)
+}
+export const config = {
+    matcher:[
+        '/((?!api|_next/static|_next/image|favicon.ico).*)', //跳过内部匹配路径
+    ]
+}
+```
+
+## 页面使用
+
+```tsx
+import { getDictionary } from "@/locale";
+
+export default async function DocsPage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+
+  const dict = await getDictionary(lang);
+
+  return (
+    <main className="flex flex-1 flex-col items-center justify-center gap-4">
+      <h1 className="text-3xl font-semibold">{dict.title}</h1>
+      <p className="text-lg text-zinc-600">{dict.description}</p>
+    </main>
+  );
+}
+```

@@ -1,0 +1,40 @@
+---
+title: "导入JSON"
+---
+
+在现代 JavaScript 生态（Webpack、Vite、Next.js、Node.js ESM 等）里，**JSON 文件也被当成模块（Module）处理**。
+
+例如
+
+```json
+{
+  "login": "登录",
+  "logout": "退出"
+}
+```
+
+构建工具会把它包装成类似：
+
+```js
+export default {
+  login: "登录",
+  logout: "退出"
+}
+```
+
+通常会动态导入JSON
+
+```js
+const module = await import("./zh.json");
+```
+
+```js
+{
+  default: {
+    login: "登录",
+    logout: "退出"
+  }
+}
+```
+
+
