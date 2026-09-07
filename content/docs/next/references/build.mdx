@@ -1,0 +1,51 @@
+---
+title: "构建"
+---
+
+## 构建产物
+
+```
+.next/
+├── static/
+│   ├── chunks/
+│   ├── css/
+│   ├── media/
+│   ├── development/
+│   └── ...
+├── server/
+├── cache/
+└── BUILD_ID
+```
+
+## public
+
+？？？
+
+## CDN加速
+
+整个 `.next/static/` 目录都放在CDN上即可
+
+```
+.next/
+├── static/    ← ✅ CDN
+├── server/    ← ❌ Next.js 服务器
+├── cache/     ← ❌ 不需要
+└── BUILD_ID   ← ❌ Next.js 服务器需要
+```
+
+配置CDN路径：
+
+```ts
+const nextConfig = {
+  basePath: '/blog',
+  assetPrefix: 'https://cdn.example.com',
+}
+```
+
+| 类型                           | 最终地址                                                   |
+| ------------------------------ | ---------------------------------------------------------- |
+| 页面 `/about`                  | `https://your-domain.com/blog/about`                       |
+| `router.push('/about')`        | `https://your-domain.com/blog/about`                       |
+| `<img src="/logo.png">`        | `https://your-domain.com/blog/logo.png`                    |
+| `/_next/static/chunks/main.js` | `https://cdn.example.com/blog/_next/static/chunks/main.js` |
+| `/_next/static/css/*.css`      | `https://cdn.example.com/blog/_next/static/css/*.css`      |

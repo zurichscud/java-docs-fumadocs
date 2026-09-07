@@ -1,0 +1,240 @@
+---
+title: "配置文件"
+---
+
+## 配置端口号
+
+`next.config.ts` 中无法配置端口号，我们只能在运行时指定
+
+```json
+{
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 4001"
+  }
+}
+```
+
+## 导出静态站点
+
+需要在`next.config.js`文件中配置`output`为`export`，表示导出静态站点。`distDir`表示导出目录，默认为`out`。
+
+```ts title="next.config.ts"
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  /* config options here */
+  output: "export", // 导出静态站点
+  distDir: "dist", // 导出目录
+  trailingSlash: true, // 添加尾部斜杠，生成 /about/index.html 而不是 /about.html
+};
+
+export default nextConfig;
+```
+
+## 加载远程图片
+
+```ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https', // 协议
+        hostname: 'eo-img.521799.xyz', // 主机名
+        pathname: '/i/pc/**', // 路径
+        port: '', // 端口
+      },
+    ],
+    formats: ['image/avif', 'image/webp'], //默认是 ['image/webp']
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // 设备尺寸
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // 图片尺寸
+  },
+};
+```
+
+## 自定义响应标头
+
+例如配置`CORS`跨域，或者是自定义响应标头
+
+```ts
+  const nextConfig: NextConfig = {
+     headers: () => {
+      return [
+         {
+          source: '/:path*', // 匹配路径 所有路径 也支持精准匹配 例如/api/user 包括支持动态路由等 /api/user/:id 
+          headers: [
+            {
+              key: 'Access-Control-Allow-Origin', //允许跨域
+              value: '*' // 允许所有域名访问
+            },
+            {
+              key: 'Access-Control-Allow-Methods', //允许的请求方法
+              value: 'GET, POST, PUT, DELETE, OPTIONS' // 允许的请求方法
+            },
+            {
+              key: 'Access-Control-Allow-Headers', //允许的请求头
+              value: 'Content-Type, Authorization' // 允许的请求头
+            }
+          ]
+         },
+         {
+          source: '/home', // 精准匹配 /home 路径
+          headers: [
+            {
+              key: 'X-Custom-Header', //自定义响应头
+              value: '123456' // 值
+            },
+          ]
+         }
+      ]
+    }
+  }
+```
+
+## 静态资源前缀
+
+默认情况下，Next.js 会从运行域名的根目录（即 `/`）去拉取各种静态文件（例如从 `/_next/static/...` 获取打包后的 JS 脚本）。
+
+但在实际生产环境中，为了提升加载速度或适应特定的部署架构，你可能需要将这些静态资源托管到 CDN或部署在特定的二级子路径下。这时就需要配置 `assetPrefix`。
+
+```ts
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  /* config options here */
+  assetPrefix: 'https://cdn.example.com', // 静态资源前缀
+};
+
+export default nextConfig;
+```
+
+假设页面原本生成：
+
+```html
+<script src="/_next/static/chunks/main.js"></script>
+```
+
+配置后变成：
+
+```html
+<script src="https://cdn.example.com/_next/static/chunks/main.js"></script>
+```
+
+## basePath配置
+
+为**整个应用**（包括页面路由和静态资源）添加统一的前缀。
+
+```ts
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  /* config options here */
+  basePath: '/docs', // 基础路径
+  redirects() {
+    return [
+      {
+        source: '/', // 源路径
+        destination: '/docs', // 目标路径
+        basePath: false, // 是否使用basePath 默认情况下 source 和 destination 都会自动加上 basePath 前缀 就变成了/docs/docs 所以这儿不需要增加
+        permanent: false, // 是否永久重定向
+      },
+    ]
+  },
+};
+
+export default nextConfig;
+```
+
+```ts
+<Link href="/about">
+  About
+</Link>
+```
+
+编译后：
+
+```ts
+<a href="/blog/about">
+```
+
+```
+basePath   -> 给应用路径加前缀
+assetPrefix -> 给 _next/static 资源加域名
+```
+
+
+
+## 代码压缩
+
+代码压缩，默认开启
+
+```ts
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  compress: true, // 压缩
+};
+
+export default nextConfig;
+```
+
+## 日志配置
+
+```ts
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  logging:{
+    fetches: {
+      fullUrl: true, // 显示完整的URL
+    },
+  }
+};
+
+export default nextConfig;
+```
+
+## page文件后缀
+
+```ts
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+};
+
+export default nextConfig;
+```
+
+## 调试工具
+
+```ts
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+  devIndicators: false, // 关闭开发指示器
+  // devIndicators:{
+  //   position:'bottom-right', //也支持放入其他位置 bottom-right bottom-left top-right top-left
+  // },
+};
+
+export default nextConfig;
+```
+
+## Turbopack
+
+Next.js已内置turbopack进行打包编译等操作，所以允许透传配置项给turbopack。
+
+例如我们需要编译其他文件`less`配置如下:
+
+```ts
+import type { NextConfig } from "next";
+const nextConfig: NextConfig = {
+    turbopack:{
+     rules:{
+          '*.less':{
+          loaders:['less-loader'],
+          as:'*.css',
+        }
+     }
+  }
+}
+export default nextConfig;
+```

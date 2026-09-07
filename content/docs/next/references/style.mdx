@@ -1,0 +1,47 @@
+---
+title: "样式处理"
+---
+
+
+
+## React
+
+NextJS是基于React构建的，因此支持CSS模块化
+
+
+
+## Tailwind CSS
+
+NextJS创建项目时会询问是否引入tailwind css。我们也可以手动引入
+
+
+
+## Sass
+
+Next.js已经内置了对Sass的支持，我们只需要安装即可
+
+```sh
+npm install --save-dev sass
+```
+
+Next.js还支持配置全局sass变量，只需要在`next.config.js`中配置即可。
+
+```ts
+import type { NextConfig } from 'next'
+const config: NextConfig = {
+  reactCompiler: true,
+  reactStrictMode: false,
+  cacheComponents:false,
+  sassOptions:{
+    additionalData: `$color: blue;`, // 全局变量
+  }
+}
+
+export default config
+```
+
+
+
+## globals.css
+
+NextJS的全局CSS文件

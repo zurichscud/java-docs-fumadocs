@@ -1,0 +1,213 @@
+---
+title: "TDK"
+---
+
+
+
+## TDK
+
+**SEO TDK** 是 SEO 中非常常见的三个页面元素：
+
+| 缩写  | 全称        | HTML                        | 作用       |
+| ----- | ----------- | --------------------------- | ---------- |
+| **T** | Title       | `<title>`                   | 页面标题   |
+| **D** | Description | `<meta name="description">` | 页面描述   |
+| **K** | Keywords    | `<meta name="keywords">`    | 页面关键词 |
+
+
+
+### Title
+
+```html
+<title>Next.js 教程 - 从入门到实战</title>
+```
+
+
+
+- 出现在搜索结果标题中
+
+- 出现在浏览器 Tab
+
+
+
+#### 标签页标题
+
+🥇 第一优先级：JavaScript 动态修改（DOM API）
+
+如果页面脚本执行了 `document.title = "新标题"`，浏览器会**立即覆盖**之前的任何标题，并将标签页更新为最新设置的值。单页面应用（SPA）路由切换通常使用这种方式
+
+🥈 第二优先级：HTML 中的 `<title>` 标签
+
+这是最标准、最常见的来源。当浏览器解析 HTML 文档时，会自动读取 `<head>` 区域内的 `<title>` 元素文本
+
+### Description
+
+页面内容的摘要
+
+```html
+<meta
+  name="description"
+  content="系统学习 Next.js，从基础路由、Server Components 到部署和 SEO，适合前端开发者学习。"
+/>
+```
+
+
+
+### Keywords
+
+现在主流搜索引擎基本**不再使用 `keywords` 作为排名依据**。
+
+
+
+## Next.js配置
+
+在 `page.tsx` 或 `layout.tsx` 中，你可以通过导出 `metadata` 对象（静态）或 `generateMetadata` 函数（动态）来设置 TDK。
+
+### 静态 TDK
+
+适用于内容固定的页面（如首页、关于我们页）：
+
+```ts
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Next.js 教程',
+  description: '系统学习 Next.js，从基础到实战。',
+}
+```
+
+Next.js 会自动生成：
+
+```html
+<head>
+  <title>Next.js 教程</title>
+  <meta
+    name="description"
+    content="系统学习 Next.js，从基础到实战。"
+  />
+</head>
+```
+
+### 动态TDK
+
+适用于根据路由参数或后端 API 数据动态生成的页面（如博客详情页、商品页）：
+
+```ts
+import type { Metadata, ResolvingMetadata } from 'next';
+
+type Props = {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export async function generateMetadata(
+  { params, searchParams }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const id = params.id;
+
+  // 请求后端或数据库数据
+  const product = await fetch(`https://api.example.com/products/${id}`).then((res) =>
+    res.json()
+  );
+
+  return {
+    title: `${product.title} - 品牌名`,
+    description: product.summary,
+    keywords: product.tags, // 支持数组格式
+  };
+}
+
+export default function ProductPage({ params }: Props) {
+  return <main>商品页面 ID: {params.id}</main>;
+}
+```
+
+动态TDK时序：
+
+- 用户或搜索引擎爬虫请求 URL（例如 `/posts/123`）。
+
+- Next.js **服务端**在收到请求的瞬间，执行 `generateMetadata` 函数。
+
+- 服务端向数据库/API 查到这篇文章的标题叫《Next.js 深度解析》。
+
+- 服务端直接拼装好完整的 HTML 字符串：
+
+```html
+<head>
+  <title>Next.js 深度解析 - 技术博客</title>
+  <meta name="description" content="本文深入讲解 Next.js 的动态 TDK 原理..." />
+</head>
+```
+
+① 内容海量化（不可能手动硬编码静态 TDK）
+
+- **电商网站**：拥有 10 万个商品。你不可能手动写 10 万个 `page.tsx` 页面去定义各自的静态 `title`。
+
+- **解决方案**：只需要写一个 `app/products/[id]/page.tsx` 动态路由，利用 `generateMetadata` 提取商品名称和详情，自动生成 10 万个独立的 SEO 标签。
+
+② 数据实时变化（保证搜索引擎收录的时效性）
+
+- **新闻/资讯类**：文章标题、摘要可能会被更新。
+
+- **论坛/社区**：帖子的回复数、最新状态在变。
+
+- **解决方案**：动态 TDK 保证每次搜索引擎爬虫来抓取时，拿到的都是数据库里**最新的标题和摘要**。
+
+### 根布局设置 TDK 模板
+
+通过在根布局（`app/layout.tsx`）中使用 `title.template` 属性，可以**为全站的网页标题（Title）定义统一的格式规则**。
+
+```tsx title="app/layout.tsx"
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: {
+    template: '%s | 掘金社区', // %s 会被子页面的 title 替换
+    default: '掘金 - 综合性技术交流社区', // 首页或没有配置 title 时的默认标题
+  },
+  description: '全站默认的 Description 内容...',
+  keywords: ['技术社区', '开发者', '前端', '后端'],
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="zh-CN">
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+情况 A：使用模板拼接（最常用）
+
+```tsx title="app/about/page.tsx"
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '关于我们', // 只需要传子页面的独有名称
+  description: '了解掘金社区团队与使命...',
+};
+
+export default function AboutPage() {
+  return <h1>关于我们</h1>;
+}
+```
+
+情况 B：跳过模板，强制独占标题
+
+```tsx
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: {
+    absolute: '2026 开发者大会 - 官方报名入口', // 忽略 layout 中的 template 拼接
+  },
+};
+```
+
+
