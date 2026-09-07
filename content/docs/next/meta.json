@@ -10,12 +10,14 @@
         "fetching-data",
         "mutating-data",
         "proxy",
+        "i18n",
+        "ssg",
         "caching",
         "components",
+        "seo",
         "functions",
         "file-conventions",
-        "api",
-        "ai",
-        "prisma"
+        "---参考---",
+        "...references"
     ]
 }

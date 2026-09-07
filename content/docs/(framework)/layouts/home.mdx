@@ -1,0 +1,27 @@
+---
+title: "HomeLayout"
+---
+
+## HomeLayout
+
+- `HomeLayout` 位于 `fumadocs-ui/layouts/home`
+
+- 它是一个**只有 Navbar 的布局**
+
+- 主要用于官网、首页、其他非文档页面等
+
+- 可以让多个页面共享顶部导航栏和搜索功能
+
+- 通常放在 App Router 的路由组中，例如：
+
+```tsx
+// app/(home)/layout.tsx
+
+import { HomeLayout } from "fumadocs-ui/layouts/home";
+import { baseOptions } from "@/lib/layout.shared";
+import type { ReactNode } from "react";
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return <HomeLayout {...baseOptions()}>{children}</HomeLayout>;
+}
+```

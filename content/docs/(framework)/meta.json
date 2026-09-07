@@ -1,8 +1,10 @@
 {
   "title": "Framework",
   "root": true,
-  "pages": ["index", "test","slug"]
+  "pages": [
+    "index",
+    "test",
+    "slug",
+    "layouts"
+  ]
 }
-
-
-

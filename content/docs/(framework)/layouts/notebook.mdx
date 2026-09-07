@@ -1,0 +1,83 @@
+---
+title: "Notebook Layout"
+---
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788774986027.png)
+
+## Usage
+
+```tsx title="layout.tsx"
+import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
+import { baseOptions } from '@/lib/layout.shared';
+import { source } from '@/lib/source';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <DocsLayout {...baseOptions()} tree={source.getPageTree()}>
+      {children}
+    </DocsLayout>
+  );
+}
+```
+
+更新相关依赖项：
+
+```tsx
+import { ... } from 'fumadocs-ui/layouts/docs/page';
+import { ... } from 'fumadocs-ui/layouts/notebook/page';
+```
+
+## Configurations
+
+
+
+### Tab Mode
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788775083482.png)
+
+```tsx title="layout.tsx"
+import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
+import { baseOptions } from '@/lib/layout.shared';
+import { source } from '@/lib/source';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  return (
+    <DocsLayout
+      {...baseOptions()}
+      tabMode="navbar"
+      tree={source.getPageTree()}
+    >
+      {children}
+    </DocsLayout>
+  );
+}
+```
+
+
+
+### Nav Mode
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788775135776.png)
+
+```tsx title="layout.tsx"
+import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
+import { baseOptions } from '@/lib/layout.shared';
+import { source } from '@/lib/source';
+import type { ReactNode } from 'react';
+
+export default function Layout({ children }: { children: ReactNode }) {
+  const { nav, ...base } = baseOptions();
+
+  return (
+    <DocsLayout
+      {...base}
+      nav={{ ...nav, mode: 'top' }}
+      tree={source.getPageTree()}
+    >
+      {children}
+    </DocsLayout>
+  );
+}
+```

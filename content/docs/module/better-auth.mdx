@@ -1,0 +1,55 @@
+---
+title: "Better Auth"
+---
+
+## 为什么选择Better Auth？
+
+1. 开箱即用，我们不需要重复造轮子去编写一些基础的认证功能，只需要专注于业务逻辑
+2. 支持非常多的认证方式，例如：`邮箱` `OAuth` `JWT` `Session` `Cookie` `Token`
+3. 支持很多第三方验证，例如：`Apple` `Google` `Github` `FaceBook` `Twitter(X)` `TikTok` `WeChat` `Vercel`，等等还有很多其他的，我只是列出一些常用的，你可以根据你的需求选择合适的认证方式。
+4. 支持的数据库有：`Mysql` `PostgreSQL` `SQLite` `MSSQL` `MongoDB`
+5. 支持的ORM框架有：`Drizzle` `Prisma`
+6. 支持的框架有：`Next` `Astro` `React` `Nuxt` `Hono` `Electron` `Express` `Elysia` `Svelte` `Solid`，等
+
+
+
+## Next.js 集成
+
+1. 安装better-auth
+
+```sh
+npm install better-auth
+```
+
+2. 安装Primsa ORM框架
+
+```sh
+npm install prisma #安装Prisma ORM框架
+npm install @prisma/client @prisma/adapter-pg pg dotenv #安装prisma客户端我们使用的数据库是pgsql
+npx prisma init #初始化prisma
+```
+
+3. 配置环境变量(.env文件)在执行完成prisma init命令之后，他会自动生成一个.env文件。
+
+```sh
+BETTER_AUTH_SECRET="你的secret"#这个你可以自己写，但也可以使用openssl生成一个`openssl rand -base64 32`
+BETTER_AUTH_URL=http://localhost:3000 #你的项目地址
+DATABASE_URL="postgresql://postgres:123456@localhost:5432/auth" #这个是prisma自带的
+```
+
+4. 创建一个auth.ts
+
+官方建议在`lib/auth.ts`文件中创建一个auth实例，并且导出这个实例。
+
+```ts title="lib/auth.ts"
+import { betterAuth } from "better-auth";
+export const auth = betterAuth({
+  //...
+});
+```
+
+## Reference
+
+[Better Auth文档](https://better-auth.com/docs/introduction)
+
+

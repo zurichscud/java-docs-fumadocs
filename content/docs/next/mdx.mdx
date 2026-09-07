@@ -1,0 +1,82 @@
+---
+title: "MDX"
+---
+
+MDX是一种将Markdown和React组件混合在一起的语法，它可以在Markdown中使用React组件，从而实现更复杂的页面。
+
+## install
+
+```sh
+npm install @next/mdx @mdx-js/loader @mdx-js/react @types/mdx
+```
+
+## 启用MDX功能
+
+配置next.config.ts
+
+```ts title="next.config.ts"
+//next.config.js    
+import type { NextConfig } from "next";
+import createMDX from '@next/mdx'
+const withMDX = createMDX({
+    //extension: /\.(md|mdx)$/ 默认只支持mdx文件,如果想额外支持md文件编写次行代码。
+});
+const nextConfig: NextConfig = {
+  reactCompiler: true,
+  pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
+};
+export default withMDX(nextConfig);
+```
+
+根目录下面创建`mdx-components.tsx`文件
+
+```tsx title="mdx-components.tsx"
+import type { MDXComponents } from 'mdx/types'
+ 
+const components: MDXComponents = {}
+ 
+export function useMDXComponents(): MDXComponents {
+  return components
+}
+```
+
+
+
+## 远程加载mdx/md文件
+
+如果你的MDX文件存储在远程服务器上，你可以使用`远程mdx`来加载文件。
+
+```sh
+npm install next-mdx-remote-client
+```
+
+```tsx
+//src/app/home/page.tsx
+import { MDXRemote } from 'next-mdx-remote-client/rsc'
+export default async function Home() {
+  const res = await fetch('https://nextjs-docs-henna-six.vercel.app/xm.mdx') //链接是彩蛋
+  const source = await res.text()
+  return (
+      <MDXRemote source={source} />
+  );
+}
+```
+
+## Example
+
+```md
+# welcome to MDX
+
+这是一段文字，**他加粗了**，并且有重点内容`important`。
+
+- one
+- two
+- three
+
+
+<div className='bg-red-500'>
+  <p>自定义标签</p>
+</div>
+```
+
+

@@ -12,7 +12,7 @@ import { buttonVariants } from "fumadocs-ui/components/ui/button";
 
 export default function Layout({ children }: LayoutProps<"/docs">) {
   return (
-    <DocsLayout {...baseOptions()} tabMode="navbar" tree={source.getPageTree()}>
+    <DocsLayout {...baseOptions()} tree={source.getPageTree()}>
       <AISearch>
         <AISearchPanel />
         <AISearchTrigger

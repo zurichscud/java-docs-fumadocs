@@ -45,16 +45,20 @@ Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
 | en    | 英文             | 0.8         |
 
 我最希望看到中国大陆简体中文；  
+
 如果没有，就给我任意中文；  
+
 再不行，就给我英文。
 
 如果用户没有设置Accept-Language，则使用浏览器默认语言。
 
-在 Next.js (App Router)、Remix 或 Node.js i18n 路由中，业界最标准的做法是将两者组合使用：
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788752261960.png)
 
-- 用 `negotiator` 解析 HTTP `Accept-Language` 请求头，拿到**按权重排序的客户端语言列表**。
+在 Next.js (App Router)中，业界最标准的做法是将两者组合使用：
 
-- 用 `@formatjs/intl-localematcher` 将该列表与**服务端支持的语言列表**进行符合 Web 标准的算法匹配。
+1. 用 `negotiator` 解析 HTTP `Accept-Language` 请求头，拿到**按权重排序的客户端语言列表**。
+
+2. 用 `@formatjs/intl-localematcher` 将该列表与**服务端支持的语言列表**进行符合 Web 标准的算法匹配。
 
 ```ts
 const Negotiator = require('negotiator');
@@ -99,7 +103,6 @@ export const defaultLocale = "en";
 export function getDictionary(locale: string): Promise<Dictionary> {
   return import(`./${locale}.json`).then((module) => module.default);
 }
-
 ```
 
 ```json tab="zh.json"
