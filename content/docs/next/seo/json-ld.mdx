@@ -1,0 +1,172 @@
+---
+title: "JSON-LD"
+---
+
+**JSON-LD（JavaScript Object Notation for Linked Data）**是 Google 等搜索引擎官方推荐的结构化数据表达方式，它最大的价值在于**把网页的语义“翻译”给机器（搜索引擎、AI Agent）看**。
+
+
+
+## 基本用法
+
+JSON-LD 只需要在 HTML 中插入一段独立的 `<script type="application/ld+json">` 标签
+
+
+
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "无线降噪蓝牙耳机 Pro",
+  "image": [
+    "https://example.com/photos/1x1/photo.jpg",
+    "https://example.com/photos/4x3/photo.jpg",
+    "https://example.com/photos/16x9/photo.jpg"
+  ],
+  "description": "支持主动混合降噪，长达 30 小时续航，配备高解析度音质驱动单元。",
+  "sku": "HP-2026-BLK",
+  "mpn": "925872",
+  "brand": {
+    "@type": "Brand",
+    "name": "AudioTech"
+  },
+  "review": {
+    "@type": "Review",
+    "reviewRating": {
+      "@type": "Rating",
+      "ratingValue": "5",
+      "bestRating": "5"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "张伟"
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "reviewCount": "128"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "https://example.com/products/noise-canceling-headphones",
+    "priceCurrency": "CNY",
+    "price": "899.00",
+    "priceValidUntil": "2026-12-31",
+    "itemCondition": "https://schema.org/NewCondition",
+    "availability": "https://schema.org/InStock",
+    "seller": {
+      "@type": "Organization",
+      "name": "AudioTech 官方旗舰店"
+    }
+  }
+}
+</script>
+```
+
+## 在NextJS中使用
+
+### 基本用法
+
+使用 **原生的 `<script>` 标签** 配合 `dangerouslySetInnerHTML`（避免引号被转义）。
+
+异步获取JSON-LD
+
+```tsx
+import type { Metadata } from 'next';
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  price: number;
+}
+
+// 模拟获取数据的函数
+async function getProduct(id: string): Promise<Product> {
+  return {
+    id,
+    name: '无线降噪蓝牙耳机 Pro',
+    description: '支持主动混合降噪，长达 30 小时续航。',
+    image: 'https://example.com/photos/headphone.jpg',
+    price: 899.0,
+  };
+}
+
+export default async function ProductPage({ params }: { params: { id: string } }) {
+  const product = await getProduct(params.id);
+
+  // 构建 JSON-LD 数据结构
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    image: product.image,
+    description: product.description,
+    sku: product.id,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'CNY',
+      price: product.price,
+      availability: 'https://schema.org/InStock',
+    },
+  };
+
+  return (
+    <section>
+      {/* 注入 JSON-LD 结构化数据 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      {/* 页面常规 UI */}
+      <h1>{product.name}</h1>
+      <p>{product.description}</p>
+      <span>￥{product.price}</span>
+    </section>
+  );
+}
+```
+
+### 抽离为通用组件
+
+```tsx tab="components/json-ld.tsx"
+import React from 'react';
+
+interface JsonLdProps {
+  data: Record<string, any>;
+}
+
+export default function JsonLd({ data }: JsonLdProps) {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, '\\u003c'), // 防止 XSS 注入风险
+      }}
+    />
+  );
+}
+```
+
+```tsx tab="about/page.tsx"
+import JsonLd from '@/components/JsonLd';
+
+export default function Page() {
+  const jsonLdData = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: '我的公司名称',
+    url: 'https://example.com',
+  };
+
+  return (
+    <div>
+      <JsonLd data={jsonLdData} />
+      <h1>关于我们</h1>
+    </div>
+  );
+}
+```

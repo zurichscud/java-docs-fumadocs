@@ -2,4 +2,71 @@
 title: "robots.txt"
 ---
 
+`robots.txt` 是存放在网站根目录下的文本文件，用于指示网络爬虫（如 Googlebot、BaiduSpider）哪些页面或目录**可以访问**，哪些**禁止访问**。
 
+## 基本用法
+
+| **常用指令**     | **说明**                                                     | **示例**                                                                      |
+| ---------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| **`User-agent`** | 指定声明作用的爬虫名称（`*` 代表所有爬虫）                   | `User-agent: Googlebot`                                                       |
+| **`Disallow`**   | 禁止抓取的路径前缀或正则表达式                               | `Disallow: /admin/`                                                           |
+| **`Allow`**      | 允许抓取的路径（常用于在 Disallow 目录下单独放行某一子路径） | `Allow: /public/`                                                             |
+| **`Sitemap`**    | 告诉爬虫该网站的 XML 站点地图位置                            | `Sitemap: [https://example.com/sitemap.xml](https://example.com/sitemap.xml)` |
+
+<Accordions type="single">
+  <Accordion title="/public和/public/的区别">
+- Allow: /public：会匹配任何以 /public 开头的 URL 路径。
+```
+/public
+/public/
+/public/logo.png
+/public/images/a.jpg
+/public123
+/public-test
+
+```
+ - Allow: /public/：明确表示这是一个目录，只会匹配 /public/ 及其子目录下的 URL 路径。
+```
+
+/public/
+/public/logo.png
+/public/images/a.jpg
+
+```
+  </Accordion>
+</Accordions>
+
+## 典型示例
+
+1. 禁止所有爬虫抓取整个网站
+```
+
+User-agent: \*
+Disallow: /
+
+```
+2. 允许所有爬虫访问整个网站，但排除后台与临时文件
+```
+
+User-agent: _
+Disallow: /admin/
+Disallow: /tmp/
+Disallow: /_.pdf$
+
+Sitemap: https://example.com/sitemap.xml
+
+```
+3. 针对特定爬虫配置不同规则
+```
+
+# 对所有爬虫生效
+
+User-agent: \*
+Disallow: /private/
+
+# 仅对 Bingbot 生效
+
+User-agent: Bingbot
+Disallow: /
+
+```

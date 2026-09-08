@@ -1,0 +1,74 @@
+---
+title: "站长平台"
+---
+
+站长平台会提供最精准的官方索引数据
+
+## 站长平台
+
+### 百度搜索资源平台
+
+https://ziyuan.baidu.com
+
+### Google Search Console
+
+https://search.google.com/search-console
+
+## 站长平台绑定域名
+
+站长平台（如 Google Search Console、百度、Bing）在绑定域名时，通常要求放置“验证文件”或“验证标签”。
+
+### 根目录文件验证
+
+查看网站根目录下（或尝试直接在浏览器访问）是否有以下特征文件：
+
+- **Google**：形如 `google1234567890abcdef.html` 的文件。
+
+- **百度**：形如 `baidu_verify_code.html` 或 `baidu_verify_xxx.html` 的文件。
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788836117645.png)
+
+### Meta 验证
+
+打开首页源码（右键 -> 查看网页源代码），搜索以下关键词：
+
+```html
+<!-- Google 验证标签 -->
+<meta name="google-site-verification" content="XXXXXXXXX" />
+
+<!-- 百度验证标签 -->
+<meta name="baidu-site-verification" content="XXXXXXXXX" />
+
+<!-- Bing 验证标签 -->
+<meta name="msvalidate.01" content="XXXXXXXXX" />
+```
+
+- **结论**：如果在源码或根目录找到了这些文件/代码，说明以前**绝对绑定过**对应的站长平台。
+
+### DNS TXT 验证
+
+登录你的域名解析后台（如阿里云 DNS、腾讯云 DNS、Cloudflare 等），查看 TXT 解析记录，查看是否有记录包含 `google-site-verification=...` 或 `baidu-site-verification=...`。
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788835448091.png)
+
+## 判断网站是否被搜索引擎收录
+
+### site指令
+
+使用 `site:` 指令在搜索引擎中搜索。这是最通用、最快捷的检查方式，适用于所有主流搜索引擎（Google、百度、Bing 等）。
+
+```
+site:y9net.cn
+```
+
+### 查阅站长平台后台数据
+
+如果你之前绑定过站长平台，后台会提供最精准的官方索引数据
+
+## 重新接管网站
+
+即使前人绑定过，**你完全不需要找到以前的账号**。站长平台的验证逻辑是“谁拥有域名控制权，谁就是管理者”。
+
+只要你现在拥有域名管理权限或服务器权限，使用自己的站长平台账号绑定域名就可以直接完成接管。
+
+重新接管站长平台本质上只是**变更了管理后台的登录权限**，搜索引擎对你网站的收录状态、索引量、排名算法以及历史权重**全都是绑定在域名本身**上的，而不是绑定在某个人的站长平台账号上。
