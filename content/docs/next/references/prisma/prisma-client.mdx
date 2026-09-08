@@ -6,7 +6,23 @@ title: "Prisma Client"
 
 配置Prisma Client
 
-### Prerequisites
+
+
+## Install
+
+install the Prisma CLI:
+
+```sh
+pnpm add prisma --save-dev
+```
+
+```sh
+pnpm add prisma@7.10.0 --save-dev
+pnpm add @prisma/client@7.10.0 @prisma/adapter-pg pg
+```
+
+
+## Prerequisites
 
 In order to set up Prisma Client, you need a [Prisma schema file](https://docs.prisma.io/docs/orm/v6/prisma-schema/overview) with your database connection, the Prisma Client generator, and at least one model:
 
@@ -28,21 +44,36 @@ model User {
 }
 ```
 
- install the Prisma CLI:
+你可以使用命令自动生成：
 
 ```sh
-pnpm add prisma --save-dev
+pnpm prisma init
 ```
 
-### Install
+## Generate Client API
 
-Install Prisma Client in your project with the following command:
+Prisma Client 是基于 Prisma Schema 中定义的模型生成的。为了获得正确的 TypeScript 类型支持，你需要先生成客户端代码：
 
 ```sh
-pnpm add @prisma/client
+pnpm prisma generate
 ```
 
-### Import Prisma Client
+
+该命令会根据你在 Prisma Schema 中配置的 `output` 路径，创建一个 `generated` 目录。
+
+之后都应该从这个生成出来的 Client API 中进行导入。
+
+<Accordions type="single">
+  <Accordion title="为什么不使用pnpm dlx prisma generate ？">
+
+
+
+因此建议使用项目中的 Prisma CLI 来生成 Prisma Client，这样可以确保生成的代码与项目中安装的 Prisma 版本一致。
+
+  </Accordion>
+</Accordions>
+
+## Import Prisma Client
 
 ```sh
 import { PrismaClient } from "./generated/prisma";
@@ -51,7 +82,7 @@ const prisma = new PrismaClient();
 // use `prisma` in your application to read and write data in your DB
 ```
 
-### Use
+## Use
 
 ```js
 // run inside `async` function
@@ -74,3 +105,33 @@ const users = await prisma.user.findMany();
 ### Update Prisma Client
 
 当你的数据库结构发生变化，并且这些变化同步到了 Prisma schema 文件后，你需要手动重新生成 Prisma Client，这样生成出来的代码才能反映最新的数据库结构。
+
+
+
+
+
+---
+
+```sh
+PS C:\Users\lai\WebstormProjects\study-in-nextjs\exp-prisma> pnpm prisma migrate dev --name hello
+Loaded Prisma config from prisma7.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "prima", schema "public" at "ep-weathered-tooth-b3fwsauh-pooler.c-4.ap-southeast-1.aws.neon.tech"
+
+Applying migration `20260908152656_hello`
+
+The following migration(s) have been created and applied from new schema changes:
+
+prisma\migrations/
+  └─ 20260908152656_hello/
+    └─ migration.sql
+
+Your database is now in sync with your schema.
+```
+
+## 迁移
+
+```sh
+pnpm prisma migrate dev --name 迁移日志
+```

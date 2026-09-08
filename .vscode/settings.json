@@ -1,4 +1,4 @@
 {
-    "mdx-preview.preview.enableScripts": true,
-    "markdown.validate.enabled": true
+  "mdx-preview.preview.enableScripts": true,
+  "markdown.validate.enabled": false
 }
