@@ -1,5 +1,67 @@
 ---
 title: "Open Graph"
+description: "开放图谱协议"
 ---
 
+**Open Graph（开放图谱协议）** 是一种网页元数据规范，用来控制**网页被分享到社交平台时显示的样子**。
 
+当链接被分享到微信、Slack、Discord、LinkedIn 等平台时，抓取方会读取这些标签来生成**卡片预览**，因此 OG 与 **SEO**（点击率、品牌呈现）和 **传播体验** 都密切相关。
+
+在 **App Router** 中，Next.js 通过导出 **`metadata`** 或 **`generateMetadata`** 中的 `openGraph` 字段，自动生成对应的 OG 标签，无需手写。
+
+## 基本用法
+
+常用OG字段
+
+| 字段             | 作用     | 例子                                |
+| ---------------- | -------- | ----------------------------------- |
+| `og:title`       | 分享标题 | Next.js SEO教程                     |
+| `og:description` | 分享描述 | 深入讲解Metadata                    |
+| `og:image`       | 分享图片 | 封面图URL                           |
+| `og:url`         | 网页地址 | [https://xxx.com](https://xxx.com/) |
+| `og:type`        | 内容类型 | website/article                     |
+| `og:site_name`   | 网站名称 | 我的博客                            |
+| `og:locale`      | 语言     | zh_CN                               |
+
+
+
+## 在NextJS中使用
+
+```ts
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  openGraph: {
+    title: 'Apple',
+    description:
+      'Discover the innovative world of Apple and shop everything iPhone, iPad, Apple Watch, Mac, and Apple TV, plus explore accessories, entertainment, and expert device support.',
+    url: 'https://www.apple.com/',
+    siteName: 'Apple',
+    locale: 'en_US',
+    type: 'website',
+    images: [
+      {
+        url: 'https://www.apple.com/ac/structured-data/images/open_graph_logo.png?202604211141',
+      },
+    ],
+  },
+};
+```
+
+
+
+
+
+## Example
+
+以苹果官方为例：
+
+```html
+<meta property="og:image" content="https://www.apple.com/ac/structured-data/images/open_graph_logo.png?202604211141" />
+<meta property="og:title" content="Apple" />
+<meta property="og:description" content="Discover the innovative world of Apple and shop everything iPhone, iPad, Apple Watch, Mac, and Apple TV, plus explore accessories, entertainment, and expert device support." />
+<meta property="og:url" content="https://www.apple.com/" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:site_name" content="Apple" />
+<meta property="og:type" content="website" />
+```

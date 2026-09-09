@@ -14,39 +14,12 @@ Prisma 不是一个单一的工具，而是一个由三个核心部件组成的�
 
 - **Prisma Studio**：一个用于浏览和编辑数据库中数据的**图形化界面(GUI)**
 
-## 快速开始
-
-两种工作流的区别在于**数据库的表结构由谁来定义**——是人手写 SQL，还是 Prisma。
-
-### 只使用 Prisma Client
-
-适合**数据库已经存在**的场景，你不想用 Prisma 去动数据库。
-
-**数据库 → schema**：
-
-1. 你直接用 SQL 修改数据库，如 `CREATE TABLE`、`ALTER TABLE`
-2. 运行 `prisma db pull`：连接数据库，把现有的表结构逆向生成 Prisma schema 里的 model（这个过程叫内省/introspection）
-3. 运行 `prisma generate`：根据 schema 生成带类型的 Prisma Client，之后就能 `prisma.user.findMany()` 查询了
-
-### 使用 Prisma Client 和 Prisma Migrate
-
-适合新项目或表结构由你管理的项目，数据库的表结构由 Prisma 统一管理。schema 才是“唯一事实来源”
-
-**schema → 数据库**：
-
-1. 直接在 Prisma schema 里手动增删改 model
-2. 运行 `prisma migrate dev`：对比 schema 和数据库的差异，自动生成 SQL 迁移文件（生成后你还可以手动改），然后执行迁移
-3. 或者运行 `prisma db push` 将更改直接应用到数据库（不产生迁移文件）。
-4. 两种情况下 Prisma Client 都会自动生成
-
-
-
 ## Use in VSCode
 
 ![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1788403935106.png)
 
 ## Reference
 
-[Prisma文档](https://docs.prisma.io/docs/orm/v6)
+[Prisma文档](https://docs.prisma.io/docs/orm/v7)
 
-
+[Neon](https://console.neon.tech/)

@@ -1,0 +1,78 @@
+---
+title: "generateViewport"
+description: "动态生成页面视口配置"
+---
+
+## 基本用法
+
+`generateViewport` 的主要作用是**动态生成页面的视口（Viewport）配置**，Next.js 会将返回值渲染为 `<head>` 中的 `<meta name="viewport">`、`<meta name="theme-color">` 等标签，常用于移动端适配和浏览器 UI 主题色的定制。
+
+视口配置有两种导出方式：
+
+- **静态 `viewport` 对象**：配置不随页面变化时使用，是最常见的方式。
+
+- **`generateViewport` 函数**：需要根据路由参数（`params`）、`cookies` 等动态数据计算视口配置时使用。
+
+```ts
+export function generateViewport({ params }) {
+  return {
+    themeColor: '...',
+  };
+}
+```
+
+> **注意**：
+>
+> - `viewport` 对象和 `generateViewport` 函数**只能在 Server Components 中导出**。
+> - 同一个路由段中，二者**只能导出一个**，不能同时使用。
+> - 如果配置不依赖请求信息，应优先使用静态 `viewport` 对象。
+
+## 执行时机
+
+它的执行时机和 `generateMetadata` 类似，属于 **构建阶段或请求阶段由 Next.js 调用**，具体取决于页面是否静态化。
+
+## 常用字段
+
+| 字段                                      | 生成的 Meta 标签             | 说明                                 |
+| ----------------------------------------- | ---------------------------- | ------------------------------------ |
+| `themeColor`                              | `<meta name="theme-color">`  | 浏览器 UI 主题色，支持按媒体查询配置 |
+| `width` / `initialScale` / `maximumScale` | `<meta name="viewport">`     | 视口宽度和缩放（默认已自动配置）     |
+| `userScalable`                            | `<meta name="viewport">`     | 是否允许用户缩放                     |
+| `colorScheme`                             | `<meta name="color-scheme">` | 建议的配色方案（`light`/`dark`）     |
+| `viewportFit`                             | `<meta name="viewport">`     | 刘海屏适配（`cover` 等）             |
+
+## Example
+
+```ts title="app/dashboard/[id]/page.ts"
+import type { Viewport } from 'next';
+
+// 根据路由参数动态生成主题色
+export async function generateViewport({
+  params,
+}): Promise<Viewport> {
+  const { id } = await params;
+  const theme = await fetch(`https://api.example.com/themes/${id}`).then(
+    (res) => res.json()
+  );
+
+  return {
+    themeColor: [
+      { media: '(prefers-color-scheme: light)', color: theme.light },
+      { media: '(prefers-color-scheme: dark)', color: theme.dark },
+    ],
+  };
+}
+
+export default async function DashboardPage({ params }) {
+  const { id } = await params;
+
+  return <h1>Dashboard ID: {id}</h1>;
+}
+```
+
+最终生成的 HTML：
+
+```html title="<head> output"
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+```

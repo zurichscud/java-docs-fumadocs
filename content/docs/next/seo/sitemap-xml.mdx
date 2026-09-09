@@ -1,3 +1,189 @@
 ---
 title: "sitemap.xml"
+description: "站点地图"
 ---
+
+`sitemap.xml`是用来列出网站所有重要 URL 的文件，旨在帮助搜索引擎更高效地抓取和索引网站内容。
+
+<Callout title="注意" type="warning">
+
+sitemap.xml中的URL不是100%收录，由爬虫机器人决定是否收录
+
+</Callout>
+
+## 基本用法
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://example.com/</loc>
+    <lastmod>2026-09-08</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://example.com/about</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>
+```
+
+| 字段         | 是否必填 | 示例                       | 含义                             |
+| ------------ | -------- | -------------------------- | -------------------------------- |
+| `urlset`     | ✅        | `<urlset>`                 | 表示这是一个 URL sitemap 文件    |
+| `url`        | ✅        | `<url></url>`              | 表示一个网页地址                 |
+| `loc`        | ✅        | `https://example.com/page` | 页面完整 URL，是最重要字段       |
+| `lastmod`    | ❌        | `2026-09-09`               | 页面最后修改时间                 |
+| `changefreq` | ❌        | `weekly`                   | 页面预计更新频率                 |
+| `priority`   | ❌        | `0.8`                      | 页面相对于站内其他页面的重要程度 |
+
+sitemap.xml通常配合 `robots.txt` 使用：在 `robots.txt` 中声明 sitemap 地址，方便爬虫自动获取：
+
+```txt title="robots.txt"
+Sitemap: https://example.com/sitemap.xml
+```
+
+## Next.js 中的 sitemap.xml
+
+如果你使用 Next.js App Router，可以直接生成：
+
+```
+app/
+ ├─ sitemap.ts
+ ├─ page.tsx
+ └─ layout.tsx
+```
+
+NextJS会自动生成：
+
+```ts title="sitemap.ts"
+import { MetadataRoute } from "next";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    {
+      url: "https://example.com",
+      lastModified: new Date(),
+    },
+    {
+      url: "https://example.com/about",
+      lastModified: new Date(),
+    },
+  ];
+}
+```
+
+Next.js 会自动生成：
+
+```
+https://example.com/sitemap.xml
+```
+
+## 动态生成
+
+实际项目中通常需要从数据库或 CMS 获取动态路由
+
+```ts
+// app/sitemap.ts
+import { MetadataRoute } from 'next'
+import { getPosts } from '@/lib/api'
+
+const BASE_URL = 'https://example.com'
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const posts = await getPosts()
+
+  const postEntries: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${BASE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.updatedAt),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }))
+
+  return [
+    {
+      url: BASE_URL,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1,
+    },
+    ...postEntries,
+  ]
+}
+```
+
+## 多个 Sitemap
+
+当单文件超过 **50,000 个 URL** 或文件体积超过 **50MB** 时，需要拆分为多个 sitemap，并通过索引文件汇总：
+
+```ts title="app/sitemap.ts"
+import { MetadataRoute } from "next";
+
+//导出 generateSitemaps返回一组带 id 的对象，每个id对应一份子 sitemap。
+export async function generateSitemaps() {
+  const count = 100000;
+
+  const sitemapCount = Math.ceil(count / 50000);
+
+  return Array.from(
+    { length: sitemapCount },
+    (_, index) => ({
+      id: index,
+    })
+  );
+}
+
+
+export default async function sitemap({
+  id,
+}: {
+  id: number;
+}): Promise<MetadataRoute.Sitemap> {
+
+  const start = id * 50000;
+  const end = start + 50000;
+
+
+  const products = await getProducts(start, end);
+
+
+  return products.map((product) => ({
+    url: `https://example.com/products/${product.id}`,
+    lastModified: product.updatedAt,
+  }));
+}
+```
+
+假设`generateSitemaps()`返回：
+
+```json
+[
+  { id: 0 },
+  { id: 1 }
+]
+```
+
+Next.js 会生成：`sitemap.xml`
+
+```xml
+<sitemapindex>
+
+<sitemap>
+  <loc>
+  https://example.com/sitemap/0.xml
+  </loc>
+</sitemap>
+
+<sitemap>
+  <loc>
+  https://example.com/sitemap/1.xml
+  </loc>
+</sitemap>
+
+</sitemapindex>
+```
+
+生成路径为:`/sitemap/0.xml`、`/sitemap/1.xml` 等。

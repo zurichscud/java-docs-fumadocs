@@ -1,12 +1,7 @@
 ---
-title: "Prisma Client"
+title: "Setup Prisma Client"
+description: "配置Prisma Client"
 ---
-
-## Set up
-
-配置Prisma Client
-
-
 
 ## Install
 
@@ -21,10 +16,17 @@ pnpm add prisma@7.10.0 --save-dev
 pnpm add @prisma/client@7.10.0 @prisma/adapter-pg pg
 ```
 
-
 ## Prerequisites
 
-In order to set up Prisma Client, you need a [Prisma schema file](https://docs.prisma.io/docs/orm/v6/prisma-schema/overview) with your database connection, the Prisma Client generator, and at least one model:
+你可以使用命令初始化项目
+
+```sh
+pnpm prisma init
+```
+
+- `schema.prisma`
+
+- `.env`
 
 ```prisma title="schema.prisma"
 datasource db {
@@ -44,38 +46,47 @@ model User {
 }
 ```
 
-你可以使用命令自动生成：
-
-```sh
-pnpm prisma init
-```
-
 ## Generate Client API
 
-Prisma Client 是基于 Prisma Schema 中定义的模型生成的。为了获得正确的 TypeScript 类型支持，你需要先生成客户端代码：
+Prisma Client 是基于 Prisma Schema （在 `schema.prisma` 中编写数据模型）生成的。为了获得正确的 TypeScript 类型支持，你需要先生成客户端代码：
 
 ```sh
 pnpm prisma generate
 ```
 
-
-该命令会根据你在 Prisma Schema 中配置的 `output` 路径，创建一个 `generated` 目录。
-
-之后都应该从这个生成出来的 Client API 中进行导入。
+该命令会根据你在 Prisma Schema 中配置的 `output` 路径，创建一个 `generated` 目录。之后都应该从这个生成出来的 Client API 中进行导入。
 
 <Accordions type="single">
-  <Accordion title="为什么不使用pnpm dlx prisma generate ？">
+  <Accordion title="为什么不使用 pnpm dlx prisma generate ？">
 
-
+| **特性**         | **pnpm prisma generate**                                 | **pnpm dlx prisma generate**                           |
+| ---------------- | -------------------------------------------------------- | ------------------------------------------------------ |
+| **依赖来源**     | 使用项目 `node_modules` 中已安装的 Prisma 版本           | 临时从 npm 远程下载最新/指定版本的 Prisma 并执行       |
+| **本地依赖需求** | 要求项目中必须提前安装 `prisma` 包                       | 不需要项目中提前安装 `prisma`                          |
+| **版本一致性**   | **高**（严格与项目 `package.json` 中的 Prisma 版本一致） | **低**（可能默认下载最新版，导致与项目配置版本不匹配） |
+| **执行速度**     | **快**（直接读取本地文件）                               | **较慢**（每次都需要下载或检查远程缓存）               |
+| **典型使用场景** | 日常本地开发、CI/CD 自动化构建部署                       | 临时初始化项目、尝试新功能或未安装 Prisma 的环境       |
 
 因此建议使用项目中的 Prisma CLI 来生成 Prisma Client，这样可以确保生成的代码与项目中安装的 Prisma 版本一致。
 
-  </Accordion>
+</Accordion>
 </Accordions>
+
+<Callout title="注意" >
+
+所有Prisma Client 的方法返回 Promise 类型
+
+</Callout>
+
+## Update Prisma Client
+
+- 当执行数据库的Migrate时，Client会自动更新
+
+- 当执行数据库的Introspection时，需要我们重新生成Client
 
 ## Import Prisma Client
 
-```sh
+```ts
 import { PrismaClient } from "./generated/prisma";
 
 const prisma = new PrismaClient();
@@ -94,44 +105,4 @@ const newUser = await prisma.user.create({
 });
 
 const users = await prisma.user.findMany();
-```
-
-<Callout title="注意" >
-
-所有Prisma Client 的方法返回 Promise 类型
-
-</Callout>
-
-### Update Prisma Client
-
-当你的数据库结构发生变化，并且这些变化同步到了 Prisma schema 文件后，你需要手动重新生成 Prisma Client，这样生成出来的代码才能反映最新的数据库结构。
-
-
-
-
-
----
-
-```sh
-PS C:\Users\lai\WebstormProjects\study-in-nextjs\exp-prisma> pnpm prisma migrate dev --name hello
-Loaded Prisma config from prisma7.config.ts.
-
-Prisma schema loaded from prisma\schema.prisma.
-Datasource "db": PostgreSQL database "prima", schema "public" at "ep-weathered-tooth-b3fwsauh-pooler.c-4.ap-southeast-1.aws.neon.tech"
-
-Applying migration `20260908152656_hello`
-
-The following migration(s) have been created and applied from new schema changes:
-
-prisma\migrations/
-  └─ 20260908152656_hello/
-    └─ migration.sql
-
-Your database is now in sync with your schema.
-```
-
-## 迁移
-
-```sh
-pnpm prisma migrate dev --name 迁移日志
 ```

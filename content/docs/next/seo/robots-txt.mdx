@@ -16,6 +16,7 @@ title: "robots.txt"
 <Accordions type="single">
   <Accordion title="/public和/public/的区别">
 - Allow: /public：会匹配任何以 /public 开头的 URL 路径。
+
 ```
 /public
 /public/
@@ -25,7 +26,9 @@ title: "robots.txt"
 /public-test
 
 ```
- - Allow: /public/：明确表示这是一个目录，只会匹配 /public/ 及其子目录下的 URL 路径。
+
+- Allow: /public/：明确表示这是一个目录，只会匹配 /public/ 及其子目录下的 URL 路径。
+
 ```
 
 /public/
@@ -33,35 +36,41 @@ title: "robots.txt"
 /public/images/a.jpg
 
 ```
+
   </Accordion>
 </Accordions>
 
 ## 典型示例
 
 1. 禁止所有爬虫抓取整个网站
+
 ```
 
-User-agent: \*
+User-agent: *
 Disallow: /
 
 ```
+
 2. 允许所有爬虫访问整个网站，但排除后台与临时文件
+
 ```
 
-User-agent: _
+User-agent: *
 Disallow: /admin/
 Disallow: /tmp/
-Disallow: /_.pdf$
+Disallow: /\_.pdf$
 
 Sitemap: https://example.com/sitemap.xml
 
 ```
+
 3. 针对特定爬虫配置不同规则
+
 ```
 
 # 对所有爬虫生效
 
-User-agent: \*
+User-agent: *
 Disallow: /private/
 
 # 仅对 Bingbot 生效
@@ -69,4 +78,47 @@ Disallow: /private/
 User-agent: Bingbot
 Disallow: /
 
+```
+
+## 在Nextjs中使用
+
+### robots.txt
+
+```
+app/
+ ├─ robots.txt
+ ├─ layout.tsx
+ └─ page.tsx
+```
+
+### robots.ts
+
+如果规则需要动态生成，可以创建robots.ts文件。
+
+```
+app/
+ ├─ robots.ts
+ └─ sitemap.ts
+```
+
+```ts title="sitemap.ts"
+import type { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/admin/", "/dashboard/"],
+    },
+
+    sitemap: "https://example.com/sitemap.xml",
+  };
+}
+```
+
+它本质类似一个特殊的 Route Handler：
+
+```http
+GET https://example.com/robots.txt
 ```

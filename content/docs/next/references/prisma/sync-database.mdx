@@ -1,0 +1,115 @@
+---
+title: "Sync Database"
+description: "同步数据库"
+---
+
+## Migrate
+
+**Migrate（数据库迁移）** 指的是**将代码中定义的数据库结构（Prisma Schema）同步并变更到实际数据库**的过程。
+
+它就像数据库的 Git：通过记录每一次数据表结构的修改，确保开发环境和生产环境的数据库结构保持完全一致，且变更过程可追溯、可重复。
+
+```sh
+pnpm prisma migrate dev --name 迁移名称
+```
+
+1. **读取数据库**：连接到你 `.env` 中配置的数据库。
+
+2. 检测 Schema 差异（Diff）
+
+3. 生成 migration.sql 迁移文件：在 `prisma/migrations/` 目录下创建一个带有**时间戳+名称**的新文件夹（例如 `20260908120000_add_user_status`），并在其中生成对应的SQL 变更脚本（`migration.sql`）。
+
+4. 检测一致性：检查数据库的实际结构是否与 `migrations` 文件夹中的历史记录一致。如果检测到有人手动在数据库中改了表结构（即破坏了迁移链条），Prisma 会提示发生漂移，并询问是否重置数据库。
+
+5. 应用未执行的 SQL 迁移
+
+6. 更新数据库中的_prisma_migrations 追踪表
+
+7. 自动触发 prisma generate
+
+```sh title="不生成任何 SQL 迁移历史，直接强制将 Schema 覆盖应用到数据库"
+pnpm prisma db push
+```
+
+## Introspection
+
+如果你是指**将已有数据库（数据库中现有的表结构）同步并生成到本地代码中的 `schema.prisma` 文件**，在 Prisma 中这个过程叫做 **Introspection（反向工程 / 数据库内省）**。
+
+与 `migrate`（代码 → 数据库）相反，这是 **数据库 → 代码** 的同步过程。
+
+```sh
+pnpm prisma db pull
+```
+
+他会执行如下工作：
+
+1. **读取数据库**：连接到你 `.env` 中配置的数据库。
+
+2. **分析表结构**：读取所有的表、列、主键、外键索引和数据类型。
+
+3. **更新 Schema**：自动重写/更新本地的 `prisma/schema.prisma` 文件，将数据库表转换成 Prisma 的 `model` 定义。
+
+<Callout title="注意" type="warning">
+
+当你完成数据库内省后，你需要手动重新生成 Prisma Client，这样生成出来的代码才能反映最新的数据库结构。
+
+</Callout>
+
+
+
+## Seed
+
+Seed（种子），用来**初始化数据库数据**
+
+```
+prisma/
+ ├── schema.prisma
+ └── seed.ts
+```
+
+
+
+```ts title="prisma/seed.ts"
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  await prisma.user.create({
+    data: {
+      name: "admin",
+      email: "admin@test.com",
+    },
+  });
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+```
+
+配置package.json：
+
+```json title="package.json"
+{
+  "scripts": {
+    "prisma:seed": "tsx prisma/seed.ts"
+  }
+}
+```
+
+
+
+运行：
+
+```sh
+pnpm prisma:seed
+```
+
+
