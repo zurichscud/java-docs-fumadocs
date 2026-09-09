@@ -1,24 +1,24 @@
 {
-    "title": "NextJS",
-    "icon": "PanelsTopLeft",
-    "root": true,
-    "pages": [
-        "index",
-        "why",
-        "server-and-client-components",
-        "route",
-        "fetching-data",
-        "mutating-data",
-        "proxy",
-        "i18n",
-        "ssg",
-        "caching",
-        "components",
-        "seo",
-        "functions",
-        "generation-functions",
-        "file-conventions",
-        "---参考---",
-        "...references"
-    ]
+  "title": "NextJS",
+  "icon": "PanelsTopLeft",
+  "root": true,
+  "pages": [
+    "index",
+    "why",
+    "server-and-client-components",
+    "route",
+    "fetching-data",
+    "mutating-data",
+    "proxy",
+    "i18n",
+    "ssr-ssg",
+    "cache",
+    "components",
+    "seo",
+    "functions",
+    "generation-functions",
+    "file-conventions",
+    "---参考---",
+    "...references"
+  ]
 }

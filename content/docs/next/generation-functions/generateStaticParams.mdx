@@ -7,11 +7,9 @@ description: "生成静态路由参数"
 
 `generateStaticParams` 的主要作用是结合 **SSG（静态站点生成）**，提前将带有动态路由（如 `[id]` 或 `[slug]`）的页面渲染为纯 HTML 文件，从而极大提升页面的加载速度和 SEO 性能。
 
-- **不使用 `generateStaticParams`**：默认情况下，该页面会在用户访问时进行 **SSR** 或按需生成（服务端压力大）。
+- **不使用 `generateStaticParams`**（默认）：默认情况下，该页面会在用户访问时进行 **SSR** 或按需生成（服务端压力大）。
 
 - **使用 `generateStaticParams`**：告知 Next.js 哪些参数需要预先打包。Next.js 会在编译构建时为这些参数中的每一个路径直接预渲染并生成 HTML 静态页面。
-
-
 
 `generateStaticParams` 的返回值是一个 **数组**，数组中的每一项是一个**对象**，对象的字段名必须对应动态路由参数名。
 

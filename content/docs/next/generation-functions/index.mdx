@@ -16,16 +16,7 @@ Generation Functions是 Next.js 提供的**特殊导出函数**，用于让框�
 
 ## 执行时机
 
-| 函数                        | 作用         | 静态页面 | 动态页面 |
-| --------------------------- | ------------ | -------- | -------- |
-| generateStaticParams        | 生成动态路径 | build    | 不执行   |
-| generateMetadata            | 生成SEO head | build    | 请求     |
-| generateViewport            | 生成viewport | build    | 请求     |
-| sitemap                     | 生成站点地图 | build    | 请求     |
-| robots.ts                   | 生成爬虫规则 | build    | 请求     |
-| page.tsx Server Component   | 生成页面     | build    | 请求     |
-| layout.tsx Server Component | 生成布局     | build    | 请求     |
-| route.ts GET/POST           | API接口      | 不执行   | 请求     |
+生成类函数的执行时机，**完全取决于整个路由是属于“静态渲染SSG”还是“动态渲染SSR”**。
 
 ```
                     next build
@@ -39,3 +30,5 @@ Generation Functions是 Next.js 提供的**特殊导出函数**，用于让框�
         |                              |
 HTML/Metadata/Sitemap          用户请求时计算
 ```
+
+`generateStaticParams`比较特别，使用他说明采用SSG，因此只会在build过程调用。

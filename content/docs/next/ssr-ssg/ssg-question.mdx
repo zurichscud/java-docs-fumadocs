@@ -1,0 +1,97 @@
+---
+title: "SSG带来的问题"
+---
+
+## SSG带来的问题
+
+使用了动态 API ➔ 变为 SSR（请求时执行）
+
+```tsx
+import { cookies } from 'next/headers';
+
+export default async function Page() {
+  // 核心：调用了动态 API cookies()
+  const cookieStore = await cookies(); 
+  const token = cookieStore.get('token');
+
+  const user = await fetchUserData(token); // 每次用户刷新，此函数都会在服务端重新执行一次
+
+  return <div>Hello, {user.name}</div>;
+}
+```
+
+未使用动态 API ➔ 保持 SSG（构建时执行）
+
+```tsx
+export default async function Page() {
+  // 没有使用任何动态 API，只有静态数据抓取
+  const res = await fetch('https://api.example.com/info');
+  const data = await res.json();
+
+  return <div>{data.title}</div>; // 在 npm run build 时生成 HTML，后续访问直接返回静态文件
+}
+```
+
+如果采用纯 SSG（静态生成），`[https://api.example.com/info](https://api.example.com/info)` 接口返回的数据会在 **`npm run build` 的那一刻被打包成静态快照**。此后，数据库里的数据无论怎么变，用户看到的永远是**构建当时抓到的旧数据**，直到你下一次重新打包部署。
+
+为了解决“既想要 SSG 的超快响应速度，又想要数据库更新后页面能同步更新”的矛盾，Next.js 提供了以下 **解决方案**：
+
+### 增量静态再生
+
+不用重新打包整个网站，而是给静态数据设置一个“过期时间（TTL）”。
+
+```ts
+// 声明：这个 fetch 的数据最长缓存 60 秒
+const res = await fetch('https://api.example.com/info', { 
+  next: { revalidate: 60 } 
+});
+```
+
+更新逻辑：
+
+- **构建时**：抓取数据库数据，生成静态页面。
+
+- **前 60 秒内**：所有用户访问该页面，直接返回构建好的静态页面（极速）。
+
+- **60 秒后，数据库更新了**：
+
+  - 下一位用户访问时，Next.js **依然先返回旧的静态页面**（保证速度）。
+
+  - 同时，Next.js 在后台悄悄调用一次 `[https://api.example.com/info](https://api.example.com/info)` 去查新数据库。
+
+  - 后台重新生成新的静态页面并覆盖旧缓存。
+
+- **再下一位用户访问时**：就能看到最新的数据库数据了。
+
+### 改用 SSR
+
+如果你的数据**对实时性要求极高**（例如股票价格、商品实时库存），且每秒都在变，那么就不应该使用 SSG。直接禁用缓存将其变为 SSR：
+
+```ts
+const res = await fetch('https://api.example.com/info', { 
+  cache: 'no-store' // 放弃 SSG，每次用户访问都实时查库
+});
+```
+
+
+
+### use cache
+
+使用缓存组件也可以解决这个问题：
+
+```ts
+import { cacheLife } from 'next/dist/server/use-cache/cache-life'; // 引入缓存生命周期配置
+
+export async function getProducts(start: number, end: number) {
+  'use cache'; // 1. 声明该函数的结果需要被缓存
+  cacheLife('hours'); // 2. 设置缓存粒度（例如缓存数小时，可选: 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'）
+
+  // 3. 直连数据库查库
+  const products = await db.query('SELECT * FROM products LIMIT ?, ?', [start, end]);
+  return products;
+}
+```
+
+构建时（或第一次请求）会查库并把函数返回值缓存起来；在 `hours` 指定的时间段内，调用 `getProducts` **完全不走数据库**，直接返缓存；超时后后台异步重新查库更新。
+
+

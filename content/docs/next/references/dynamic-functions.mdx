@@ -1,0 +1,34 @@
+---
+title: "动态API"
+---
+
+在 Next.js（特别是 App Router 架构）中，**“动态 API”（Dynamic Functions / Dynamic APIs）** 指的是**那些依赖于“具体某一次 HTTP 请求上下文”才能获取数据的 Next.js 内置函数**。
+
+因为这些函数返回的数据**在打包构建时是无法预知的**，必须等真实的浏览器/用户发起请求时才能拿到，所以一旦你在服务端组件或函数中使用了它们， Next.js 就会判定该页面或接口**无法被静态化（SSG）**，从而**强制将其切换为 SSR（请求时实时渲染）模式**
+
+## `cookies()`
+
+- **作用**：读取或写入请求头中的 Cookie。
+
+- **为什么是动态**：用户的登录态、Token 或个性化设置（如 `theme=dark`）只有在用户发起 HTTP 请求时，服务端才能从 Request Header 中读取。
+
+## `headers()`
+
+- **作用**：读取当前 HTTP 请求的响应头（如 `user-agent`, `referer`, `authorization` 等）。
+
+- **为什么是动态**：不同设备、不同 IP、不同浏览器发起的请求 Header 都不一样，构建阶段根本不存在真实的请求 Header。
+
+## `searchParams`
+
+（作为 Page 组件的 prop 传入）
+
+- **作用**：获取 URL 中的查询参数（例如 `[https://example.com/products?category=shoes&page=2](https://example.com/products?category=shoes&page=2)` 中的 `category` 和 `page`）。
+
+- **为什么是动态**：构建阶段只知道页面路径是 `/products`，无法预测用户会在 URL 后面拼接什么 `?key=value` 参数。
+
+## `draftMode()`
+
+- **作用**：检查或开启 Next.js 的草稿模式（常用于 CMS 内容预览）。
+
+- **为什么是动态**：它依赖于请求中的特定 Cookie 或 Token 来决定是否显示草稿数据。
+

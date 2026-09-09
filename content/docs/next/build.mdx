@@ -1,0 +1,51 @@
+---
+title: "构建"
+---
+
+在 Next.js 中，所有的 Server Component（服务端组件）默认都会尝试在 **`npm run build` 构建阶段** 被编译并渲染成纯 HTML 和 JSON（即 **SSG / 静态导出**）。
+
+### 触发 SSG 的判定条件
+
+只要一个页面满足以下 **所有条件**，Next.js 就会在构建阶段自动将其处理为 **SSG**：
+
+1. **没有使用动态 API**：代码中没有调用 `cookies()`、`headers()`、`draftMode()` 或读取 `searchParams`（URL 查询参数）。
+
+2. **没有禁用数据缓存**：没有写 `fetch(url, { cache: 'no-store' })` 或 `export const dynamic = 'force-dynamic'`。
+
+3. **如果是动态路由（如 `app/posts/[id]/page.tsx`）**：配置了 `generateStaticParams` 来提前告诉 Next.js 有哪些 `id` 需要打包。
+
+
+
+### 即使包含客户端组件，也是 SSG 吗？
+
+`'use client'` 不等于 SSG。
+
+`'use server'` 不等于 SSR。
+
+- **构建阶段 (Build Time)**：Next.js 在执行 `npm run build` 时，依然会把 `'use client'` 组件在 Node.js 环境中**预先 SSR 渲染出初始的静态 HTML**。
+
+- **浏览器阶段**：用户打开页面时先看到这个静态 HTML，随后 React 脚本加载完成并进行“水合”，绑定点击事件或状态管理。
+
+- **结论**：只要你的页面没有调用动态数据/动态 API，即使里面写满了 `'use client'` 的按钮和交互组件，页面整体依然是 **SSG 静态打包** 的。
+
+
+
+## 判断SSR/SSG
+
+```
+Route (app)                              Size     First Load JS
+┌ ○ /                                    142 B          84.2 kB
+├ ○ /about                               142 B          84.2 kB
+└ ƒ /dashboard                           142 B          84.2 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand using Node.js
+```
+
+- **`○ (Static)`**：代表成功被编译为了 **SSG**（构建时一次性生成 HTML）。
+
+- **`ƒ (Dynamic)`**：代表触发了动态 API 或禁用缓存，降级为了 **SSR**（请求时实时渲染）。
+
+Next.js 的策略是：**能静态（SSG）就尽量静态，只有在你主动要求“依赖请求上下文”时，才会自动降级为 SSR。**
+
+
