@@ -11,56 +11,6 @@ title: "为什么需要Next"
 | **Next.js**                  | SSG / SSR | ✅ 优秀，预渲染完整 HTML |
 | **Nuxt.js**                  | SSG / SSR | ✅ 优秀，预渲染完整 HTML |
 
-## CSR
-
-客户端渲染
-
-浏览器拿到几乎空的 HTML（只有一个 `<div id="root">` 和一个 `<script>`），下载并执行 JS 后才由 JS 生成整棵 DOM。缺点是首屏白屏时间长、SEO 差。
-
-## SSR
-
-服务端渲染
-
-服务器把组件渲染成完整 HTML 字符串返回，浏览器立刻就能显示。首屏快、SEO 好。
-
-## Hydration（水合）
-
-- 脱水
-
-服务端渲染出来的只是一段静态标记：没有事件监听、没有组件状态、没有交互逻辑。按钮看起来能点，点了没反应。这个阶段叫“脱水”状态。
-
-```js
-// server.js —— 运行在 Node
-app.get('/', (req, res) => {
-  const html = renderToString(<App />);
-  res.send(`
-    <body>
-      <div id="root">${html}</div>
-      <!-- 客户端 JS 在这里被"种"进页面 -->
-      <script src="/assets/client.js"></script>
-    </body>
-  `);
-});
-```
-
-- 水合
-
-让 HTML 复活的过程，就是水合：干瘪的 HTML 加上客户端 JS 这瓶“水”，就活了。
-
-```js
-// client.js —— 打包产物，浏览器下载后执行
-import { hydrateRoot } from 'react-dom/client';
-import App from './App';
-
-hydrateRoot(document.getElementById('root'), <App />);
-```
-
-
-
-## SSG
-
-如果你现在做静态官网，用的是 **App Router**，那么**只要不碰 `cookies()`、`headers()` 这类动态 API，默认就是静态生成（SSG）**，无需额外配置。
-
 
 
 ## 使用NextJS构建静态官网
@@ -93,12 +43,8 @@ Next.js 的静态生成（SSG）分为两个阶段：
 
 - 这个过程和 Nginx 返回静态文件一样，**不涉及 React 组件重新执行、不调用数据获取函数、不重新渲染**
 
-
-
 对于静态官网：
 
 - **2 个用户、2000 个用户请求同一个页面**：Next.js 都是**直接返回同一个预生成的 HTML 文件**，响应时间极快（毫秒级），服务器负载极低
 
 - 每个用户浏览器收到 HTML 后，React 会进行**水合**让页面具备交互性，但这是客户端行为，和服务器端是否重新渲染无关
-
-

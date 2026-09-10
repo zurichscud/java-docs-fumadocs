@@ -23,8 +23,6 @@ description: "开放图谱协议"
 | `og:site_name`   | 网站名称 | 我的博客                            |
 | `og:locale`      | 语言     | zh_CN                               |
 
-
-
 ## 在NextJS中使用
 
 ```ts
@@ -48,13 +46,9 @@ export const metadata: Metadata = {
 };
 ```
 
-
-
-
-
 ## Example
 
-以苹果官方为例：
+### Apple
 
 ```html
 <meta property="og:image" content="https://www.apple.com/ac/structured-data/images/open_graph_logo.png?202604211141" />
@@ -64,4 +58,22 @@ export const metadata: Metadata = {
 <meta property="og:locale" content="en_US" />
 <meta property="og:site_name" content="Apple" />
 <meta property="og:type" content="website" />
+```
+
+### 微信
+
+| 场景               | 是否支持 OG | 说明                                 |
+| ------------------ | ----------- | ------------------------------------ |
+| 微信聊天分享链接   | ✅ 部分支持  | 会读取网页标题、图片、描述等生成卡片 |
+| 微信朋友圈分享链接 | ✅ 部分支持  | 同样会生成分享卡片                   |
+| Facebook / X 等    | ✅ 标准 OG   | 完整遵循 Open Graph 标准             |
+
+```html
+<meta property="og:title" content="文章标题">
+
+<meta property="og:description" content="文章描述">
+
+<meta property="og:image" content="https://example.com/cover.jpg">
+
+<meta property="og:url" content="https://example.com/article/1">
 ```

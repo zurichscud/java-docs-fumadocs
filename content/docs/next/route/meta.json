@@ -6,6 +6,7 @@
     "dynamic-routes",
     "parallel-routes",
     "route-groups",
-    "route-handlers"
+    "route-handlers",
+    "metadata-route"
   ]
 }

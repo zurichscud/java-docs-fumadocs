@@ -48,7 +48,7 @@ Sitemap: https://example.com/sitemap.xml
 
 ## Next.js 中的 sitemap.xml
 
-如果你使用 Next.js App Router，可以直接生成：
+在Nextjs中我们可以创建一个元数据路由`sitemap.ts`：
 
 ```
 app/
@@ -57,9 +57,7 @@ app/
  └─ layout.tsx
 ```
 
-NextJS会自动生成：
-
-```ts title="sitemap.ts"
+```ts title="app/sitemap.ts"
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -76,18 +74,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 }
 ```
 
-Next.js 会自动生成：
 
-```
-https://example.com/sitemap.xml
-```
 
-## 动态生成
+### 动态生成
 
 实际项目中通常需要从数据库或 CMS 获取动态路由
 
-```ts
-// app/sitemap.ts
+```ts title="app/sitemap.ts"
 import { MetadataRoute } from 'next'
 import { getPosts } from '@/lib/api'
 
@@ -115,9 +108,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 ```
 
-## 多个 Sitemap
+### 多个 Sitemap
 
-当单文件超过 **50,000 个 URL** 或文件体积超过 **50MB** 时，需要拆分为多个 sitemap，并通过索引文件汇总：
+当单文件超过 **50,000 个 URL**  时，需要拆分为多个 sitemap，并通过索引文件汇总：
 
 ```ts title="app/sitemap.ts"
 import { MetadataRoute } from "next";

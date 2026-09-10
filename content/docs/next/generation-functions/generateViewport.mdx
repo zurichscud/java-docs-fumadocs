@@ -28,7 +28,7 @@ export function generateViewport({ params }) {
 
 ## 执行时机
 
-它的执行时机和 `generateMetadata` 类似，属于 **构建阶段或请求阶段由 Next.js 调用**，具体取决于页面是否静态化。
+它的执行时机具体取决于页面是否静态化。
 
 ## 常用字段
 
@@ -71,7 +71,7 @@ export default async function DashboardPage({ params }) {
 
 最终生成的 HTML：
 
-```html title="<head> output"
+```html 
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
 ```

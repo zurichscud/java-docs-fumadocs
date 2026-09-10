@@ -1,11 +1,22 @@
 ---
 title: "服务端组件和客户端组件"
-description: "默认服务端，按需客户端（Server-first approach）"
 ---
 
-默认情况下，layouts 和 pages 都是服务器组件（Server Components），这让你可以在服务器上获取数据并渲染部分 UI，可选择缓存结果，并将其流式传输到客户端。**当你需要交互功能或浏览器 API 时，可以使用客户端组件（Client Components）来叠加这些能力。**
+默认情况下，layout 和 page 都是服务器组件（Server Components），**当你需要交互功能或浏览器 API 时，可以使用客户端组件（Client Components）来叠加这些能力。**
 
-## 何时使用 Server 和 Client Components？
+<Callout title="注意">
+
+组件类型只是用于区分组件的运行环境。并不影响渲染模式（SSR/SSG）
+
+</Callout>
+
+## 如何选择？
+
+Next.js 区分客户端组件与服务端组件，核心原因在于**为不同任务选择最合适的运行环境**
+
+- Client Component运行在浏览器
+
+- Server Component运行在服务器
 
 在以下情况下使用 Client Components：
 
@@ -17,9 +28,12 @@ description: "默认服务端，按需客户端（Server-first approach）"
 在以下情况下使用 Server Components：
 
 - 从靠近数据源的数据库或 API 获取数据。
+
 - 使用 API 密钥、令牌和其他机密信息，而不会将它们暴露给客户端。
+
 - 减少发送到浏览器的 JavaScript 数量。
-- 改善首次内容绘制（FCP），并将内容逐步流式传输到客户端。
+
+- 改善首次内容绘制（FCP），
 
 ## Server 和 Client Components 在 Next.js 中如何工作？
 
@@ -37,7 +51,39 @@ description: "默认服务端，按需客户端（Server-first approach）"
 
 - **水合**：浏览器接收到 HTML 后，同时下载该组件的 JS 代码，React 在客户端运行这些 JS 代码并将事件监听器绑定到 HTML 节点上，使其具备交互能力。
 
-> 水合是 React 将事件处理器附加到 DOM 上，使静态 HTML 变得可交互的过程。
+## Hydration（水合）
+
+- 脱水
+
+服务端渲染出来的只是一段静态标记：没有事件监听、没有组件状态、没有交互逻辑。按钮看起来能点，点了没反应。这个阶段叫“脱水”状态。
+
+```js
+// server.js —— 运行在 Node
+app.get('/', (req, res) => {
+  const html = renderToString(<App />);
+  res.send(`
+    <body>
+      <div id="root">${html}</div>
+      <!-- 客户端 JS 在这里被"种"进页面 -->
+      <script src="/assets/client.js"></script>
+    </body>
+  `);
+});
+```
+
+- 水合
+
+让 HTML 复活的过程，就是水合：干瘪的 HTML 加上客户端 JS 这瓶“水”，就活了。
+
+```js
+// client.js —— 打包产物，浏览器下载后执行
+import { hydrateRoot } from 'react-dom/client';
+import App from './App';
+
+hydrateRoot(document.getElementById('root'), <App />);
+```
+
+水合是 React 将事件处理器附加到 DOM 上，使静态 HTML 变得可交互的过程。
 
 ## Server-first approach
 
@@ -105,6 +151,38 @@ export default function Layout({ children }: { children: React.ReactNode }) {
  
 export default function Search() {
   // ...
+}
+```
+
+### 服务端组件中可以使用客户端组件
+
+```tsx
+// page.tsx
+export default async function Page() {
+  const posts = await prisma.post.findMany()
+
+  return (
+    <>
+      <PostList posts={posts}/>
+      <LikeButton/>
+    </>
+  )
+}
+```
+
+以下是不允许的：
+
+```tsx
+'use client'
+
+import ServerComponent from './ServerComponent';
+
+export default function ClientComponent() {
+  return (
+    <div>
+      <ServerComponent />
+    </div>
+  );
 }
 ```
 

@@ -1,0 +1,22 @@
+---
+title: "元数据路由"
+---
+
+**元数据路由（Metadata Route）** 是 Next.js App Router 中一种**专门用于生成特殊文件的路由机制**。
+
+它不是生成网页 HTML，而是生成一些给浏览器、搜索引擎、社交平台使用的**元数据文件**。
+
+
+
+## 常见的元数据路由
+
+| 文件                  | 生成内容         | 访问地址                |
+| --------------------- | ---------------- | ----------------------- |
+| `sitemap.ts`          | 网站地图         | `/sitemap.xml`          |
+| `robots.ts`           | 爬虫规则         | `/robots.txt`           |
+| `manifest.ts`         | PWA 配置         | `/manifest.webmanifest` |
+| `icon.tsx`            | 网站图标         | `/icon`                 |
+| `opengraph-image.tsx` | OG 分享图片      | `/opengraph-image`      |
+| `twitter-image.tsx`   | Twitter 卡片图片 | `/twitter-image`        |
+
+

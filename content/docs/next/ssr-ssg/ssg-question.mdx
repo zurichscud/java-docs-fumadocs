@@ -2,7 +2,7 @@
 title: "SSG带来的问题"
 ---
 
-## SSG带来的问题
+## 问题提出
 
 使用了动态 API ➔ 变为 SSR（请求时执行）
 
@@ -35,6 +35,8 @@ export default async function Page() {
 如果采用纯 SSG（静态生成），`[https://api.example.com/info](https://api.example.com/info)` 接口返回的数据会在 **`npm run build` 的那一刻被打包成静态快照**。此后，数据库里的数据无论怎么变，用户看到的永远是**构建当时抓到的旧数据**，直到你下一次重新打包部署。
 
 为了解决“既想要 SSG 的超快响应速度，又想要数据库更新后页面能同步更新”的矛盾，Next.js 提供了以下 **解决方案**：
+
+## 解决方案
 
 ### 增量静态再生
 
@@ -73,7 +75,17 @@ const res = await fetch('https://api.example.com/info', {
 });
 ```
 
+### 强制SSR
 
+在`page.tsx`中显式导出
+
+```ts title="page.tsx"
+export const dynamic = "force-dynamic"
+```
+
+这会强制该路由在**每次请求时**于服务端渲染,而不是在构建时静态生成。
+
+去掉后，NextJS会将其识别为SSG，这对于需要动态变化的页面并不友好。
 
 ### use cache
 
@@ -93,5 +105,3 @@ export async function getProducts(start: number, end: number) {
 ```
 
 构建时（或第一次请求）会查库并把函数返回值缓存起来；在 `hours` 指定的时间段内，调用 `getProducts` **完全不走数据库**，直接返缓存；超时后后台异步重新查库更新。
-
-
