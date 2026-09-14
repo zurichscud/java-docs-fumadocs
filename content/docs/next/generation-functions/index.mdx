@@ -8,7 +8,7 @@ Generation Functions是 Next.js 提供的**特殊导出函数**，用于让框�
 
 - **必须导出（export）**
 
-- **只能写在 `page.tsx` 或 `layout.tsx`**（由于page.tsx会在layout.tsx的children中渲染，因此两者都可以写路由段配置函数）
+- **只能写在服务端组件中使用**：它们是 Next.js 在**构建期或服务端渲染（SSR）期**用来处理页面骨架、Head 标签和路由生成的，因此**不能**在客户端组件使用。
 
 - **名字固定，Next.js 会自动识别**
 

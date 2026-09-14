@@ -1,0 +1,78 @@
+---
+title: "静态导出"
+---
+
+在 Next.js 中设置**静态导出（Static Export）**，可以将你的项目编译为纯粹的静态 HTML、CSS 和 JavaScript 资源包。打包后的文件存放在 `out` 目录中，可以直接部署到任何静态托管平台（如 Nginx、Apache、GitHub Pages、AWS S3、Vercel 等），**不需要 Node.js 服务端环境**。
+
+## 开始
+
+### 1.开启静态导出配置
+
+在项目根目录下的 `next.config.js`（或 `next.config.mjs`）中添加 `output: 'export'` 参数：
+
+```js title="next.config.js"
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export',
+  
+  // 可选：如果希望生成的 HTML 路径为 /about/index.html 而不是 /about.html，可开启此项（对某些静态服务器更友好）
+  // trailingSlash: true,
+
+  // 可选：如果部署在非根目录下（如 GitHub Pages 的 https://user.github.io/repo-name/）
+  // basePath: '/repo-name',
+};
+
+module.exports = nextConfig;
+```
+
+
+
+### 2.打包生成静态文件
+
+```sh
+npm run build
+```
+
+构建成功后，Next.js 会在根目录下自动生成一个 `out` 文件夹。将 `out` 目录内的所有文件上传至你的静态服务器即可完成部署。
+
+
+
+
+
+## 常见问题与注意事项
+
+### 图片优化处理
+
+默认的 `<Image/>` 组件依赖 Node.js 服务端进行实时图片裁剪与压缩。开启静态导出后，构建会报错。
+
+**解决方案：禁用服务端优化或使用自定义 Loader**：
+
+```ts
+// next.config.js
+module.exports = {
+  output: 'export',
+  images: {
+    unoptimized: true, // 禁用默认的图片优化，直接输出原图
+  },
+};
+```
+
+
+
+### 动态路由处理
+
+在 App Router 中，使用动态路由（如 `app/posts/[id]/page.tsx`）时，**必须显式提供 `generateStaticParams`**，告知 Next.js 在打包时需要生成哪些 HTML 页面：
+
+```tsx
+// app/posts/[id]/page.tsx
+export async function generateStaticParams() {
+  // 构建时获取所有可能的 ID
+  return [{ id: '1' }, { id: '2' }, { id: '3' }];
+}
+
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <div>Post ID: {id}</div>;
+}
+```

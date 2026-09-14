@@ -1,9 +1,82 @@
 ---
-title: "SSG静态导出"
+title: "SSG"
 ---
 
-Next.js 支持静态站点生成（SSG，Static Site Generation），可以在构建时预先生成所有页面的静态 HTML 文件。这种方式特别适合内容相对固定的站点，如**官网**、**博客**、**文档**等，能够提供最佳的性能和 SEO 表现。
+SSG在构建（Build）阶段就已经把 HTML 静态化了，但在实际生产环境中， Next.js 服务（Node.js Server）或 Edge Runtime 依然承担着大量的动态能力和运行期支持。
 
-## 配置
+## 使用 generateStaticParams
+
+动态路由想使用 SSG，需要告诉 Next.js 哪些路径需要提前生成：
+
+```tsx title="app/docs/[slug]/page.tsx"
+// app/docs/[slug]/page.tsx
+
+export async function generateStaticParams() {
+  return [
+    {
+      slug: 'react',
+    },
+    {
+      slug: 'vue',
+    },
+    {
+      slug: 'nextjs',
+    },
+  ]
+}
+
+export default function DocsPage({
+  params,
+}: {
+  params: { slug: string }
+}) {
+  return (
+    <div>
+      当前文档：{params.slug}
+    </div>
+  )
+}
+```
+
+`generateStaticParams` 的核心作用是：**告诉 Next.js 在构建（Build）阶段，需要预先生成（SSG）哪些动态路由页面。**
+
+如果你的项目里包含动态路由（例如 `app/posts/[id]/page.tsx`），Next.js 在构建时默认不知道 `[id]` 具体有哪些值。`generateStaticParams` 就是用来向 Next.js 注册这些参数的清单。
 
 
+
+如果不配置 `generateStaticParams`：
+
+- **构建阶段**：Next.js **不会**为这个动态路由预先打包生成任何 HTML 文件。
+
+- **运行时（用户访问时）**：
+
+  - 当用户首次访问 `/posts/1` 时，Next.js 会采用 **按需渲染（On-Demand SSR）**，即实时在服务器跑一遍 `PostPage` 拉取数据并生成 HTML。
+
+  - 用户**第一次访问时会感知到明显的渲染延迟**（需要等待服务器拉取数据并渲染）。
+
+## 过程
+
+```
+浏览器
+ ↓
+Next Server
+ ↓
+判断路由
+ ↓
+找到预生成HTML
+ ↓
+返回HTML
+```
+
+
+
+## 对比
+
+| **功能特性**                        | **静态导出 (output: 'export')**                         | **搭配 Next.js 服务运行**                          |
+| ----------------------------------- | ------------------------------------------------------- | -------------------------------------------------- |
+| **部署成本**                        | **极低**（Nginx / GitHub Pages / S3 / Vercel 静态托管） | **中/高**（需 Node.js 容器 / Serverless 运行环境） |
+| **构建速度**                        | 项目变大时**构建极慢**（需一次性打出所有 HTML）         | **极快**（可以只预打热门页面，其余按需生成）       |
+| **增量更新 (ISR)**                  | ❌ **不支持**（更新单篇文章必须重新打包整个项目）        | ⏱️ **支持**（后台自动按需更新特定页面）             |
+| **路由中间件 (Middleware)**         | ❌ **不支持**（无法在服务端做 Cookie 鉴权、重定向）      | 🛡️ **支持**（请求到达页面前拦截处理）               |
+| **后端逻辑 (API / Server Actions)** | ❌ **不支持**（无法直接写后端接口，必须调独立 API）      | ⚡ **支持**（内置 API Routes 和 Server Actions）    |
+| **动态图片优化 (`next/image`)**     | ❌ **不支持**（构建时无法按需裁剪压缩转码）              | 🖼️ **支持**（用户请求时实时处理并缓存）            |

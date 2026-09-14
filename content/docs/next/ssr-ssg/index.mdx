@@ -4,48 +4,65 @@ title: "SSR & SSG"
 
 ## CSR
 
-客户端渲染
+客户端渲染（Client Side Rendering）
 
 浏览器拿到几乎空的 HTML（只有一个 `<div id="root">` 和一个 `<script>`），下载并执行 JS 后才由 JS 生成整棵 DOM。缺点是首屏白屏时间长、SEO 差。
 
+常见场景：
+
+- 后台管理系统开发(后台系统不需要SEO，也不需要首屏加载速度)
+- 单页面应用开发(SPA)
+
 ## SSR
 
-服务端渲染
+服务端渲染（Server Side Rendering）
 
 服务器把组件渲染成完整 HTML 字符串返回，浏览器立刻就能显示。首屏快、SEO 好。
 
+适合场景：
+
+- 电商网站开发
+- 博客网站开发
+- 官网/首页等
+
 ## SSG
 
-## 判断
+静态站点生成（Static Site Generation）
 
-渲染模式（SSG 或 SSR）是以路由页面为基本单位来决定的。
+例如我们需要一个查看文档的网站，例如`Vue` `React` 等文档，大家看到的都是一样的，所以我们在构建的时候，直接编译成静态文件，连接口都不用请求了，如果在部署CDN/Nginx等服务器，基本可以实现秒开。
 
-SSG还是SSR在build时确定，没有使用动态api都可以你算SSG。
 
-## 渲染模式与组件类型
 
-| **场景** | **服务端组件的处理**                                | **客户端组件的处理**                                                              |
-| -------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **SSG**  | 在**构建时**执行，获取数据，渲染为静态 HTML         | 在**构建时**渲染出初始 HTML 结构；浏览器加载后进行 **Hydration**绑定事件          |
-| **SSR**  | 在**每次请求时**实时执行，获取最新数据，渲染为 HTML | 在**每次请求时**实时渲染出初始 HTML 结构；浏览器加载后进行 **Hydration** 绑定事件 |
+## Hydration（水合）
 
-无论是 SSR 还是 SSG，**服务端组件和客户端组件都会在服务端生成 HTML**，区别在于生成这个 HTML 的**时间点**不同。
+- 脱水
 
-```java
-[Page: 商品详情页] (服务端组件 - SSG 或 SSR)
- │
- ├── [Header / 商品信息] (服务端组件 - 负责渲染标题、价格，直接查数据库)
- │
- └── [AddToCartButton] (客户端组件 - "use client"，负责处理点击事件和状态)
+服务端渲染出来的只是一段静态标记：没有事件监听、没有组件状态、没有交互逻辑。按钮看起来能点，点了没反应。这个阶段叫“脱水”状态。
+
+```js
+// server.js —— 运行在 Node
+app.get('/', (req, res) => {
+  const html = renderToString(<App />);
+  res.send(`
+    <body>
+      <div id="root">${html}</div>
+      <!-- 客户端 JS 在这里被"种"进页面 -->
+      <script src="/assets/client.js"></script>
+    </body>
+  `);
+});
 ```
 
-1. **服务端阶段：**  
+- 水合
 
-   - Next.js 将整体树结构（包含 Header 和 AddToCartButton 的初始状态）渲染为一段完整的 HTML 字符串发送给浏览器
+让 HTML 复活的过程，就是水合：干瘪的 HTML 加上客户端 JS 这瓶“水”，就活了。
 
-   - 同时将客户端组件所需的数据打包为 RSC Payload。【服务器组件不需要是因为已经渲染在页面上了】
+```js
+// client.js —— 打包产物，浏览器下载后执行
+import { hydrateRoot } from 'react-dom/client';
+import App from './App';
 
-2. **浏览器阶段：**
+hydrateRoot(document.getElementById('root'), <App />);
+```
 
-   - 用户瞬间看到完整 HTML 页面（FCP 极快）。
-   - 浏览器下载客户端组件的 JS 代码，完成 Hydration，让 `AddToCartButton` 变得可点击。
+水合是 React 将事件处理器附加到 DOM 上，使静态 HTML 变得可交互的过程。

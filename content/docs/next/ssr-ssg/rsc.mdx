@@ -1,0 +1,133 @@
+---
+title: "RSC"
+description: "React Server Components"
+---
+
+RSC是React19`正式引入`的一种新的组件类型，它可以在服务器端渲染，也可以在客户端渲染 。
+
+像传统的`SSR`他是在服务器提前把页面渲染好，然后返回给浏览器，然后进行水合，`CSR`则是在客户端渲染，而`RSC`则是吸取两方优势，分为`服务器组件`和`客户端组件`。
+
+## NextJS渲染方式
+
+当一个页面需要交互，但是又需要使用服务端的API。可以将文件拆分为：
+
+- page.tsx：服务端组件
+
+- page.client.tsx：客户端组件，可以使用DOM，水合后恢复交互能力
+
+思路：服务端组件优先（Server-first approach），如果服务端组件无法满足，则抽离出客户端组件
+
+## Example
+
+例如我们有一个官网的页面，上面都是静态内容，但下面留言框是需要交互的。
+
+- 服务器组件: 上面都是静态内容，例如正文，标题，图片等，这类组件之所以适合在服务端执行，核心原因在于服务端渲染HTML+CSS的速度更快，生成的内容对搜索引擎完全可见，且无需客户端额外处理交互逻辑，完美匹配静态内容的需求。
+
+```tsx
+//Next.js 默认服务器组件
+export default function HomePage() {
+    return (
+        <div>
+            <h1>Home Page</h1>
+        </div>
+    )
+}
+```
+
+- 客户端组件: 下面留言框是需要交互的，例如交互功能，如点赞按钮、计数器、表单等。这类组件需要依赖浏览器DOM事件、状态管理（useState）、副作用（useEffect）等客户端能力，必须在客户端完成渲染和水合（即添加事件处理程序的过程）才能实现交互效果
+
+```tsx
+'use client' //声明这是一个客户端组件
+export default function HomePage() {
+    return (
+        <div>
+            <h1>Home Page</h1>
+        </div>
+    )
+}
+```
+
+## 服务端组件嵌套客户端组件
+
+```tsx
+// page.tsx
+export default async function Page() {
+  const posts = await prisma.post.findMany()
+
+  return (
+    <>
+      <PostList posts={posts}/>
+      <LikeButton/>
+    </>
+  )
+}
+```
+
+以下是不允许的：
+
+```tsx
+'use client'
+
+import ServerComponent from './ServerComponent';
+
+export default function ClientComponent() {
+  return (
+    <div>
+      <ServerComponent />
+    </div>
+  );
+}
+```
+
+## 渲染模式与组件类型
+
+| **场景** | **服务端组件的处理**                                | **客户端组件的处理**                                                              |
+| -------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **SSG**  | 在**构建时**执行，获取数据，渲染为静态 HTML         | 在**构建时**渲染出初始 HTML 结构；浏览器加载后进行 **Hydration**绑定事件          |
+| **SSR**  | 在**每次请求时**实时执行，获取最新数据，渲染为 HTML | 在**每次请求时**实时渲染出初始 HTML 结构；浏览器加载后进行 **Hydration** 绑定事件 |
+
+无论是 SSR 还是 SSG，**服务端组件和客户端组件都会在服务端生成 HTML**，区别在于生成这个 HTML 的**时间点**不同。
+
+```java
+[Page: 商品详情页] (服务端组件 - SSG 或 SSR)
+ │
+ ├── [Header / 商品信息] (服务端组件 - 负责渲染标题、价格，直接查数据库)
+ │
+ └── [AddToCartButton] (客户端组件 - "use client"，负责处理点击事件和状态)
+```
+
+1. **服务端阶段：**  
+
+   - Next.js 将整体树结构（包含 Header 和 AddToCartButton 的初始状态）渲染为一段完整的 HTML 字符串发送给浏览器
+
+   - 同时将客户端组件所需的数据打包为 RSC Payload。【服务器组件不需要是因为已经渲染在页面上了】
+
+2. **浏览器阶段：**
+
+   - 用户瞬间看到完整 HTML 页面（FCP 极快）。
+   - 浏览器下载客户端组件的 JS 代码，完成 Hydration，让 `AddToCartButton` 变得可点击。
+
+## 判断
+
+- 渲染模式（SSG 或 SSR）是以路由页面为基本单位来决定的。
+
+- SSG还是SSR在build时确定，没有使用动态api都可以你算SSG。
+
+执行build后，可以看到哪些是动态的，哪些是静态的
+
+```
+Route (app)
+┌ ƒ /
+└ ○ /_not-found
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+```
+
+| 标记 | 含义 |
+| ---- | ---- |
+| ○    | SSG  |
+| ƒ    | SSR  |
+
+
