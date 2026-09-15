@@ -122,4 +122,18 @@ Next.js 包含一个自定义的 TypeScript 插件和类型检查器，VSCode �
 
 3. 选择“使用工作区版本”
 
-## 
+```json title="settings.json"
+{
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
+}
+```
+
+## 项目结构
+
+/app：包含应用程序的所有路由、组件和逻辑，您主要会在这里工作。
+
+/app/lib：包含应用程序中使用的函数，例如可重用的实用函数和数据获取函数。
+
+/app/ui：包含应用程序的所有 UI 组件，例如卡片、表格和表单。
+
+/public：包含应用程序的所有静态资源，例如图像。

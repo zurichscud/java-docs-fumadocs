@@ -2,19 +2,13 @@
 title: "样式处理"
 ---
 
-
-
 ## React
 
 NextJS是基于React构建的，因此支持CSS模块化
 
-
-
 ## Tailwind CSS
 
 NextJS创建项目时会询问是否引入tailwind css。我们也可以手动引入
-
-
 
 ## Sass
 
@@ -40,8 +34,24 @@ const config: NextConfig = {
 export default config
 ```
 
-
-
 ## globals.css
 
 NextJS的全局CSS文件
+
+你可以在应用程序的任何组件中导入 global.css，但通常最好将其添加到顶级组件中。在 Next.js 中，顶级组件就是根布局
+
+```tsx title="/app/layout.tsx"
+import '@/app/ui/global.css';
+ 
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+```

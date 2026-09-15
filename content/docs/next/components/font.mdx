@@ -3,3 +3,103 @@ title: "Font"
 ---
 
 `next/font`模块，内置了字体优化功能
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1789459667650.png)
+
+当您使用 `next/font` 模块时，Next.js 会自动优化应用程序中的字体。它会在构建时下载字体文件，并将其与其他静态资源一起托管。这意味着当用户访问您的应用程序时，不会产生额外的字体网络请求，从而避免影响性能。
+
+## 优势
+
+- 自动字体自托管（生成本地字体）
+
+- 自动优化字体体积
+
+- 减少 CLS
+
+## 添加字体
+
+1. 在你的 `/app/ui` 文件夹中，创建一个名为 `fonts.ts` 的新文件。
+
+2. 从 `next/font/google` 模块导入 Inter 字体——这将成为您的主字体。然后，指定要加载的子集。在本例中，选择“latin”：
+
+```ts title="/app/ui/fonts.ts"
+import { Inter } from 'next/font/google';
+ 
+export const inter = Inter({ subsets: ['latin'] });
+```
+
+3. 添加主字体：将字体添加到 `/app/layout.tsx` 文件中的 `<body>` 元素中：
+
+```ts title="app/layout.tsx"
+import '@/app/ui/global.css';
+import { inter } from '@/app/ui/fonts';
+ 
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body className={`${inter.className} antialiased`}>{children}</body>
+    </html>
+  );
+}
+```
+
+通过在 `<body>` 元素中添加 `Inter` 属性，该字体将应用于整个应用程序。此外，您还添加了 `Tailwind antialiased` 类，它可以使字体更加平滑。虽然并非必须使用此类，但它确实能带来不错的视觉效果。
+
+4. 添加辅助字体：
+
+   在`/app/ui/fonts.ts`中导出辅助字体，在需要的元素上使用
+
+   ```tsx title="page.tsx"
+   import AcmeLogo from '@/app/ui/acme-logo';
+   import { ArrowRightIcon } from '@heroicons/react/24/outline';
+   import Link from 'next/link';
+   import { lusitana } from '@/app/ui/fonts';
+    
+   export default function Page() {
+     return (
+       // ...
+       <p
+         className={`${lusitana.className} text-xl text-gray-800 md:text-3xl md:leading-normal`}
+       >
+         <strong>Welcome to Acme.</strong> This is the example for the{' '}
+         <a href="https://nextjs.org/learn/" className="text-blue-500">
+           Next.js Learn Course
+         </a>
+         , brought to you by Vercel.
+       </p>
+       // ...
+     );
+   }
+   ```
+
+## 添加本地字体
+
+```ts title="/app/ui/fonts.ts"
+import localFont from "next/font/local";
+
+const myFont = localFont({
+  src: "./MyFont.woff2",
+});
+```
+
+使用：
+
+```tsx
+<html className={myFont.className}>
+```
+
+## 术语
+
+- latin：拉丁字符集
+
+- Inter：无衬线字体集
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1789461058137.png)
+
+- Lusitana：衬线字体集
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1789461033294.png)

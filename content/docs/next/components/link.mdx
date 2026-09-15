@@ -4,13 +4,21 @@ title: "Link"
 
 `<Link>` 是一个 React 组件，它扩展了 HTML `<a>` 元素，提供路由预加载和客户端路由导航功能。它是 Next.js 中路由导航的主要方式。
 
+## 自动拆分与预取
+
+为了提升导航体验，Next.js 会自动按路由段拆分应用程序代码。这与传统的 React 单页应用 (SPA) 不同，后者会在浏览器首次加载页面时加载所有应用程序代码。
+
+按路由拆分代码意味着页面之间相互隔离。即使某个页面出现错误，应用程序的其余部分仍然可以正常运行。此外，浏览器需要解析的代码量也更少，从而提高了应用程序的运行速度。
+
+此外，在生产环境中，每当浏览器视口中出现 `<Link>` 组件时，Next.js 都会自动在后台预加载链接路由的代码。当用户点击链接时，目标页面的代码已经在后台加载完毕，这使得页面切换几乎是瞬间完成的！
+
 ## Usage
 
 ```jsx
-import Link from 'next/link'
- 
+import Link from "next/link";
+
 export default function Page() {
-  return <Link href="/dashboard">Dashboard</Link>
+  return <Link href="/dashboard">Dashboard</Link>;
 }
 ```
 
