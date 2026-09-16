@@ -6,6 +6,7 @@
     "index",
     "why",
     "ssr-ssg",
+    "streaming",
     "route",
     "fetching-data",
     "mutating-data",

@@ -1,0 +1,97 @@
+---
+title: "流式传输"
+---
+
+## 什么是流式传输
+
+流式传输是一种数据传输技术，允许您将路由分解为较小的 “chunks（块）”，并在它们准备就绪时逐步从服务器流式传输到客户端。
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1789541572808.png)
+
+通过流式传输，您可以防止慢速数据请求阻塞整个页面。
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1789541610839.png)
+
+## 实现方式
+
+### 页面级流式传输
+
+将整个路由视为一个chunk：
+
+在页面文件夹中创建一个 `loading.js` 文件，Next.js 会自动用 `<Suspense>` 包裹整个 `page.js`。
+
+```tsx
+// app/dashboard/loading.tsx
+export default function Loading() {
+  // 自动生成的页面级 Skeleton
+  return <div className="skeleton">加载中...</div>;
+}
+```
+
+```tsx
+// app/dashboard/page.tsx
+export default async function Page() {
+  const data = await fetchSlowData(); // 慢速数据请求
+  return <div>{data.content}</div>;
+}
+```
+
+### 组件级流式传输
+
+您可以更加细致地控制流式传输：将组件视为一个chunk
+
+使用 Suspense 来流式传输慢速组件，并立即显示页面其余的 UI，而不是阻塞整个页面。
+
+```tsx
+// app/page.tsx
+import { Suspense } from 'react';
+import SlowComponent from './SlowComponent';
+import FastComponent from './FastComponent';
+
+export default function Page() {
+  return (
+    <main>
+      {/* 快速组件，立即渲染 */}
+      <FastComponent />
+
+      {/* 慢速组件，被 Suspense 包裹 */}
+      <Suspense fallback={<p>组件加载中...</p>}>
+        <SlowComponent />
+      </Suspense>
+    </main>
+  );
+}
+```
+
+您需要将数据获取移至组件内部：
+
+```tsx
+import { generateYAxis } from '@/app/lib/utils';
+import { CalendarIcon } from '@heroicons/react/24/outline';
+import { lusitana } from '@/app/ui/fonts';
+import { fetchRevenue } from '@/app/lib/data';
+ 
+// ...
+ 
+export default async function SlowComponent() { // 使组件异步，删除 props
+  const revenue = await fetchRevenue(); // 在组件内获取数据
+ 
+  const chartHeight = 350;
+  const { yAxisLabels, topLabel } = generateYAxis(revenue);
+ 
+  if (!revenue || revenue.length === 0) {
+    return <p className="mt-4 text-gray-400">No data available.</p>;
+  }
+ 
+  return (
+    // ...
+  );
+}
+```
+
+## 决定放置 Suspense 边界的位置
+
+- 您可以像我们在 `loading.tsx` 中所做的那样流式传输整个页面... 但如果其中一个组件具有较慢的数据获取，这可能会导致较长的加载时间。
+- 您可以逐个流式传输每个组件... 但这可能会导致UI在准备就绪时突然出现在屏幕上。
+
+放置 suspense 边界的位置将取决于您的应用程序。总的来说，将数据获取移到需要它的组件中，然后在这些组件周围包装 Suspense 是一种良好的实践。但是，如果您的应用程序需要，将整个页面或部分页面进行流式传输也没有问题。
