@@ -1,0 +1,130 @@
+---
+title: "File IO"
+---
+
+## 文件读取
+
+### 一次读取一个字节
+
+它每次读取 **1 个字节**，返回 `int`。当读取到文件末尾时为-1
+
+> 1 个字节（Byte）= 8 位（bit）
+
+```java
+FileInputStream in = new FileInputStream("D:/test/a.txt");
+
+int data;
+
+while ((data = in.read()) != -1) {
+    System.out.print((char) data);
+}
+
+in.close();
+```
+
+假设它是普通 ASCII/UTF-8 英文文本，那么文件实际存储的是 **5 个字节**：
+
+```
+h    e    l    l    o
+72   101  108  108  111   ← 十进制
+```
+
+| Unicode 字符范围 | UTF-8 字节数 | 例子          |
+| ---------------- | ------------ | ------------- |
+| ASCII 字符       | 1            | `A`、`h`、`1` |
+| 拉丁扩展等       | 2            | `é`           |
+| 大多数中文       | 3            | `你`、`好`    |
+| 很多 Emoji       | 4            | `😀`          |
+
+### 一次读取一个字节数组
+
+实际开发一般不会一个字节一个字节读取，而是使用缓冲区：
+
+```java
+FileInputStream in = new FileInputStream("D:/test/a.txt");
+
+byte[] buffer = new byte[1024];//一次读取1KB
+
+int len;
+
+while ((len = in.read(buffer)) != -1) {
+    System.out.println(new String(buffer, 0, len));
+}
+
+in.close();
+```
+
+
+
+## 文件写入
+
+
+
+### 一次写入一个字节
+
+
+
+```java
+try (FileOutputStream out =
+         new FileOutputStream("test.txt")) {
+
+    out.write(65);
+
+}
+```
+
+
+
+
+
+### 一次写入一个字节数组
+
+```java
+try (FileOutputStream out =
+         new FileOutputStream("test.txt")) {
+
+    byte[] bytes = {65, 66, 67};
+
+    out.write(bytes);
+
+}
+```
+
+
+
+```java
+byte[] bytes = "hello".getBytes();
+
+try (FileOutputStream out =
+         new FileOutputStream("test.txt")) {
+
+    out.write(bytes);
+}
+```
+
+
+
+### 追加写入
+
+默认情况下：
+
+```java
+new FileOutputStream("test.txt")
+```
+
+会覆盖文件。
+
+如果要追加：
+
+```java
+try (FileOutputStream out =
+         new FileOutputStream("test.txt", true)) {
+
+    out.write("abc".getBytes());
+
+}
+```
+
+第二个参数`true`表示追加模式。
+
+
