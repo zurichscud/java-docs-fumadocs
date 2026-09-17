@@ -1,3 +1,183 @@
 ---
 title: "zod"
 ---
+
+**Zod** 是一个以 TypeScript 为中心的 **Schema 声明与数据校验库**。**Zod 校验的是内存中的 JavaScript / TypeScript 原生数据对象**。
+
+<Callout>
+
+现代校验（TS），推荐使用zod，而不是**async-validator**
+
+</Callout>
+
+## 引入问题
+
+在传统的 TS 开发中，我们通常需要先写一个接口定义，再手动写一段校验逻辑：
+
+```ts
+// 1. 定义 TS 类型
+interface User {
+  username: string;
+  age: number;
+}
+
+// 2. 运行时手动校验（繁琐且容易漏写）
+function validateUser(data: any) {
+  if (typeof data.username !== 'string') return false;
+  if (typeof data.age !== 'number') return false;
+  return true;
+}
+```
+
+这种做法会导致 **类型与校验双重维护**，一旦增加字段，很容易漏更新校验逻辑。
+
+## Usage
+
+使用 Zod，你只需要定义一次 Schema，TypeScript 类型会自动推导出来：
+
+```ts
+import { z } from "zod";
+
+// 1. 定义 Schema（运行时校验规则）
+const UserSchema = z.object({
+  username: z.string().min(3, "用户名至少 3 个字符"),
+  email: z.string().email("邮箱格式不正确"),
+  age: z.number().min(18).optional(), // 可选字段
+  role: z.enum(["admin", "user"]).default("user"), // 包含默认值
+});
+
+// 2. 静态类型推导（无需重复写 interface）
+type User = z.infer<typeof UserSchema>; 
+/* 自动推导出的类型：
+type User = {
+  username: string;
+  email: string;
+  age?: number | undefined;
+  role: "admin" | "user";
+}
+*/
+
+// 3. 数据校验与解析
+const rawData = { username: "alex", email: "alex@example.com" };
+
+// 方法 A：失败时直接抛出 ZodError 异常
+const userData = UserSchema.parse(rawData); 
+
+// 方法 B：安全解析，不抛出异常（推荐）
+const result = UserSchema.safeParse(rawData);
+if (result.success) {
+  console.log(result.data); // 类型安全的 User 对象
+} else {
+  console.log(result.error.issues); // 详细的错误提示数组
+}
+```
+
+- 链式调用 API
+
+## 基础类型声明
+
+```ts
+import { z } from "zod";
+
+z.string();      // 字符串
+z.number();      // 数字
+z.boolean();     // 布尔值
+z.date();        // Date 对象
+z.bigint();      // BigInt
+z.any();         // 任意类型
+z.unknown();     // 未知类型（比 any 更安全）
+z.null();        // null
+z.undefined();   // undefined
+z.void();        // void（常用于函数返回值）
+```
+
+
+
+## 复合类型与对象处理
+
+### Object
+
+```ts
+const User = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+// 常见对象操作：
+User.extend({ age: z.number() });      // 继承扩展字段
+User.pick({ name: true });             // 只保留指定字段
+User.omit({ id: true });               // 忽略指定字段
+User.partial();                        // 将所有字段变为 optional
+User.required();                       // 将所有字段变为 必填
+User.passthrough();                    // 允许未定义的未知 key 穿透保存
+User.strict();                         // 严禁包含未定义的 key（有额外 key 会报错）
+```
+
+### Enum
+
+```ts
+// 字面量/枚举
+z.enum(["Admin", "User", "Guest"]);
+
+// 联合类型 (string | number)
+z.union([z.string(), z.number()]);
+// 或简写形式：
+z.string().or(z.number());
+
+// 元组 (Tuple)
+z.tuple([z.string(), z.number()]); // [string, number]
+
+// Record (键值对)
+z.record(z.string(), z.number()); // Record<string, number>
+```
+
+## 执行解析与校验
+
+### parse()
+
+```ts
+schema.parse(data)
+```
+
+校验失败会直接抛异常：
+
+```ts
+try {
+  schema.parse(credentials)
+} catch(e) {
+  console.log(e)
+}
+```
+
+
+
+### safeParse()
+
+```ts
+schema.safeParse(credentials)
+```
+
+不会抛异常，而是返回结果对象：
+
+成功：
+
+```ts
+{
+  success: true,
+  data: {
+    email: "test@qq.com",
+    password: "123456"
+  }
+}
+```
+
+失败：
+
+```ts
+{
+  success: false,
+  error: ZodError
+}
+```
+
+

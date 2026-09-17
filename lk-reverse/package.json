@@ -1,0 +1,11 @@
+{
+  "name": "lk-reverse",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo": "node demo.js",
+    "homepage": "node homepage.js",
+    "shoplist": "node shoplist.js",
+    "decode": "node decode.js"
+  }
+}
