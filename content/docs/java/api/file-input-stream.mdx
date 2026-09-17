@@ -1,0 +1,58 @@
+---
+title: "FileInputStream"
+---
+
+## Usage
+
+## Constructor
+
+## Methods
+
+### read()
+
+读取一个字节
+
+```java
+int read()
+```
+
+- Return：读取到的字节值（`0 ~ 255`）；到达文件末尾时返回 `-1`，读取失败抛出 `IOException`
+
+```java
+FileInputStream in = new FileInputStream("test.txt");
+
+int data;
+
+while ((data = in.read()) != -1) {
+    System.out.println(data);
+}
+
+in.close();
+```
+
+### read(byte[] b)
+
+读取到字节数组
+
+```java
+int read(byte[] b)
+```
+
+- b：用于存放读取数据的字节数组（缓冲区）
+- Return：本次实际读取到的字节数；到达文件末尾（没有更多数据）时返回 `-1`
+
+```java
+FileInputStream in = new FileInputStream("test.txt");
+
+byte[] buffer = new byte[3];
+
+int len;
+
+while ((len = in.read(buffer)) != -1) {
+    System.out.println(new String(buffer, 0, len));
+}
+
+in.close();
+```
+
+**注意**：`read(b)` 不保证把数组填满，返回值可能**小于 `b.length`**。比如缓冲区长度为 `1024`，但文件只剩下 5 个字节，本次就只读取这 5 个字节并返回 `5`；下一次调用才返回 `-1`。所以不能拿 `b.length` 当作本次读取的有效长度，必须使用返回值 `len`。

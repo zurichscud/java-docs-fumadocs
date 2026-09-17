@@ -1,0 +1,35 @@
+---
+title: "FileOutputStream"
+---
+
+`FileOutputStream` 是 **字节输出流**，用于把数据从 JVM 内存写到文件。
+
+## Methods
+
+
+
+### write(int b)
+
+
+
+### write(byte[])
+
+```java
+byte[] bytes = "hello".getBytes();
+
+out.write(bytes);
+```
+
+
+
+### write(byte[] b, int off, int len)
+
+写部分字节数组
+
+```java
+byte[] bytes = "hello".getBytes();
+
+out.write(bytes, 1, 3);
+```
+
+
