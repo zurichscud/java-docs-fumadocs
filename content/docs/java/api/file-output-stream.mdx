@@ -4,32 +4,95 @@ title: "FileOutputStream"
 
 `FileOutputStream` 是 **字节输出流**，用于把数据从 JVM 内存写到文件。
 
+## Constructor
+
+### 根据字符串路径（默认覆盖）
+
+```java
+FileOutputStream out = new FileOutputStream("test.txt");
+```
+
+- 文件不存在时会自动创建；已存在时**清空原内容**再写入
+
+### 根据字符串路径 + 追加开关
+
+```java
+FileOutputStream out = new FileOutputStream("test.txt", true);
+```
+
+- append：为 `true` 时数据追加到文件末尾，原内容保留；为 `false` 时等价于默认的覆盖模式
+
+### 根据 File 对象
+
+```java
+File file = new File("test.txt");
+FileOutputStream out = new FileOutputStream(file);
+```
+
+- 同样支持 `FileOutputStream(File file, boolean append)`
+
+- 文件无法创建或打开时，都会抛出 `FileNotFoundException`
+
+> 还提供了 `FileOutputStream(FileDescriptor fdObj)`，通过底层文件描述符创建，日常开发很少使用。
+
 ## Methods
-
-
 
 ### write(int b)
 
-
-
-### write(byte[])
+写入一个字节
 
 ```java
+public void write(int b) throws IOException
+```
+
+- b：要写入的字节值，只取低 8 位（一字节）；写入失败抛出 `IOException`
+
+```java
+FileOutputStream out = new FileOutputStream("test.txt");
+
+out.write(65);
+
+out.close();
+```
+
+### write(byte[] b)
+
+写入整个字节数组
+
+```java
+public void write(byte b[]) throws IOException
+```
+
+- b：要写入的字节数组；写入失败抛出 `IOException`
+
+```java
+FileOutputStream out = new FileOutputStream("test.txt");
+
 byte[] bytes = "hello".getBytes();
 
 out.write(bytes);
+
+out.close();
 ```
-
-
 
 ### write(byte[] b, int off, int len)
 
 写部分字节数组
 
 ```java
+public void write(byte b[], int off, int len) throws IOException
+```
+
+- b：要写入的字节数组
+- off：起始偏移量（从数组的哪个下标开始写）
+- len：要写入的字节个数；写入失败抛出 `IOException`
+
+```java
+FileOutputStream out = new FileOutputStream("test.txt");
+
 byte[] bytes = "hello".getBytes();
 
 out.write(bytes, 1, 3);
+
+out.close();
 ```
-
-
