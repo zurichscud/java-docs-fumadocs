@@ -1,0 +1,119 @@
+---
+title: "Nextjs渲染方式"
+---
+
+Next.js 提供了非常灵活的渲染机制，允许在同一个应用中为不同的页面选择最合适的渲染模式。
+
+核心看一点：
+
+> **页面内容是否能在构建阶段（build time）确定。**
+
+```
+Rendering
+│
+├── Static Rendering
+│       │
+│       ├── SSG
+│       └── ISR
+│
+└── Dynamic Rendering
+        │
+        ├── SSR
+        └── Streaming SSR
+```
+
+| 方式              | 什么时候生成HTML   |
+| ----------------- | ------------------ |
+| SSG               | build时            |
+| ISR               | build时 + 后台更新 |
+| Dynamic Rendering | 请求时             |
+
+## 静态渲染
+
+### 没有动态 API
+
+没有使用动态API就是静态渲染，因为能在build时确定
+
+### 静态路由
+
+Next.js 会在 `next build` 时自动打包为静态 HTML
+
+```tsx
+// app/about/page.tsx
+export default async function AboutPage() {
+  // 默认情况下，fetch 动作会被静态缓存/预渲染
+  const res = await fetch('https://api.example.com/about');
+  const data = await res.json();
+
+  return (
+    <main>
+      <h1>{data.title}</h1>
+      <p>{data.content}</p>
+    </main>
+  );
+}
+```
+
+build时，调用fetch能够确定页面内容
+
+### 动态路由页面（使用 `generateStaticParams`）
+
+你必须通过 `generateStaticParams` 显式告诉打包器：“**虽然这是动态路由，但 `id` 为 1、2、3 的这几个页面，请帮我按照静态 HTML 提前打包出来。**”
+
+```tsx title="app/posts/[id]/page.tsx"
+// app/posts/[id]/page.tsx
+export async function generateStaticParams() {
+  return [{ id: '1' }, { id: '2' }, { id: '3' }];
+}
+
+export default function Post() {
+  return <div>HelloWorld</div>
+}
+```
+
+加上这段代码后，Next.js 才会明白你的意图，并在打包时将其优化输出为静态文件：
+
+- `.next/server/app/posts/1.html`
+
+- `.next/server/app/posts/2.html`
+
+如果不配置 `generateStaticParams`：
+
+- **构建阶段**：Next.js **不会**为这个动态路由预先打包生成任何 HTML 文件。
+
+- **运行时（用户访问时）**：
+
+  - 当用户首次访问 `/posts/1` 时，Next.js 会采用 **按需渲染（On-Demand SSR）**，即实时在服务器跑一遍 `PostPage` 拉取数据并生成 HTML。
+
+  - 用户**第一次访问时会感知到明显的渲染延迟**（需要等待服务器拉取数据并渲染）。
+
+## 动态渲染
+
+### 动态API
+
+只要使用了动态API，当前页面就是动态渲染的。动态API需要与用户交互时才能够确定。
+
+### 动态路由
+
+如果你的页面是一个**动态路由**（如 `app/posts/[id]/page.tsx`）：
+
+```tsx title="app/posts/[id]/page.tsx"
+// app/posts/[id]/page.tsx
+export default function Post() {
+  return <div>HelloWorld</div>
+}
+```
+
+Next.js 不会自动把 `/posts/1`、`/posts/2` 预先优化成静态 HTML。因为在打包的时刻，Next.js **根本不知道 `[id]` 可能代表什么**：
+
+- 它不知道你的数据库里有哪些文章 ID。
+
+- 它不知道用户可能会输入 `/posts/1` 还是 `/posts/abc`。
+
+所以，即使你的组件内部简单到只有 `HelloWorld`，只要它带了 `[id]` 这个动态占位符，打包系统就会把这个路由标记为 Dynamic。
+
+
+
+---
+
+某个路由中，客户端组件使用 fetch，默认还是看这个路由的 Server Component。如果没有动态 API，这个路由仍然可以是 Static Rendering；客户端 fetch 只是额外的 CSR。
