@@ -1,5 +1,5 @@
 ---
-title: "File IO"
+title: "字节流"
 ---
 
 ## 文件读取
@@ -54,15 +54,9 @@ while ((len = in.read(buffer)) != -1) {
 in.close();
 ```
 
-
-
 ## 文件写入
 
-
-
 ### 一次写入一个字节
-
-
 
 ```java
 try (FileOutputStream out =
@@ -72,10 +66,6 @@ try (FileOutputStream out =
 
 }
 ```
-
-
-
-
 
 ### 一次写入一个字节数组
 
@@ -90,8 +80,6 @@ try (FileOutputStream out =
 }
 ```
 
-
-
 ```java
 byte[] bytes = "hello".getBytes();
 
@@ -101,8 +89,6 @@ try (FileOutputStream out =
     out.write(bytes);
 }
 ```
-
-
 
 ### 追加写入
 
@@ -127,4 +113,85 @@ try (FileOutputStream out =
 
 第二个参数`true`表示追加模式。
 
+## 文件复制
 
+循环读写
+
+```java
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class CopyFile {
+    public static void main(String[] args) throws IOException {
+        FileInputStream fis = new FileInputStream("D:/a.zip");
+        FileOutputStream fos = new FileOutputStream("D:/backup/a.zip");
+
+        byte[] buffer = new byte[1024];
+        int len;
+
+        while ((len = fis.read(buffer)) != -1) {
+            fos.write(buffer, 0, len);
+        }
+
+        fos.close();
+        fis.close();
+    }
+}
+```
+
+## 文件夹复制
+
+ 复制整个文件夹需要**递归遍历目录**。
+
+```java
+import java.io.*;
+
+public class CopyDir {
+
+    public static void copy(File src, File dest) throws IOException {
+
+        // 如果是文件
+        if (src.isFile()) {
+
+            try (
+                FileInputStream fis = new FileInputStream(src);
+                FileOutputStream fos = new FileOutputStream(dest)
+            ) {
+                byte[] buffer = new byte[8192];
+                int len;
+
+                while ((len = fis.read(buffer)) != -1) {
+                    fos.write(buffer, 0, len);
+                }
+            }
+
+            return;
+        }
+
+        // 如果是目录
+        if (!dest.exists()) {
+            dest.mkdirs();
+        }
+
+        File[] files = src.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+
+                File newDest = new File(dest, file.getName());
+
+                copy(file, newDest);
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        File src = new File("D:/source");
+        File dest = new File("D:/backup");
+
+        copy(src, dest);
+    }
+}
+```

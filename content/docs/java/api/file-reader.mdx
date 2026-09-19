@@ -1,0 +1,120 @@
+---
+title: "FileReader"
+---
+
+用于将文件中的**字符数据读取到程序**中（输入流）
+
+## Constructor
+
+### FileReader(String fileName)
+
+```java
+FileReader reader = new FileReader("test.txt");
+```
+
+- 根据文件路径创建，使用**操作系统默认编码**
+- 文件不存在、是目录或无法读取时，都会抛出 `FileNotFoundException`
+
+### FileReader(File file)
+
+```java
+File file = new File("test.txt");
+FileReader reader = new FileReader(file);
+```
+
+- 行为与 `FileReader(String fileName)` 一致
+
+## Methods
+
+### read()
+
+读取一个字符（使用指定的编码集**解码**成二进制数）
+
+```java
+public int read() throws IOException
+```
+
+- Return：读取到的字符编码值（`0 ~ 65535`）；到达文件末尾时返回 `-1`，读取失败抛出 `IOException`
+
+```java
+FileReader reader = new FileReader("test.txt");
+
+int data;
+
+while ((data = reader.read()) != -1) {
+    System.out.print((char) data);
+}
+
+reader.close();
+```
+
+### read(char[] cbuf)
+
+读取到字符数组
+
+```java
+public int read(char cbuf[]) throws IOException
+```
+
+- cbuf：用于存放读取数据的字符数组（缓冲区）
+- Return：本次实际读取到的字符数；到达文件末尾（没有更多数据）时返回 `-1`
+
+```java
+FileReader reader = new FileReader("test.txt");
+
+char[] buffer = new char[1024];
+
+int len;
+
+while ((len = reader.read(buffer)) != -1) {
+    System.out.print(new String(buffer, 0, len));
+}
+
+reader.close();
+```
+
+**注意**：`read(cbuf)` 不保证把数组填满，返回值可能**小于 `cbuf.length`**；必须使用返回值 `len` 作为本次读取的有效长度。
+
+### read(char[] cbuf, int off, int len)
+
+读取到字符数组的指定范围
+
+```java
+public int read(char cbuf[], int off, int len) throws IOException
+```
+
+- off：从数组的哪个下标开始存放读取到的字符
+- len：最多读取的字符个数
+- Return：实际读取到的字符数；到达文件末尾时返回 `-1`
+
+### ready()
+
+判断此流是否已准备好被读取，返回 `true` 时下一次 `read()` 不会阻塞。
+
+```java
+public boolean ready() throws IOException
+```
+
+### getEncoding()
+
+返回此流使用的字符编码名称（如 `UTF8`、`GBK`）。
+
+```java
+public String getEncoding()
+```
+
+```java
+FileReader reader = new FileReader("test.txt");
+
+System.out.println(reader.getEncoding()); // UTF8
+
+reader.close();
+```
+
+### close()
+
+关闭流并释放资源；关闭后再次调用 `read()` 会抛出 `IOException`。
+
+```java
+public void close() throws IOException
+```

@@ -1,0 +1,102 @@
+---
+title: "字符流"
+---
+
+字符流以**字符**为单位读写数据，专门用于处理文本文件，基类是 `Reader` 和 `Writer`；底层仍然是字节流，只是额外做了**字符集编解码**。
+
+
+
+## 字符读取
+
+### 一次读取一个字符
+
+`FileReader` 每次读取 **1 个字符**，返回 `int`（该字符的编码值）。读取到文件末尾时返回 `-1`。
+
+> 1 个字符（char）= 2 个字节（16 位），Java 内部使用 UTF-16 编码
+
+```java
+FileReader reader = new FileReader("D:/test/a.txt");
+
+int data;
+
+while ((data = reader.read()) != -1) {
+    System.out.print((char) data);
+}
+
+reader.close();
+```
+
+- 字节流按字节读取，一个 UTF-8 中文占 3 个字节，按字节读取再强转 `char` 会乱码；字符流按字符读取，中文不会被拆开
+
+### 一次读取一个字符数组
+
+实际开发一般不会一个字符一个字符读取，而是使用字符数组作为缓冲区：
+
+```java
+FileReader reader = new FileReader("D:/test/a.txt");
+
+char[] buffer = new char[1024];//一次读取1024个字符
+
+int len;
+
+while ((len = reader.read(buffer)) != -1) {
+    System.out.print(new String(buffer, 0, len));
+}
+
+reader.close();
+```
+
+- Return：本次实际读取到的字符数；到达文件末尾（没有更多数据）时返回 `-1`
+- 与 `read(byte[])` 一样，不保证把数组填满，必须使用返回值 `len` 作为本次的有效长度
+
+## 字符写入
+
+### 一次写入一个字符
+
+`write(int c)` 的参数虽然是 `int`，但只取低 16 位（一个字符），直接传字符字面量即可：
+
+```java
+try (FileWriter writer = new FileWriter("test.txt")) {
+
+    writer.write('A');
+
+}
+```
+
+### 一次写入一个字符数组
+
+```java
+try (FileWriter writer = new FileWriter("test.txt")) {
+
+    char[] chars = {'a', 'b', 'c'};
+
+    writer.write(chars);
+
+}
+```
+
+### 一次写入一个字符串
+
+字符流最大的便利是可以**直接写入字符串**，`FileWriter` 专门提供了 `write(String str)`：
+
+```java
+try (FileWriter writer = new FileWriter("test.txt")) {
+
+    writer.write("hello 你好");
+
+}
+```
+
+### 追加写入
+
+默认情况下会覆盖文件；与 `FileOutputStream` 一样，第二个参数传 `true` 表示追加模式：
+
+```java
+try (FileWriter writer = new FileWriter("test.txt", true)) {
+
+    writer.write("abc");
+
+}
+```
+
+> `FileReader` / `FileWriter` 都使用**平台默认字符集**（Windows 中文系统通常是 GBK，Linux/macOS 通常是 UTF-8），乱码时建议用 `InputStreamReader` / `OutputStreamWriter` 显式指定字符集。
