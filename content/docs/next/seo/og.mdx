@@ -26,20 +26,20 @@ description: "开放图谱协议"
 ## 在NextJS中使用
 
 ```ts
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   openGraph: {
-    title: 'Apple',
+    title: "Apple",
     description:
-      'Discover the innovative world of Apple and shop everything iPhone, iPad, Apple Watch, Mac, and Apple TV, plus explore accessories, entertainment, and expert device support.',
-    url: 'https://www.apple.com/',
-    siteName: 'Apple',
-    locale: 'en_US',
-    type: 'website',
+      "Discover the innovative world of Apple and shop everything iPhone, iPad, Apple Watch, Mac, and Apple TV, plus explore accessories, entertainment, and expert device support.",
+    url: "https://www.apple.com/",
+    siteName: "Apple",
+    locale: "en_US",
+    type: "website",
     images: [
       {
-        url: 'https://www.apple.com/ac/structured-data/images/open_graph_logo.png?202604211141',
+        url: "https://www.apple.com/ac/structured-data/images/open_graph_logo.png?202604211141",
       },
     ],
   },
@@ -51,9 +51,15 @@ export const metadata: Metadata = {
 ### Apple
 
 ```html
-<meta property="og:image" content="https://www.apple.com/ac/structured-data/images/open_graph_logo.png?202604211141" />
+<meta
+  property="og:image"
+  content="https://www.apple.com/ac/structured-data/images/open_graph_logo.png?202604211141"
+/>
 <meta property="og:title" content="Apple" />
-<meta property="og:description" content="Discover the innovative world of Apple and shop everything iPhone, iPad, Apple Watch, Mac, and Apple TV, plus explore accessories, entertainment, and expert device support." />
+<meta
+  property="og:description"
+  content="Discover the innovative world of Apple and shop everything iPhone, iPad, Apple Watch, Mac, and Apple TV, plus explore accessories, entertainment, and expert device support."
+/>
 <meta property="og:url" content="https://www.apple.com/" />
 <meta property="og:locale" content="en_US" />
 <meta property="og:site_name" content="Apple" />
@@ -69,11 +75,17 @@ export const metadata: Metadata = {
 | Facebook / X 等    | ✅ 标准 OG   | 完整遵循 Open Graph 标准                     |
 
 ```html
-<meta property="og:title" content="文章标题">
+<meta property="og:title" content="文章标题" />
 
-<meta property="og:description" content="文章描述">
+<meta property="og:description" content="文章描述" />
 
-<meta property="og:image" content="https://example.com/cover.jpg">
+<meta property="og:image" content="https://example.com/cover.jpg" />
 
-<meta property="og:url" content="https://example.com/article/1">
+<meta property="og:url" content="https://example.com/article/1" />
 ```
+
+<Callout type="warning" title="注意">
+
+微信H5的OG分享是不允许直接访问分享的，如果想实现分享的时候显示（标题，描述，图片缩略图），需要先在微信客户端收藏再进行分享，也可以在微信公众号中访问这个网址。
+
+</Callout>

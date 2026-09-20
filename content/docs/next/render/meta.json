@@ -1,0 +1,9 @@
+{
+  "title": "渲染",
+  "pages": [
+    "rsc",
+    "server-and-client-components",
+    "nextjs-render",
+    "static-export"
+  ]
+}

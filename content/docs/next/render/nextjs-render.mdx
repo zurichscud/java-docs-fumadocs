@@ -1,0 +1,207 @@
+---
+title: "Nextjs渲染方式"
+---
+
+Next.js 提供了非常灵活的渲染机制，允许在同一个应用中为不同的页面选择最合适的渲染模式。
+
+核心看一点：
+
+> **页面内容是否能在构建阶段（build time）确定。**
+
+```
+Rendering
+│
+├── Static Rendering
+│       │
+│       ├── SSG
+│       └── ISR
+│
+└── Dynamic Rendering
+        │
+        ├── SSR
+        └── Streaming SSR
+```
+
+| 方式              | 什么时候生成HTML   |
+| ----------------- | ------------------ |
+| SSG               | build时            |
+| ISR               | build时 + 后台更新 |
+| Dynamic Rendering | 请求时             |
+
+## 静态渲染
+
+### 没有动态 API
+
+没有使用动态API就是静态渲染，因为能在build时确定
+
+### 静态路由
+
+Next.js 会在 `next build` 时自动打包为静态 HTML，build时，调用fetch能够确定页面内容
+
+```tsx
+// app/about/page.tsx
+export default async function AboutPage() {
+  // 默认情况下，fetch 动作会被静态缓存/预渲染
+  const res = await fetch('https://api.example.com/about');
+  const data = await res.json();
+
+  return (
+    <main>
+      <h1>{data.title}</h1>
+      <p>{data.content}</p>
+    </main>
+  );
+}
+```
+
+### 动态路由页面（使用 `generateStaticParams`）
+
+你必须通过 `generateStaticParams` 显式告诉打包器：“**虽然这是动态路由，但 `id` 为 1、2、3 的这几个页面，请帮我按照静态 HTML 提前打包出来。**”
+
+```tsx title="app/posts/[id]/page.tsx"
+// app/posts/[id]/page.tsx
+export async function generateStaticParams() {
+  return [{ id: '1' }, { id: '2' }, { id: '3' }];
+}
+
+export default function Post() {
+  return <div>HelloWorld</div>
+}
+```
+
+加上这段代码后，Next.js 才会明白你的意图，并在打包时将其优化输出为静态文件：
+
+- `.next/server/app/posts/1.html`
+
+- `.next/server/app/posts/2.html`
+
+如果不配置 `generateStaticParams`：
+
+- **构建阶段**：Next.js **不会**为这个动态路由预先打包生成任何 HTML 文件。
+
+- **运行时（用户访问时）**：
+
+  - 当用户首次访问 `/posts/1` 时，Next.js 会采用 **按需渲染（On-Demand SSR）**，即实时在服务器跑一遍 `PostPage` 拉取数据并生成 HTML。
+
+  - 用户**第一次访问时会感知到明显的渲染延迟**（需要等待服务器拉取数据并渲染）。
+
+## 动态渲染
+
+### 动态API
+
+只要使用了动态API，当前页面就是动态渲染的。动态API需要与用户交互时才能够确定。
+
+### 动态路由
+
+如果你的页面是一个**动态路由**（如 `app/posts/[id]/page.tsx`）：
+
+```tsx title="app/posts/[id]/page.tsx"
+// app/posts/[id]/page.tsx
+export default function Post() {
+  return <div>HelloWorld</div>
+}
+```
+
+Next.js 不会自动把 `/posts/1`、`/posts/2` 预先优化成静态 HTML。因为在打包的时刻，Next.js **根本不知道 `[id]` 可能代表什么**：
+
+- 它不知道你的数据库里有哪些文章 ID。
+
+- 它不知道用户可能会输入 `/posts/1` 还是 `/posts/abc`。
+
+所以，即使你的组件内部简单到只有 `HelloWorld`，只要它带了 `[id]` 这个动态占位符，打包系统就会把这个路由标记为 Dynamic。
+
+
+
+## 判断渲染类型
+
+渲染模式是以路由页面为基本单位来决定的。
+
+执行build后，可以看到哪些是动态的，哪些是静态的
+
+```
+Route (app)
+┌ ƒ /
+└ ○ /_not-found
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+```
+
+| 标记 | 含义     |
+| ---- | -------- |
+| ○    | 静态渲染 |
+| ƒ    | 动态渲染 |
+
+## 静态渲染的弊端
+
+如果采用静态渲染，`https://api.example.com/info` 接口返回的数据会在 **`npm run build` 的那一刻被打包成静态快照**。此后，数据库里的数据无论怎么变，用户看到的永远是**构建当时抓到的旧数据**，直到你下一次重新打包部署。
+
+为了解决“既想要 SSG 的超快响应速度，又想要数据库更新后页面能同步更新”的矛盾，Next.js 提供了以下 **解决方案**：
+
+### 增量静态再生
+
+不用重新打包整个网站，而是给静态数据设置一个过期时间（TTL）。
+
+```ts
+// 声明：这个 fetch 的数据最长缓存 60 秒
+const res = await fetch("https://api.example.com/info", {
+  next: { revalidate: 60 },
+});
+```
+
+更新逻辑：
+
+- **构建时**：抓取数据库数据，生成静态页面。
+
+- **前 60 秒内**：所有用户访问该页面，直接返回构建好的静态页面（极速）。
+
+- **60 秒后，数据库更新了**：
+
+  - 下一位用户访问时，Next.js **依然先返回旧的静态页面**（保证速度）。
+
+  - 同时，Next.js 在后台悄悄调用一次 `[https://api.example.com/info](https://api.example.com/info)` 去查新数据库。
+
+  - 后台重新生成新的静态页面并覆盖旧缓存。
+
+- **再下一位用户访问时**：就能看到最新的数据库数据了。
+
+### 改用 SSR
+
+如果你的数据**对实时性要求极高**（例如股票价格、商品实时库存），且每秒都在变，那么就不应该使用 SSG。直接禁用缓存将其变为 SSR：
+
+```ts
+const res = await fetch("https://api.example.com/info", {
+  cache: "no-store", // 放弃 SSG，每次用户访问都实时查库
+});
+```
+
+### 强制动态渲染
+
+在`page.tsx`中显式导出，这会强制该路由在**每次请求时**于服务端渲染,而不是在构建时静态生成。
+
+```ts title="page.tsx"
+export const dynamic = "force-dynamic";
+```
+
+### use cache
+
+使用缓存组件也可以解决这个问题：
+
+```ts
+import { cacheLife } from "next/dist/server/use-cache/cache-life"; // 引入缓存生命周期配置
+
+export async function getProducts(start: number, end: number) {
+  "use cache"; // 1. 声明该函数的结果需要被缓存
+  cacheLife("hours"); // 2. 设置缓存粒度（例如缓存数小时，可选: 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks'）
+
+  // 3. 直连数据库查库
+  const products = await db.query("SELECT * FROM products LIMIT ?, ?", [
+    start,
+    end,
+  ]);
+  return products;
+}
+```
+
+构建时（或第一次请求）会查库并把函数返回值缓存起来；在 `hours` 指定的时间段内，调用 `getProducts` **完全不走数据库**，直接返缓存；超时后后台异步重新查库更新。
