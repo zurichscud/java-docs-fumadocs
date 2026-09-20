@@ -14,8 +14,6 @@ title: "stream"
 
 使用 Stream 后，数据就像流水一样，边读取、边处理、边输出，**占用内存极小且恒定**（仅由缓冲池 `highWaterMark` 决定，默认 64KB 或 16KB）。
 
-
-
 ## 四种基本流类型
 
 `stream` 模块提供了 4 种基础的类：
@@ -27,6 +25,40 @@ title: "stream"
 3. **`Duplex`（双工流）**：既可读又可写，读写通道独立（如 TCP `net.Socket`）。
 
 4. **`Transform`（转换流）**：特殊的 Duplex，写入的数据经过处理后自动作为读取的数据输出（如 `zlib.createGzip()`、`crypto` 加密解密流）。
+
+
+
+## 创建可读流
+
+### 指定文件数据源
+
+`fs.createReadStream()` 是 Node 帮你封装好的「文件读取流」
+
+```js
+import fs from 'node:fs'
+
+const stream = fs.createReadStream('./test.txt')
+
+stream.on('data', chunk => {
+  console.log(chunk)
+})
+```
+
+### 自定义数据源
+
+`new Readable()` 是你自己定义「数据怎么产生」
+
+```js
+import { Readable } from 'node:stream'
+
+const stream = new Readable({
+  read() {
+    this.push('hello')
+    this.push('world')
+    this.push(null)
+  }
+})
+```
 
 
 
@@ -50,8 +82,6 @@ async function processFile() {
   }
 }
 ```
-
-
 
 ## pipeline
 
@@ -87,5 +117,3 @@ stream.on('end', () => {
   console.log('读取完成');
 });
 ```
-
-
