@@ -1,0 +1,150 @@
+---
+title: "WritableStream"
+---
+
+WritableStream 是 Streams API 的一部分，表示一个可写的流。你可以自由设计数据写入的两端。
+
+## 为什么需要 WritableStream？
+
+在传统的 JavaScript 处理中，如果要生成或导出大量数据，通常做法是：
+
+1. 把所有数据全在内存里拼接成一个巨大的字符串/数组。
+
+2. 转成 `Blob` 或 `File`。
+
+3. 提供给用户下载或发送网络请求。
+
+**痛点：** 内存开销极高，一旦数据达到几百兆甚至上吉字节（GB），极易触发浏览器崩溃或 Node.js 内存溢出。
+
+**`WritableStream` 的解法：**
+数据**边生产、边写入、边消费**，内存里只保留少量缓冲区，处理完一批数据就释放一批内存。
+
+## 核心部件
+
+一个完整的 `WritableStream` 结构通常包含三个部分：
+
+1. **Controller**：控制流的状态。
+
+2. **UnderlyingSink（底层汇）**：创建流时传入的配置对象，定义了数据具体要写去哪里（例如写入磁盘、发送到 Socket、追加到内存数组等）。
+
+3. **Writer**：用于写入数据。
+
+## 创建WritableStream
+
+你可以通过构造函数传入 `start`、`write`、`close` 等钩子函数来自定义一个写入流：
+
+```js
+const writableStream = new WritableStream({
+  // 1. 初始化：流创建或被 Writer 锁定时触发
+  start(controller) {
+    console.log("Stream started");
+  },
+
+  // 2. 写入数据块：每次调用 writer.write(chunk) 时触发
+  async write(chunk, controller) {
+    // 处理写入逻辑，如发送数据包到服务器/写磁盘
+    await sendDataToServer(chunk);
+  },
+
+  // 3. 关闭流：调用 writer.close() 时触发
+  async close() {
+    console.log("Stream finished and closed");
+  },
+
+  // 4. 异常终止：发生错误或调用 writer.abort() 时触发
+  abort(reason) {
+    console.error("Stream aborted:", reason);
+  },
+});
+```
+
+## 写入数据
+
+### 入口
+
+使用 `getWriter()` 锁住流，并通过 `writer()` 循环写入数据块：
+
+```js
+// 1. 获取 Writer（此时流会被锁定，防止并发写入）
+const writer = writableStream.getWriter();
+
+async function processData() {
+  // 2. 确保流处于 ready 状态后写入数据
+  await writer.ready;
+  await writer.write("Hello ");
+  await writer.write("World!");
+
+  // 3. 写入完毕后关闭流
+  await writer.close();
+}
+
+processData();
+```
+
+### 出口
+
+```js
+const writableStream = new WritableStream({
+  //  写入数据块：每次调用 writer.write(chunk) 时触发
+  async write(chunk, controller) {
+    // 处理写入逻辑，如发送数据包到服务器/写磁盘
+    await sendDataToServer(chunk);
+  },
+});
+```
+
+## 背压控制
+
+当生产数据的速度**快于**写入消费的速度时，`WritableStream` 提供了背压机制，通过设置上游策略来控制内存中的数据堆积：
+
+```js
+// 1. 创建慢速消费的可写流（限制队列最多存 2 个数据块）
+const writableStream = new WritableStream(
+  {
+    async write(chunk) {
+      await new Promise((r) => setTimeout(r, 1000)); // 模拟耗时写入操作（1000ms）
+    },
+  },
+  new CountQueuingStrategy({ highWaterMark: 2 }),
+);
+
+// 2. 获取锁定写入器
+const writer = writableStream.getWriter();
+
+// 3. 模拟生产数据并利用背压控制节奏
+async function produce() {
+  for (let i = 1; i <= 5; i++) {
+    // 核心：写入前必须等待 writer.ready
+    // 当内部队列满时，writer.ready 会挂起（Pending），卡住循环阻止继续生产
+    if (writer.desiredSize <= 0) {
+      console.warn(
+        `⚠️ [触发背压] 队列已满 (desiredSize: ${writer.desiredSize})，等待消费者释放空间...`,
+      );
+    }
+    await writer.ready;
+
+    console.log(`⚡ [生产者] 写入数据: Chunk-${i}`);
+    writer.write(`Chunk-${i}`);
+  }
+
+  await writer.close();
+}
+
+produce();
+```
+
+- `highWaterMark:2`：缓冲区大小为 **2 个数据块**
+
+- **`writer.desiredSize`**：当其小于等于 `0` 时，说明可写流队列已满。
+
+- **`await writer.ready`**：背压的核心锁。队列满时该 Promise 处于 Pending 状态，卡住 `produce()` 循环，直到底层 `write()` 执行完并出队后才 Resolve 允许写入下一个 Chunk。
+
+<Accordions type="single">
+  <Accordion title="为什么叫背压？">
+
+    如果下游处理不过来，数据就会在缓冲区（如 highWaterMark 限制的队列）里不断堆积。
+    
+    当队列填满时，软件系统需要一种机制把“我吃不下了”的信号反向传给上游，强制让上游减速或暂停生产。这种由消费端向生产端传递的“反向阻力/阻断机制”，就被形象地称为背压。
+
+</Accordion>
+</Accordions>

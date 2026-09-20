@@ -1,0 +1,9 @@
+{
+  "title": "Web API",
+  "icon": "PanelsTopLeft",
+  "root": true,
+  "pages": [
+    "stream",
+    "...streams"
+  ]
+}
