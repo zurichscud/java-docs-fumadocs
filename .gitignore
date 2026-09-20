@@ -25,4 +25,4 @@ yarn-error.log*
 .vercel
 next-env.d.ts
 # local reverse engineering work
-lk-reverse/
+.playwright-mcp

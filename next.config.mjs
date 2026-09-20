@@ -12,6 +12,11 @@ const config = {
         hostname: 'markdown-lai.oss-cn-hangzhou.aliyuncs.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.runoob.com',
+        pathname: '/**',
+      },
     ],
   },
 };

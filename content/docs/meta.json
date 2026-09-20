@@ -8,6 +8,7 @@
         "JS",
         "node",
         "next",
-        "java"
+        "java",
+        "agent"
     ]
 }
