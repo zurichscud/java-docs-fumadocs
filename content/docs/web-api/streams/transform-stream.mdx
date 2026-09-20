@@ -1,0 +1,157 @@
+---
+title: "TransformStream"
+---
+
+`TransformStream` 是 Web Streams API 中的核心接口之一，用于在数据的**读取（ReadableStream）**和**写入（WritableStream）**之间建立一个**数据转换通道**。
+
+它可以对数据流进行**实时加工、格式转换、加密解密或压缩解压**，而无需将整个数据集一次性加载到内存中。
+
+## 核心概念与工作原理
+
+`TransformStream` 的本质是一个“双端对象”：
+
+1. **Readable 端 (`transformStream.readable`)**：一个 `ReadableStream`，供下游消费者读取转换后的数据。
+
+2. **Writable 端 (`transformStream.writable`)**：一个 `WritableStream`，供上游生产者写入原始数据。
+
+```
+[数据源/上游] ──(Pipe)──> [ Writable端 | Transform逻辑 | Readable端 ] ──(Pipe)──> [消费者/下游]
+```
+
+通过管道方式（`pipeThrough`），你可以将它非常自然地插在流的处理链条中：
+
+```js
+sourceReadableStream
+  .pipeThrough(myTransformStream)
+  .pipeTo(destinationWritableStream);
+```
+
+## 创建 TransformStream
+
+创建 `TransformStream` 时，需要在构造函数中传入一个包含 `transform` 方法的对象：
+
+```js
+// 创建一个将文本全部转为大写的 TransformStream
+const upperCaseStream = new TransformStream({
+  // 当有新的数据块 (chunk) 写入 Writable 端时触发
+  transform(chunk, controller) {
+    // 对 chunk 进行转换后，通过 controller.enqueue() 推送到 Readable 端
+    controller.enqueue(chunk.toUpperCase());
+  },
+  
+  // (可选) 当上游写入完成、流即将在关闭前触发，用于清理或推送剩余数据
+  flush(controller) {
+    // 例如：推送结尾标记
+  }
+});
+
+// 测试该 TransformStream
+const writer = upperCaseStream.writable.getWriter();
+const reader = upperCaseStream.readable.getReader();
+
+// 写入数据
+writer.write("hello ");
+writer.write("world!");
+writer.close();
+
+// 读取转换后的数据
+(async () => {
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    console.log(value); // 依次输出: "HELLO ", "WORLD!"
+  }
+})();
+```
+
+## pipeThrough(transformStream)
+
+`pipeThrough()` 并不是在原流上做修改，而是创建一个新的流。类似于包装流
+
+```js
+// 模拟 pipeThrough 的内部原理
+ReadableStream.prototype.pipeThrough = function(transformStream) {
+  // 1. 自动把当前流（source）的数据管接/写入到 transformStream 的入口（writable）
+  this.pipeTo(transformStream.writable);
+
+  // 2. 自动把 transformStream 的出口（readable）返回出来
+  return transformStream.readable; 
+};
+```
+
+- **`pipeThrough(transformStream)`**：
+
+  - **作用**：连接一个转换流，数据进去，加工后的数据出来。
+
+  - **返回值**：一个新的 **`ReadableStream`**（可以继续 `.pipeThrough` 或 `.pipeTo`）。
+
+  - **角色**：中间节点。
+
+## pipeTo(writableStream)
+
+- **`pipeTo(writableStream)`**：
+
+  - **作用**：把 `ReadableStream` 的数据**直接灌入**一个 `WritableStream`（目标终点）。
+
+  - **返回值**：一个 **`Promise`**（当所有数据传输完成，或者中间出错时 resolve/reject）。
+
+  - **角色**：终点节点。
+
+```js
+// 假设有个文件写入流
+const fileWritableStream = getWritableFileStream(); 
+
+// 启动管道传输，数据会自动从 body 灌入文件流中
+fetch('https://example.com/file.zip')
+  .then(response => response.body.pipeTo(fileWritableStream))
+  .then(() => console.log('下载并保存成功！'))
+  .catch(err => console.error('传输出错:', err));
+```
+
+## Example
+
+利用标准的 `TransformStream`，在 `transform` 钩子中将传入的数据块转为大写，并通过 `pipeThrough` 链接流：
+
+```js
+// 1. 创建转大写的 TransformStream
+const upperCaseStream = new TransformStream({
+  transform(chunk, controller) {
+    // 假设 chunk 是字符串（如果是 Uint8Array，需配合 TextDecoder / TextEncoder）
+    controller.enqueue(chunk.toUpperCase());
+  }
+});
+
+// 2. 创建模拟的数据源 (ReadableStream)
+const sourceStream = new ReadableStream({
+  start(controller) {
+    controller.enqueue("hello ");
+    controller.enqueue("world, ");
+    controller.enqueue("this is web stream!");
+    controller.close();
+  }
+});
+
+// 3. 使用 pipeThrough 组合流，并进行读取
+async function processStream() {
+  const transformedStream = sourceStream.pipeThrough(upperCaseStream);
+  const reader = transformedStream.getReader();
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    console.log("读取到转换后的数据:", value);
+  }
+}
+
+processStream();
+// 输出:
+// 读取到转换后的数据: HELLO 
+// 读取到转换后的数据: WORLD, 
+// 读取到转换后的数据: THIS IS WEB STREAM!
+```
+
+
+
+
+
+
