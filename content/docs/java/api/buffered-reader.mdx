@@ -2,7 +2,21 @@
 title: "BufferedReader"
 ---
 
-`BufferedReader` 是**字符缓冲输入流**，用于把文件中的字符数据读取到程序中。它包装一个底层 `Reader`（通常是 `FileReader`），在内存中开辟缓冲区，减少频繁的磁盘 I/O，并提供了按行读取的 `readLine()`。
+`BufferedReader` 是**字符缓冲输入流**，继承自 [`Reader`](/docs/java/api/reader)。它是一个**包装流**：包装一个底层 `Reader`（通常是 [`FileReader`](/docs/java/api/file-reader)），在内存中开辟缓冲区，减少频繁的磁盘 I/O，并额外提供了按行读取的 `readLine()`。
+
+## Usage
+
+```java
+try (BufferedReader reader = new BufferedReader(new FileReader("test.txt"))) {
+
+    String line;
+
+    while ((line = reader.readLine()) != null) {
+        System.out.println(line);
+    }
+
+}
+```
 
 ## Constructor
 
@@ -23,7 +37,7 @@ BufferedReader reader = new BufferedReader(new FileReader("test.txt"), 1024);
 
 - sz：自定义缓冲区大小（字符数），必须大于 `0`，否则抛出 `IllegalArgumentException`
 
-> 单独的 `FileReader` 每次读取都可能直接访问磁盘；包装成 `BufferedReader` 后，数据先读到内存缓冲区，后续读取直接从缓冲区拿，效率更高。
+
 
 ## Methods
 
@@ -36,79 +50,4 @@ public String readLine() throws IOException
 ```
 
 - 一行以 `\n`、`\r` 或 `\r\n` 结尾，三种行结束符都能正确处理
-
-```java
-try (BufferedReader reader = new BufferedReader(new FileReader("test.txt"))) {
-
-    String line;
-
-    while ((line = reader.readLine()) != null) {
-        System.out.println(line);
-    }
-
-}
-```
-
-### read()
-
-读取一个字符
-
-```java
-public int read() throws IOException
-```
-
-- Return：读取到的字符编码值（`0 ~ 65535`）；到达文件末尾时返回 `-1`，读取失败抛出 `IOException`
-
-```java
-try (BufferedReader reader = new BufferedReader(new FileReader("test.txt"))) {
-
-    int data;
-
-    while ((data = reader.read()) != -1) {
-        System.out.print((char) data);
-    }
-
-}
-```
-
-### read(char[] cbuf)
-
-读取到字符数组
-
-```java
-public int read(char cbuf[]) throws IOException
-```
-
-- cbuf：用于存放读取数据的字符数组（缓冲区）
-- Return：本次实际读取到的字符数；到达文件末尾（没有更多数据）时返回 `-1`
-- 同样支持 `read(char[] cbuf, int off, int len)`，读取到数组的指定范围
-
-```java
-try (BufferedReader reader = new BufferedReader(new FileReader("test.txt"))) {
-
-    char[] buffer = new char[1024];
-
-    int len;
-
-    while ((len = reader.read(buffer)) != -1) {
-        System.out.print(new String(buffer, 0, len));
-    }
-
-}
-```
-
-### ready()
-
-判断此流是否已准备好被读取，返回 `true` 时下一次 `read()` 不会阻塞。
-
-```java
-public boolean ready() throws IOException
-```
-
-### close()
-
-关闭流并释放资源；会**一并关闭底层流**（如 `FileReader`）；关闭后再次读取会抛出 `IOException`。
-
-```java
-public void close() throws IOException
-```
+- 典型用法见上方 [Usage](#usage) 中的按行读取循环

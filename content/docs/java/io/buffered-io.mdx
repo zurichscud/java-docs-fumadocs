@@ -2,14 +2,96 @@
 title: "缓冲流"
 ---
 
+缓冲流本身**不直接连接文件**，而是**包装**一个已有的节点流（如 `FileInputStream`、`FileReader`），在内存中开辟一块缓冲区，把多次零散的小读写合并成一次批量 I/O，减少磁盘访问次数。
+
+| 分类     | 缓冲流                                             | 底层流                                     | 特有方法     |
+| -------- | -------------------------------------------------- | ------------------------------------------ | ------------ |
+| 字节输入 | `BufferedInputStream`                              | `FileInputStream`                          | -            |
+| 字节输出 | `BufferedOutputStream`                             | `FileOutputStream`                         | -            |
+| 字符输入 | [`BufferedReader`](/docs/java/api/buffered-reader) | [`FileReader`](/docs/java/api/file-reader) | `readLine()` |
+| 字符输出 | [`BufferedWriter`](/docs/java/api/buffered-writer) | [`FileWriter`](/docs/java/api/file-writer) | `newLine()`  |
+
 
 
 ## 缓冲流的创建
 
+先创建节点流，再用缓冲流包装：
 
+### 字节缓冲流
 
+```java
+BufferedInputStream in = new BufferedInputStream(new FileInputStream("D:/test/a.txt"));
 
+BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("test.txt"));
+```
+
+### 字符缓冲流
+
+```java
+BufferedReader reader = new BufferedReader(new FileReader("D:/test/a.txt"));
+
+BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"));
+```
+
+可以传入第二个参数自定义缓冲区大小：
+
+```java
+BufferedInputStream in = new BufferedInputStream(new FileInputStream("D:/test/a.txt"), 1024 * 64);
+```
+
+**只需要关闭外层缓冲流**：`close()` 会级联关闭被包装的底层流；反过来直接关闭底层流，缓冲区中还没写出的数据可能丢失。
 
 ## Usage
 
+### 按行读取文本
 
+`BufferedReader` 比 `Reader` 多出 `readLine()`：一次读取一行，返回值**不包含**行尾换行符，到达文件末尾时返回 `null`。
+
+```java
+try (BufferedReader reader = new BufferedReader(new FileReader("D:/test/a.txt"))) {
+
+    String line;
+
+    while ((line = reader.readLine()) != null) {
+        System.out.println(line);
+    }
+
+}
+```
+
+### 写入并换行
+
+`BufferedWriter` 多出 `newLine()`，写入**平台相关**的换行符（Windows 上是 `\r\n`，Linux/macOS 上是 `\n`），比手动写 `"\n"` 更便于跨平台：
+
+```java
+try (BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"))) {
+
+    writer.write("hello");
+    writer.newLine();
+    writer.write("你好");
+
+}
+```
+
+`BufferedWriter` 的数据先暂存在内存缓冲区，try-with-resources 结束时 `close()` 会自动 `flush()`；如果要在关闭前立即落盘，手动调用 `writer.flush()`。忘了 `flush()` 或 `close()`，数据就可能停留在缓冲区里丢失。
+
+### 缓冲字节流复制文件
+
+```java
+try (
+    BufferedInputStream in = new BufferedInputStream(new FileInputStream("D:/a.zip"));
+    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream("D:/backup/a.zip"))
+) {
+
+    byte[] buffer = new byte[8192];
+    int len;
+
+    while ((len = in.read(buffer)) != -1) {
+        out.write(buffer, 0, len);
+    }
+
+}
+```
+
+- 对比 [字节流](/docs/java/io/byte-io) 中直接读写文件的方式，缓冲流让每次磁盘访问都按缓冲区大小批量进行
+- 这里依然搭配了 `byte[] buffer`：缓冲流减少的是**磁盘 I/O 次数**，数组减少的是**方法调用次数**，两者配合效率最高

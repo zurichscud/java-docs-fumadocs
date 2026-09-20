@@ -2,7 +2,21 @@
 title: "BufferedWriter"
 ---
 
-`BufferedWriter` 是**字符缓冲输出流**，用于把程序中的字符数据写入文件。它包装一个底层 `Writer`（通常是 `FileWriter`），数据先写入内存缓冲区，缓冲区满时才批量写入文件，减少频繁的磁盘 I/O。
+`BufferedWriter` 是**字符缓冲输出流**，继承自 [`Writer`](/docs/java/api/writer)。它是一个**包装流**：包装一个底层 `Writer`（通常是 [`FileWriter`](/docs/java/api/file-writer)），数据先写入内存缓冲区，缓冲区满时才批量写入文件，减少频繁的磁盘 I/O，并额外提供了按平台换行的 `newLine()`。
+
+## Usage
+
+其余写入方法（`write()`、`flush()`、`close()`）继承自 `Writer`；其中 `flush()` 会把缓冲区中的数据交给底层流，`close()` 会**一并关闭**被包装的底层流。
+
+```java
+try (BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"))) {
+
+    writer.write("hello");
+    writer.newLine();
+    writer.write("你好");
+
+}
+```
 
 ## Constructor
 
@@ -25,102 +39,6 @@ BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"), 1024);
 
 ## Methods
 
-### write(int c)
-
-写入一个字符
-
-```java
-public void write(int c) throws IOException
-```
-
-- c：要写入的字符编码值，只取低 16 位（一个字符）；写入失败抛出 `IOException`
-
-```java
-try (BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"))) {
-
-    writer.write('A');
-
-}
-```
-
-### write(char[] cbuf)
-
-写入整个字符数组
-
-```java
-public void write(char cbuf[]) throws IOException
-```
-
-- cbuf：要写入的字符数组；写入失败抛出 `IOException`
-
-```java
-try (BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"))) {
-
-    char[] chars = {'a', 'b', 'c'};
-
-    writer.write(chars);
-
-}
-```
-
-### write(char[] cbuf, int off, int len)
-
-写部分字符数组
-
-```java
-public void write(char cbuf[], int off, int len) throws IOException
-```
-
-- off：起始偏移量（从数组的哪个下标开始写）
-- len：要写入的字符个数；写入失败抛出 `IOException`
-
-```java
-try (BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"))) {
-
-    char[] chars = {'a', 'b', 'c', 'd'};
-
-    writer.write(chars, 1, 3); // 写入 bcd
-
-}
-```
-
-### write(String str)
-
-写入一个字符串
-
-```java
-public void write(String str) throws IOException
-```
-
-- 字符流可以直接写入字符串，不需要先转成字符数组
-
-```java
-try (BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"))) {
-
-    writer.write("hello 你好");
-
-}
-```
-
-### write(String str, int off, int len)
-
-写部分字符串
-
-```java
-public void write(String str, int off, int len) throws IOException
-```
-
-- off：字符串的起始下标
-- len：要写入的字符个数；写入失败抛出 `IOException`
-
-```java
-try (BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"))) {
-
-    writer.write("hello", 1, 3); // 写入 ell
-
-}
-```
-
 ### newLine()
 
 写入一个**平台相关的换行符**（Windows 上是 `\r\n`，Linux/macOS 上是 `\n`）。
@@ -130,41 +48,4 @@ public void newLine() throws IOException
 ```
 
 - 需要换行时推荐使用它，而不是手动写 `"\n"`，这样可以保证跨平台
-
-```java
-try (BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"))) {
-
-    writer.write("hello");
-    writer.newLine();
-    writer.write("你好");
-
-}
-```
-
-### flush()
-
-把缓冲区中暂存的数据立即刷入底层流（最终写入文件）。`close()` 会自动调用 `flush()`。
-
-```java
-public void flush() throws IOException
-```
-
-- 数据先进入 `BufferedWriter` 的缓冲区，缓冲区满或调用 `flush()` / `close()` 时才交给底层的 `FileWriter`
-
-```java
-BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"));
-
-writer.write("hello");
-
-writer.flush(); // 立即写入文件
-
-writer.close();
-```
-
-### close()
-
-关闭流并释放资源；关闭前会自动 `flush()`；会**一并关闭底层流**（如 `FileWriter`）；关闭后再次写入会抛出 `IOException`。
-
-```java
-public void close() throws IOException
-```
+- 典型用法见上方 [Usage](#usage) 中的换行写入示例
