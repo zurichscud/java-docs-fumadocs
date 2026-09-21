@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>pipeTo() 示意图 · Web Streams API</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    color-scheme: light dark;
+    --bg: #faf8f5;
+    --panel: #ffffff;
+    --panel-2: #f4f1ec;
+    --line: #e7e2db;
+    --line-2: #cfc8bd;
+    --text: #1b1917;
+    --muted: #6d675f;
+    --brand: #d9741f;
+    --brand-soft: #fdf1e4;
+    --src: #2563eb;
+    --src-soft: #e9effd;
+    --out: #0f9d58;
+    --out-soft: #e7f6ee;
+    --warn: #d93a3f;
+    --warn-soft: #fdecec;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121110;
+      --panel: #1b1a18;
+      --panel-2: #232120;
+      --line: #302d2a;
+      --line-2: #4a443d;
+      --text: #f1ede7;
+      --muted: #a49d94;
+      --brand: #ffb454;
+      --brand-soft: #2b2217;
+      --src: #7aa2f7;
+      --src-soft: #1a2233;
+      --out: #5fd39a;
+      --out-soft: #16261f;
+      --warn: #ff7b81;
+      --warn-soft: #2b1a1b;
+    }
+  }
+
+  body {
+    margin: 0;
+    padding: 48px 24px 72px;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; }
+
+  .eyebrow {
+    margin: 0 0 8px;
+    font: 600 11px/1 var(--mono);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+  h1 { margin: 0 0 10px; font-size: clamp(24px, 3.4vw, 34px); letter-spacing: -.02em; }
+  h1 code { font-family: var(--mono); color: var(--brand); }
+  .lede { margin: 0 0 8px; color: var(--muted); max-width: 64ch; }
+  .lede b { color: var(--text); }
+
+  svg.figure { display: block; width: 100%; height: auto; margin: 10px 0 0; font-family: var(--mono); }
+
+  /* ---------- SVG 样式 ---------- */
+  .chip { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.5; }
+  .code { font-size: 16px; }
+  .c-muted { fill: var(--muted); }
+  .c-key { fill: var(--brand); font-weight: 700; }
+  .c-src { fill: var(--src); font-weight: 600; }
+  .c-tr { fill: var(--brand); font-weight: 600; }
+  .c-dst { fill: var(--out); font-weight: 600; }
+
+  .wire { fill: none; stroke-width: 1.6; stroke-dasharray: 5 5; stroke-linecap: round; }
+  .wire-src { stroke: var(--src); opacity: .75; }
+  .wire-tr { stroke: var(--brand); opacity: .75; }
+  .dot-src { fill: var(--src); }
+  .dot-tr { fill: var(--brand); }
+  .promise-wire { fill: none; stroke: var(--brand); stroke-width: 2.6; stroke-linecap: round; }
+  .wire-t { fill: var(--muted); font-size: 10.5px; }
+
+  /* 上游料罐 */
+  .tank-body { fill: var(--src-soft); stroke: var(--src); stroke-width: 1.5; }
+  .tank-top { fill: var(--panel); stroke: var(--src); stroke-width: 1.5; opacity: .9; }
+  .tank-bottom { fill: var(--src); opacity: .18; }
+  .liquid-src { fill: var(--src); opacity: .08; }
+  .name { font-size: 13px; font-weight: 700; }
+  .sub { font-size: 10.5px; fill: var(--muted); }
+  .name-src { fill: var(--src); }
+  .name-out { fill: var(--out); }
+
+  .tile-src { fill: var(--src-soft); stroke: var(--src); stroke-width: 1.4; }
+  .tile-out { fill: var(--out-soft); stroke: var(--out); stroke-width: 1.4; }
+  .tile-t { font-size: 15px; font-weight: 700; text-anchor: middle; }
+  .tile-t-src { fill: var(--src); }
+  .tile-t-out { fill: var(--out); }
+  .pill { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.2; }
+  .pill-t { font-size: 10.5px; fill: var(--muted); }
+
+  /* 传送带 */
+  .belt { fill: var(--line-2); stroke: var(--line-2); stroke-width: 1.5; }
+  .belt-top { fill: none; stroke: var(--panel); stroke-width: 3; opacity: .55; }
+  .cleats { fill: none; stroke: var(--panel); stroke-width: 3; stroke-dasharray: 4 16; opacity: .8; animation: march 1.3s linear infinite; }
+  @keyframes march { to { stroke-dashoffset: -20; } }
+  .roller { fill: var(--panel-2); stroke: var(--line-2); stroke-width: 1.6; }
+  .belt-note { fill: var(--muted); font-size: 11px; text-anchor: middle; }
+  .belt-note-b { fill: var(--text); font-weight: 700; }
+
+  /* 目的地货箱 */
+  .crate { fill: var(--out-soft); stroke: var(--out); stroke-width: 1.8; }
+  .crate-rim { fill: var(--out); opacity: .8; }
+  .crate-shadow { fill: var(--out); opacity: .1; }
+
+  /* 返回值 Promise 卡片 */
+  .pcard { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.5; }
+  .flag { fill: var(--brand); }
+  .flag-t { font-size: 11px; font-weight: 700; text-anchor: middle; fill: #fff; }
+  @media (prefers-color-scheme: dark) { .flag-t { fill: #1b1917; } }
+  .p-title { font-size: 13.5px; font-weight: 700; fill: var(--brand); text-anchor: middle; }
+  .split { stroke: var(--line-2); stroke-width: 1.4; stroke-dasharray: 4 4; }
+  .p-sub { font-size: 10.5px; fill: var(--muted); text-anchor: middle; }
+  .ok-pill { fill: var(--out-soft); stroke: var(--out); stroke-width: 1.2; }
+  .ok-t { font-size: 10px; fill: var(--out); text-anchor: middle; font-weight: 700; }
+  .no-pill { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.2; }
+  .no-t { font-size: 10px; fill: var(--warn); text-anchor: middle; font-weight: 700; }
+  .pulse { fill: none; stroke: var(--brand); stroke-width: 1.6; opacity: .25; animation: pulse 3.2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: .12; } 50% { opacity: .4; } }
+
+  /* 在传送带上流动的 chunk */
+  .run { animation: run 4.2s linear infinite; }
+  .run-2 { animation-delay: -1.4s; }
+  .run-3 { animation-delay: -2.8s; }
+  @keyframes run {
+    0%   { transform: translate(284px, 300px); opacity: 0; }
+    6%   { opacity: 1; }
+    92%  { transform: translate(742px, 300px); opacity: 1; }
+    98%, 100% { transform: translate(742px, 300px); opacity: 0; }
+  }
+
+  /* 货箱里越堆越高的 chunk */
+  .stacked { opacity: 0; animation: stackIn .55s ease-out forwards; }
+  @keyframes stackIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cleats, .run, .pulse { animation: none; }
+    .run { opacity: 0; }
+    .stacked { opacity: 1; animation: none; }
+  }
+
+  /* ---------- 说明 ---------- */
+  .notes { margin: 26px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .notes li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .notes li b { color: var(--text); font-weight: 600; }
+  .notes li em {
+    flex: none; width: 18px; height: 18px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--brand-soft);
+    color: var(--brand);
+    font: 700 10px/1 var(--mono);
+    font-style: normal;
+  }
+  code { font-family: var(--mono); font-size: .93em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Web Streams API</p>
+  <h1><code>pipeTo()</code> 示意图</h1>
+  <p class="lede">
+    上游流被整条搬进目的地：自动读取、自动写入；<b>这个调用的返回值不是流，而是一个 Promise</b> ——
+    管道全部结束（或出错）时才兑现。
+  </p>
+
+  <svg class="figure" viewBox="0 0 1000 500" role="img"
+       aria-label="source.pipeTo(destination) 返回一个 Promise 的示意图">
+    <defs>
+      <marker id="arrowDown" viewBox="0 0 12 12" markerWidth="11" markerHeight="11"
+              refX="6" refY="10" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+        <path d="M1 1 L6 11 L11 1 z" fill="var(--brand)" />
+      </marker>
+      <marker id="arrowLeft" viewBox="0 0 12 12" markerWidth="11" markerHeight="11"
+              refX="1" refY="6" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+        <path d="M11 1 L1 6 L11 11 z" fill="var(--brand)" />
+      </marker>
+    </defs>
+
+    <!-- ===== 一行代码：三个词分别指到三样东西 ===== -->
+    <rect class="chip" x="285" y="26" width="430" height="50" rx="14" />
+    <text class="code" x="313" y="58">
+      <tspan class="c-muted">const </tspan><tspan class="c-key">done</tspan><tspan class="c-muted"> = </tspan><tspan class="c-src">source</tspan><tspan class="c-tr">.pipeTo(</tspan><tspan class="c-dst">destination</tspan><tspan class="c-tr">)</tspan>
+    </text>
+
+    <!-- 连线：source → 上游料罐 -->
+    <path class="wire wire-src" d="M467 80 C467 138, 170 128, 170 176" />
+    <circle class="dot-src" cx="170" cy="178" r="3.6" />
+
+    <!-- 连线：pipeTo(destination) → 传送带 -->
+    <path class="wire wire-tr" d="M591 80 V 278" />
+    <circle class="dot-tr" cx="591" cy="280" r="3.6" />
+
+    <!-- 连线：done = 这个 Promise（绕到右下，穿过传送带后面） -->
+    <path class="promise-wire" marker-end="url(#arrowLeft)"
+          d="M390 76 V 444 Q390 452 398 452 H944 Q952 452 952 444 V 168 Q952 160 944 160 H926" />
+
+    <!-- ===== 上游料罐 ===== -->
+    <g>
+      <ellipse class="tank-bottom" cx="170" cy="372" rx="84" ry="17" />
+      <rect class="liquid-src" x="90" y="266" width="160" height="92" rx="8" />
+      <rect class="tank-body" x="86" y="200" width="168" height="172" />
+      <ellipse class="tank-top" cx="170" cy="200" rx="84" ry="17" />
+      <text class="name name-src" x="170" y="238" text-anchor="middle">ReadableStream</text>
+      <text class="sub" x="170" y="256" text-anchor="middle">上游 · 被搬走的数据</text>
+
+      <rect class="tile-src" x="100" y="272" width="40" height="34" rx="9" />
+      <text class="tile-t tile-t-src" x="120" y="294">a</text>
+      <rect class="tile-src" x="150" y="272" width="40" height="34" rx="9" />
+      <text class="tile-t tile-t-src" x="170" y="294">b</text>
+      <rect class="tile-src" x="200" y="272" width="40" height="34" rx="9" />
+      <text class="tile-t tile-t-src" x="220" y="294">c</text>
+
+      <rect class="pill" x="104" y="326" width="132" height="24" rx="12" />
+      <text class="pill-t" x="170" y="342" text-anchor="middle">原流 locked</text>
+    </g>
+
+    <!-- ===== 传送带：自动搬运 ===== -->
+    <g>
+      <circle class="roller" cx="300" cy="326" r="7" />
+      <circle class="roller" cx="380" cy="326" r="7" />
+      <circle class="roller" cx="460" cy="326" r="7" />
+      <circle class="roller" cx="540" cy="326" r="7" />
+      <circle class="roller" cx="620" cy="326" r="7" />
+      <circle class="roller" cx="700" cy="326" r="7" />
+      <rect class="belt" x="254" y="286" width="508" height="28" rx="9" />
+      <path class="cleats" d="M266 300 H750" />
+    </g>
+    <text class="belt-note" x="508" y="368">
+      <tspan class="belt-note-b">read()</tspan> 自动读 → <tspan class="belt-note-b">write()</tspan> 自动写 · 不用手写循环
+    </text>
+
+    <!-- ===== 返回值：Promise 卡片 ===== -->
+    <rect class="chip pcard" x="776" y="108" width="144" height="124" rx="14" />
+    <rect class="pulse" x="770" y="102" width="156" height="136" rx="18" />
+    <rect class="flag" x="796" y="96" width="104" height="24" rx="12" />
+    <text class="flag-t" x="848" y="113">返回值</text>
+    <text class="p-title" x="848" y="152">Promise</text>
+    <path class="split" d="M792 164 H904" />
+    <text class="p-sub" x="848" y="184">不返回流 · 结束时才兑现</text>
+    <rect class="ok-pill" x="792" y="194" width="54" height="24" rx="12" />
+    <text class="ok-t" x="819" y="210">resolve</text>
+    <rect class="no-pill" x="854" y="194" width="48" height="24" rx="12" />
+    <text class="no-t" x="878" y="210">reject</text>
+
+    <!-- ===== 目的地：敞口货箱 ===== -->
+    <g>
+      <path class="crate" d="M762 290 V 370 a14 14 0 0 0 14 14 h140 a14 14 0 0 0 14 -14 V 290" />
+      <rect class="crate-shadow" x="776" y="356" width="140" height="18" rx="6" />
+      <rect class="crate-rim" x="756" y="278" width="12" height="20" rx="4" />
+      <rect class="crate-rim" x="924" y="278" width="12" height="20" rx="4" />
+    </g>
+    <text class="name name-out" x="846" y="410" text-anchor="middle">WritableStream</text>
+    <text class="sub" x="846" y="428" text-anchor="middle">目的地 · 落进 write() 的 chunk</text>
+
+    <!-- 越堆越高的 chunk -->
+    <g transform="translate(800,371)"><g class="stacked"><rect class="tile-out" x="-18" y="-13" width="36" height="26" rx="8" /><text class="tile-t tile-t-out" x="0" y="5" style="font-size:13.5px">a</text></g></g>
+    <g transform="translate(846,371)"><g class="stacked" style="animation-delay:.55s"><rect class="tile-out" x="-18" y="-13" width="36" height="26" rx="8" /><text class="tile-t tile-t-out" x="0" y="5" style="font-size:13.5px">b</text></g></g>
+    <g transform="translate(892,371)"><g class="stacked" style="animation-delay:1.1s"><rect class="tile-out" x="-18" y="-13" width="36" height="26" rx="8" /><text class="tile-t tile-t-out" x="0" y="5" style="font-size:13.5px">c</text></g></g>
+    <g transform="translate(823,339)"><g class="stacked" style="animation-delay:1.65s"><rect class="tile-out" x="-18" y="-13" width="36" height="26" rx="8" /><text class="tile-t tile-t-out" x="0" y="5" style="font-size:13.5px">a</text></g></g>
+    <g transform="translate(869,339)"><g class="stacked" style="animation-delay:2.2s"><rect class="tile-out" x="-18" y="-13" width="36" height="26" rx="8" /><text class="tile-t tile-t-out" x="0" y="5" style="font-size:13.5px">b</text></g></g>
+    <g transform="translate(846,307)"><g class="stacked" style="animation-delay:2.75s"><rect class="tile-out" x="-18" y="-13" width="36" height="26" rx="8" /><text class="tile-t tile-t-out" x="0" y="5" style="font-size:13.5px">c</text></g></g>
+
+    <!-- ===== 传送带上流动的 chunk（原样搬运，不做变换） ===== -->
+    <g class="run">
+      <rect class="tile-src" x="-19" y="-15" width="38" height="30" rx="9" />
+      <text class="tile-t tile-t-src" x="0" y="5" style="font-size:14px">a</text>
+    </g>
+    <g class="run run-2">
+      <rect class="tile-src" x="-19" y="-15" width="38" height="30" rx="9" />
+      <text class="tile-t tile-t-src" x="0" y="5" style="font-size:14px">b</text>
+    </g>
+    <g class="run run-3">
+      <rect class="tile-src" x="-19" y="-15" width="38" height="30" rx="9" />
+      <text class="tile-t tile-t-src" x="0" y="5" style="font-size:14px">c</text>
+    </g>
+  </svg>
+
+  <ul class="notes">
+    <li><em>1</em><span>返回值是一个 <b>Promise</b>：整条管道成功跑完才 resolve（兑现为 <code>undefined</code>），中途出错则 reject。</span></li>
+    <li><em>2</em><span>它<b>把两端都锁住</b>：原流不能再 <code>getReader()</code>，目的地也被管道内部的 writer 独占。</span></li>
+    <li><em>3</em><span>上游 <code>close()</code> 会带着目的地一起关；任一端出错会中断另一端，并让 Promise reject。</span></li>
+    <li><em>4</em><span>想在中途加工数据用 <code>pipeThrough()</code>；<code>pipeTo()</code> 是链路的终点，只负责搬完并给你一个回执。</span></li>
+  </ul>
+</div>
+</body>
+</html>

@@ -64,38 +64,39 @@ writer.close();
 })();
 ```
 
-## pipeThrough(transformStream)
+## Methods
 
-`pipeThrough()` 并不是在原流上做修改，而是创建一个新的流。类似于包装流
+### pipeThrough(transformStream)
+
+当调用 `readableStream.pipeThrough(transformStream)` 时，底层实际上执行了两件事：
+
+1. 它将 `readableStream`（数据源）管道连接（pipe）到 `transformStream.writable`（写入端）。
+
+2. **它返回了 `transformStream.readable`（读取端）。**
+
+![](https://markdown-lai.oss-cn-hangzhou.aliyuncs.com/marktext1789971717007.png)
+
+有两种方式获取ReadableStream：
+
+- 方式一：
 
 ```js
-// 模拟 pipeThrough 的内部原理
-ReadableStream.prototype.pipeThrough = function(transformStream) {
-  // 1. 自动把当前流（source）的数据管接/写入到 transformStream 的入口（writable）
-  this.pipeTo(transformStream.writable);
-
-  // 2. 自动把 transformStream 的出口（readable）返回出来
-  return transformStream.readable; 
-};
+const transformedStream = sourceStream.pipeThrough(upperCaseStream);
+const reader = transformedStream.getReader();
 ```
 
-- **`pipeThrough(transformStream)`**：
+- 方式二：
 
-  - **作用**：连接一个转换流，数据进去，加工后的数据出来。
+```js
+sourceStream.pipeThrough(upperCaseStream);
+const reader = upperCaseStream.readable.getReader();
+```
 
-  - **返回值**：一个新的 **`ReadableStream`**（可以继续 `.pipeThrough` 或 `.pipeTo`）。
+推荐使用方式一，表达意图更清晰。
 
-  - **角色**：中间节点。
+### pipeTo(writableStream)
 
-## pipeTo(writableStream)
-
-- **`pipeTo(writableStream)`**：
-
-  - **作用**：把 `ReadableStream` 的数据**直接灌入**一个 `WritableStream`（目标终点）。
-
-  - **返回值**：一个 **`Promise`**（当所有数据传输完成，或者中间出错时 resolve/reject）。
-
-  - **角色**：终点节点。
+把 `ReadableStream` 的数据**直接灌入**一个 `WritableStream`（终点）。
 
 ```js
 // 假设有个文件写入流
@@ -149,9 +150,5 @@ processStream();
 // 读取到转换后的数据: WORLD, 
 // 读取到转换后的数据: THIS IS WEB STREAM!
 ```
-
-
-
-
 
 

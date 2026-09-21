@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>pipeThrough() 示意图 · Web Streams API</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    color-scheme: light dark;
+    --bg: #faf8f5;
+    --panel: #ffffff;
+    --panel-2: #f4f1ec;
+    --line: #e7e2db;
+    --line-2: #cfc8bd;
+    --text: #1b1917;
+    --muted: #6d675f;
+    --brand: #d9741f;
+    --brand-soft: #fdf1e4;
+    --src: #2563eb;
+    --src-soft: #e9effd;
+    --out: #0f9d58;
+    --out-soft: #e7f6ee;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121110;
+      --panel: #1b1a18;
+      --panel-2: #232120;
+      --line: #302d2a;
+      --line-2: #4a443d;
+      --text: #f1ede7;
+      --muted: #a49d94;
+      --brand: #ffb454;
+      --brand-soft: #2b2217;
+      --src: #7aa2f7;
+      --src-soft: #1a2233;
+      --out: #5fd39a;
+      --out-soft: #16261f;
+    }
+  }
+
+  body {
+    margin: 0;
+    padding: 48px 24px 72px;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; }
+
+  .eyebrow {
+    margin: 0 0 8px;
+    font: 600 11px/1 var(--mono);
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+  h1 { margin: 0 0 10px; font-size: clamp(24px, 3.4vw, 34px); letter-spacing: -.02em; }
+  h1 code { font-family: var(--mono); color: var(--brand); }
+  .lede { margin: 0 0 8px; color: var(--muted); max-width: 64ch; }
+  .lede b { color: var(--text); }
+
+  svg.figure { display: block; width: 100%; height: auto; margin: 10px 0 0; font-family: var(--mono); }
+
+  /* ---------- SVG 样式 ---------- */
+  .chip { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.5; }
+  .code { font-size: 16px; }
+  .c-muted { fill: var(--muted); }
+  .c-key { fill: var(--brand); font-weight: 700; }
+  .c-src { fill: var(--src); font-weight: 600; }
+  .c-tr { fill: var(--brand); font-weight: 600; }
+  .c-tr2 { fill: var(--brand); opacity: .8; }
+
+  .wire { fill: none; stroke-width: 1.6; stroke-dasharray: 5 5; stroke-linecap: round; }
+  .wire-src { stroke: var(--src); opacity: .75; }
+  .wire-tr { stroke: var(--brand); opacity: .75; }
+  .dot-src { fill: var(--src); }
+  .dot-tr { fill: var(--brand); }
+  .halo { fill: none; stroke: var(--bg); stroke-width: 8; stroke-linecap: round; }
+  .return-wire { fill: none; stroke: var(--brand); stroke-width: 2.6; stroke-linecap: round; }
+
+  .tank-body { fill: var(--src-soft); stroke: var(--src); stroke-width: 1.5; }
+  .tank-top { fill: var(--panel); stroke: var(--src); stroke-width: 1.5; opacity: .9; }
+  .tank-bottom { fill: var(--src); opacity: .18; }
+  .tank-out .tank-body { fill: var(--brand-soft); stroke: var(--brand); stroke-width: 2; }
+  .tank-out .tank-top { stroke: var(--brand); }
+  .tank-out .tank-bottom { fill: var(--brand); opacity: .22; }
+
+  .name { font-size: 13px; font-weight: 700; }
+  .sub { font-size: 10.5px; fill: var(--muted); }
+  .name-src { fill: var(--src); }
+  .name-tr { fill: var(--brand); }
+  .name-out { fill: var(--brand); }
+
+  .tile { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.4; }
+  .tile-src { fill: var(--src-soft); stroke: var(--src); stroke-width: 1.4; }
+  .tile-out { fill: var(--out-soft); stroke: var(--out); stroke-width: 1.4; }
+  .tile-t { font-size: 15px; font-weight: 700; text-anchor: middle; }
+  .tile-t-src { fill: var(--src); }
+  .tile-t-out { fill: var(--out); }
+  .pill { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.2; }
+  .pill-t { font-size: 10.5px; fill: var(--muted); }
+  .liquid-src { fill: var(--src); opacity: .08; }
+  .liquid-out { fill: var(--brand); opacity: .1; }
+  .bolt { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.4; }
+
+  .pipe { fill: none; stroke: var(--line-2); stroke-width: 2; }
+  .pipe-fill { fill: var(--panel-2); stroke: none; }
+  .collar { fill: var(--panel-2); stroke: var(--line-2); stroke-width: 1.6; }
+  .flow { fill: none; stroke-width: 3; stroke-dasharray: 3 9; stroke-linecap: round; }
+  .flow-a { stroke: var(--src); opacity: .85; animation: march 1.4s linear infinite; }
+  .flow-b { stroke: var(--brand); opacity: .85; animation: march 1.4s linear infinite; }
+  @keyframes march { to { stroke-dashoffset: -24; } }
+
+  .machine { fill: var(--panel-2); stroke: var(--line-2); stroke-width: 1.6; }
+  .machine-glow { fill: var(--brand); opacity: 0; animation: work 5s ease-in-out infinite; }
+  @keyframes work {
+    0%, 36% { opacity: 0; }
+    46% { opacity: .32; }
+    56% { opacity: .06; }
+    68%, 100% { opacity: 0; }
+  }
+  .split { stroke: var(--line-2); stroke-width: 1.4; stroke-dasharray: 4 4; }
+  .half-t { font-size: 11px; font-weight: 700; text-anchor: middle; }
+  .half-w { fill: var(--src); }
+  .half-r { fill: var(--out); }
+  .cog {
+    fill: none; stroke: var(--brand); stroke-width: 9; stroke-dasharray: 9.4 5.6;
+    transform-box: fill-box; transform-origin: center;
+    animation: spin 7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .cog-hub { fill: var(--panel); stroke: var(--line-2); stroke-width: 1.4; }
+
+  .travel { animation-duration: 5s; animation-timing-function: linear; animation-iteration-count: infinite; }
+  .travel-in { animation-name: travelIn; }
+  .travel-out { animation-name: travelOut; }
+  @keyframes travelIn {
+    0%   { transform: translate(286px, 300px); opacity: 0; }
+    6%   { opacity: 1; }
+    34%  { transform: translate(366px, 300px); opacity: 1; }
+    42%  { transform: translate(366px, 300px); opacity: 0; }
+    100% { transform: translate(286px, 300px); opacity: 0; }
+  }
+  @keyframes travelOut {
+    0%, 52% { transform: translate(654px, 300px); opacity: 0; }
+    58%     { opacity: 1; }
+    90%     { transform: translate(742px, 300px); opacity: 1; }
+    98%     { transform: translate(742px, 300px); opacity: 0; }
+    100%    { transform: translate(654px, 300px); opacity: 0; }
+  }
+
+  .flag { fill: var(--brand); }
+  .flag-t { font-size: 11px; font-weight: 700; text-anchor: middle; fill: #fff; }
+  @media (prefers-color-scheme: dark) { .flag-t { fill: #1b1917; } }
+  .sparkle { fill: var(--brand); animation: twinkle 3.2s ease-in-out infinite; }
+  .sparkle-2 { animation-delay: .9s; }
+  @keyframes twinkle { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+  .glow-ring { fill: var(--brand); stroke: none; opacity: .07; animation: halo 3.4s ease-in-out infinite; }
+  @keyframes halo { 0%, 100% { opacity: .05; } 50% { opacity: .13; } }
+
+  .wire-t { fill: var(--muted); font-size: 10.5px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flow-a, .flow-b, .cog, .machine-glow, .travel, .sparkle, .glow-ring { animation: none; }
+    .travel { opacity: 0; }
+  }
+
+  /* ---------- 说明 ---------- */
+  .notes { margin: 26px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .notes li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .notes li b { color: var(--text); font-weight: 600; }
+  .notes li em {
+    flex: none; width: 18px; height: 18px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--brand-soft);
+    color: var(--brand);
+    font: 700 10px/1 var(--mono);
+    font-style: normal;
+  }
+  code { font-family: var(--mono); font-size: .93em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Web Streams API</p>
+  <h1><code>pipeThrough()</code> 示意图</h1>
+  <p class="lede">
+    上游流被送进转换器，穿过管道一路加工；<b>这个调用的返回值</b>就是转换器出口的那条新流 ——
+    从此它代表后面的数据，原流则被锁定。
+  </p>
+
+  <svg class="figure" viewBox="0 0 1000 480" role="img"
+       aria-label="source.pipeThrough(transformStream) 返回一个新的 ReadableStream 示意图">
+    <defs>
+      <marker id="arrowReturn" viewBox="0 0 12 12" markerWidth="11" markerHeight="11"
+              refX="9" refY="6" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+        <path d="M1 1 L11 6 L1 11 z" fill="var(--brand)" />
+      </marker>
+      <path id="spark" d="M0 -9 L2.2 -2.2 L9 0 L2.2 2.2 L0 9 L-2.2 2.2 L-9 0 L-2.2 -2.2 Z" />
+    </defs>
+
+    <!-- ===== 一行代码，三个词分别指到三个对象 ===== -->
+    <rect class="chip" x="245" y="26" width="510" height="50" rx="14" />
+    <text class="code" x="270" y="58">
+      <tspan class="c-muted">const </tspan><tspan class="c-key">next</tspan><tspan class="c-muted"> = </tspan><tspan class="c-src">source</tspan><tspan class="c-tr">.pipeThrough(</tspan><tspan class="c-tr2">transformStream</tspan><tspan class="c-tr">)</tspan>
+    </text>
+
+    <!-- 连线：source → 上游料罐 -->
+    <path class="wire wire-src" d="M423 80 C423 138, 170 128, 170 174" />
+    <circle class="dot-src" cx="170" cy="176" r="3.6" />
+
+    <!-- 连线：pipeThrough(transformStream) → 转换机器 -->
+    <path class="wire wire-tr" d="M587 80 V 192" />
+    <circle class="dot-tr" cx="587" cy="194" r="3.6" />
+
+    <!-- 连线：next = 返回值 → 成品罐（高亮实线，带光晕穿过其它元素） -->
+    <path class="halo" d="M347 80 V 424 Q347 432 355 432 H838 Q846 432 846 424 V 398" />
+    <path class="return-wire" marker-end="url(#arrowReturn)"
+          d="M347 80 V 424 Q347 432 355 432 H838 Q846 432 846 424 V 398" />
+    <rect class="chip" x="536" y="419" width="152" height="26" rx="13" />
+    <text class="wire-t" x="612" y="436" text-anchor="middle">const next = 返回值</text>
+
+    <!-- ===== 上游料罐 ===== -->
+    <g>
+      <ellipse class="tank-bottom" cx="170" cy="372" rx="84" ry="17" />
+      <rect class="liquid-src" x="90" y="266" width="160" height="92" rx="8" />
+      <rect class="tank-body" x="86" y="200" width="168" height="172" />
+      <ellipse class="tank-top" cx="170" cy="200" rx="84" ry="17" />
+      <text class="name name-src" x="170" y="238" text-anchor="middle">ReadableStream</text>
+      <text class="sub" x="170" y="256" text-anchor="middle">上游 · 待加工</text>
+
+      <rect class="tile tile-src" x="100" y="272" width="40" height="34" rx="9" />
+      <text class="tile-t tile-t-src" x="120" y="294">a</text>
+      <rect class="tile tile-src" x="150" y="272" width="40" height="34" rx="9" />
+      <text class="tile-t tile-t-src" x="170" y="294">b</text>
+      <rect class="tile tile-src" x="200" y="272" width="40" height="34" rx="9" />
+      <text class="tile-t tile-t-src" x="220" y="294">c</text>
+
+      <rect class="pill" x="104" y="326" width="132" height="24" rx="12" />
+      <text class="pill-t" x="170" y="342" text-anchor="middle">原流 locked</text>
+    </g>
+
+    <!-- ===== 管道：上游 → 机器 ===== -->
+    <rect class="pipe-fill" x="254" y="289" width="126" height="22" />
+    <rect class="pipe" x="254" y="289" width="126" height="22" rx="11" fill="none" />
+    <rect class="collar" x="248" y="284" width="14" height="32" rx="4" />
+    <rect class="collar" x="372" y="284" width="14" height="32" rx="4" />
+    <path class="flow flow-a" d="M262 300 H372" />
+
+    <!-- ===== TransformStream 机器 ===== -->
+    <rect class="machine" x="380" y="200" width="260" height="172" rx="16" />
+    <rect class="machine-glow" x="392" y="212" width="236" height="148" rx="12" />
+    <text class="name name-tr" x="510" y="234" text-anchor="middle">TransformStream</text>
+    <text class="sub" x="510" y="252" text-anchor="middle">逐个加工每个 chunk</text>
+    <path class="split" d="M510 264 V 356" />
+    <text class="half-t half-w" x="445" y="288">writable</text>
+    <text class="sub" x="445" y="304" text-anchor="middle">入口</text>
+    <text class="half-t half-r" x="575" y="288">readable</text>
+    <text class="sub" x="575" y="304" text-anchor="middle">出口</text>
+    <circle class="cog" cx="510" cy="324" r="24" />
+    <circle class="cog-hub" cx="510" cy="324" r="12" />
+    <circle class="bolt" cx="398" cy="218" r="3.4" />
+    <circle class="bolt" cx="622" cy="218" r="3.4" />
+    <circle class="bolt" cx="398" cy="354" r="3.4" />
+    <circle class="bolt" cx="622" cy="354" r="3.4" />
+
+    <!-- 管道：机器 → 返回值 ===== -->
+    <rect class="pipe-fill" x="640" y="289" width="122" height="22" />
+    <rect class="pipe" x="640" y="289" width="122" height="22" rx="11" fill="none" />
+    <rect class="collar" x="634" y="284" width="14" height="32" rx="4" />
+    <rect class="collar" x="754" y="284" width="14" height="32" rx="4" />
+    <path class="flow flow-b" d="M648 300 H754" />
+
+    <!-- ===== 返回值：成品罐 ===== -->
+    <ellipse class="glow-ring" cx="846" cy="292" rx="118" ry="118" />
+    <g class="tank-out">
+      <ellipse class="tank-bottom" cx="846" cy="372" rx="84" ry="17" />
+      <rect class="liquid-out" x="770" y="266" width="160" height="92" rx="8" />
+      <rect class="tank-body" x="762" y="200" width="168" height="172" />
+      <ellipse class="tank-top" cx="846" cy="200" rx="84" ry="17" />
+    </g>
+
+    <text class="name name-out" x="846" y="238" text-anchor="middle">ReadableStream</text>
+    <text class="sub" x="846" y="256" text-anchor="middle">新的流 · 转换后的数据</text>
+
+    <rect class="tile tile-out" x="776" y="272" width="40" height="34" rx="9" />
+    <text class="tile-t tile-t-out" x="796" y="294">A</text>
+    <rect class="tile tile-out" x="826" y="272" width="40" height="34" rx="9" />
+    <text class="tile-t tile-t-out" x="846" y="294">B</text>
+    <rect class="tile tile-out" x="876" y="272" width="40" height="34" rx="9" />
+    <text class="tile-t tile-t-out" x="896" y="294">C</text>
+
+    <use class="sparkle" href="#spark" transform="translate(748,124) scale(.75)" />
+    <use class="sparkle sparkle-2" href="#spark" transform="translate(946,132) scale(.55)" />
+
+    <g>
+      <rect class="flag" x="770" y="146" width="152" height="28" rx="14" />
+      <path class="flag" d="M846 186 l-7 -12 h14 z" />
+      <text class="flag-t" x="846" y="165">返回值</text>
+    </g>
+
+    <!-- ===== 流动的 chunk ===== -->
+    <g class="travel travel-in">
+      <rect class="tile tile-src" x="-20" y="-17" width="40" height="34" rx="9" />
+      <text class="tile-t tile-t-src" x="0" y="5">b</text>
+    </g>
+    <g class="travel travel-out">
+      <rect class="tile tile-out" x="-20" y="-17" width="40" height="34" rx="9" />
+      <text class="tile-t tile-t-out" x="0" y="5">B</text>
+    </g>
+  </svg>
+
+  <ul class="notes">
+    <li><em>1</em><span>返回值是 TransformStream <b>readable 出口的新流</b>：不是原流，也不是转换器本身。</span></li>
+    <li><em>2</em><span>原流一旦进入管道就<b>被锁定</b>（<code>locked === true</code>），不能再 <code>getReader()</code> 直接读。</span></li>
+    <li><em>3</em><span>拿到的新流可以继续 <code>pipeThrough()</code> 串联下一个转换器，或 <code>pipeTo()</code> 交给下游消费。</span></li>
+  </ul>
+</div>
+</body>
+</html>
