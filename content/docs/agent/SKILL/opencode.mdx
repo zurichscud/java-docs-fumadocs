@@ -1,0 +1,19 @@
+---
+title: "open code"
+---
+
+opencode 从这些位置读取
+
+项目级（从 cwd 逐级向上找，直到 git worktree 根）
+
+- `.opencode/skills/<name>/SKILL.md`（`skill/` 单数也认）
+- `.claude/skills/<name>/SKILL.md`
+- `.agents/skills/<name>/SKILL.md`
+
+全局
+
+- `~/.config/opencode/skills/<name>/SKILL.md`
+- `~/.claude/skills/<name>/SKILL.md`
+- `~/.agents/skills/<name>/SKILL.md`
+
+

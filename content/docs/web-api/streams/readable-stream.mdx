@@ -144,6 +144,46 @@ consume();
 
 - **`pull()` 只在队列未满时被调用**：背压的核心。队列满时流会**自动停止调用 `pull()`**，生产随之暂停（此时控制台只会看到先产出的 2 个 Chunk）；等到消费者 `read()` 取走数据、队列腾出空间后，流才会再次调用 `pull()` 生产下一块数据。
 
+## 分叉
+
+**同一份流数据需要被两个消费者同时读取**可以使用`tee`方法将可读流分叉。
+
+因为 `ReadableStream` 默认是**单消费者模式**：
+
+```js
+const reader = stream.getReader()
+```
+
+一旦被一个 reader 锁定，其他地方不能再读。
+
+```js
+const stream = new ReadableStream({
+  start(controller) {
+    controller.enqueue('hello')
+    controller.enqueue('world')
+    controller.close()
+  }
+})
+
+// 第一个消费者拿走 reader
+const reader1 = stream.getReader()
+
+// 第二个消费者尝试读取
+//TypeError: Cannot get a reader from a locked stream
+const reader2 = stream.getReader()
+```
+
+而 `tee()` 可以把一个流复制成两个独立的可读流：
+
+```js
+const [stream1, stream2] = stream.tee()
+
+stream1.getReader()
+stream2.getReader()
+```
+
+数据会同时流向两个分支。
+
 ## Example
 
 处理 Fetch 流式响应
